@@ -5,7 +5,7 @@ from .models import User
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['__all__']
+        fields = ['id', 'email', 'name', 'cpf', 'password', 'created_at']
 
     def create(self, validated_data):
         user = User(
@@ -22,7 +22,7 @@ class LogoutSerializer(serializers.Serializer):
     refresh = serializers.CharField()
 
     def validate(self, attrs):
-        self.refresh = attrs['refresh']
+        self.token = attrs['refresh']
         return attrs
     
     def save(self, **kwargs):
