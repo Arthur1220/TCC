@@ -33,5 +33,4 @@ class Animal(models.Model):
     species = models.ForeignKey(Species, on_delete=models.PROTECT)
     breed = models.ForeignKey(Breed, on_delete=models.PROTECT, blank=True, null=True)
     
-    lote = models.ForeignKey(on_delete=models.SET_NULL, blank=True, null=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='animais')

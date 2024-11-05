@@ -24,4 +24,4 @@ class BreedSerializer(serializers.ModelSerializer):
 class AnimalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Animal
-        fields = ['id', 'name', 'identification', 'born_date', 'register_date', 'sex', 'status', 'species', 'breed', 'lote', 'owner']
+        fields = ['id', 'name', 'identification', 'born_date', 'register_date', 'sex', 'status', 'species', 'breed', 'owner']
