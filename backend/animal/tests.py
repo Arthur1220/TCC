@@ -1,5 +1,6 @@
 # animal/tests.py
-
+from rest_framework.authtoken.models import Token
+from rest_framework_simplejwt.tokens import RefreshToken
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
@@ -184,6 +185,13 @@ class AnimalAPITest(TestCase):
             password='testpassword'
         )
         
+        # Gere um token JWT para o usuário
+        refresh = RefreshToken.for_user(self.user)
+        self.access_token = str(refresh.access_token)
+        
+        # Configure o cliente de teste para usar o token JWT
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.access_token)
+        
         # Criação das instâncias necessárias para Animal
         self.sex = Sex.objects.create(name='Male', description='Macho')
         self.status = Status.objects.create(name='active', description='Ativo')
@@ -206,6 +214,9 @@ class AnimalAPITest(TestCase):
 
     def test_register_animal(self):
         response = self.client.post('/registerAnimal/', self.animal_data, format='json')
+        if response.status_code != status.HTTP_201_CREATED:
+            print("Response Status Code:", response.status_code)
+            print("Response Data:", response.data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Animal.objects.count(), 1)
         animal = Animal.objects.get()

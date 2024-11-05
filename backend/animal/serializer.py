@@ -22,6 +22,8 @@ class BreedSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'description']
 
 class AnimalSerializer(serializers.ModelSerializer):
+    owner = serializers.PrimaryKeyRelatedField(read_only=True)
+    
     class Meta:
         model = Animal
         fields = ['id', 'name', 'identification', 'born_date', 'register_date', 'sex', 'status', 'species', 'breed', 'owner']

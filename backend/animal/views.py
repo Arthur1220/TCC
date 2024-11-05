@@ -20,7 +20,7 @@ class SexViewSet(ModelViewSet):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
-            return Response({'message': 'Invalid data'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @api_view(['GET'])
     @permission_classes([AllowAny])
@@ -59,7 +59,7 @@ class StatusViewSet(ModelViewSet):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
-            return Response({'message': 'Invalid data'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @api_view(['GET'])
     @permission_classes([AllowAny])
@@ -98,7 +98,7 @@ class SpeciesViewSet(ModelViewSet):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
-            return Response({'message': 'Invalid data'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @api_view(['GET'])
     @permission_classes([AllowAny])
@@ -137,7 +137,7 @@ class BreedViewSet(ModelViewSet):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
-            return Response({'message': 'Invalid data'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @api_view(['GET'])
     @permission_classes([AllowAny])
@@ -168,7 +168,7 @@ class AnimalViewSet(ModelViewSet):
     serializer_class = AnimalSerializer
 
     @api_view(['POST'])
-    @permission_classes([AllowAny])
+    @permission_classes([IsAuthenticated])
     def create(request):
         data = request.data.copy()
         serializer = AnimalSerializer(data=data)
@@ -176,7 +176,7 @@ class AnimalViewSet(ModelViewSet):
             serializer.save(owner=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
-            return Response({'message': 'Invalid data'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @api_view(['GET'])
     @permission_classes([AllowAny])
@@ -213,6 +213,6 @@ class AnimalViewSet(ModelViewSet):
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
-                return Response({'message': 'Invalid data'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except:
             return Response({'message': 'Animal not find'}, status=status.HTTP_404_NOT_FOUND)
