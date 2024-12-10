@@ -1,6 +1,6 @@
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from rest_framework import serializers
-from .models import User
+from .models import User,Role, UserRole
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -12,6 +12,16 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
+    
+class RoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Role
+        fields = '__all__'
+
+class UserRoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserRole
+        fields = '__all__'
     
 class LogoutSerializer(serializers.Serializer):
     refresh = serializers.CharField()
