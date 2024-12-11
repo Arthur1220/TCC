@@ -31,4 +31,4 @@ COPY ./entrypoint.sh /code/entrypoint.sh
 RUN chmod +x /code/entrypoint.sh
 
 # Defina o entrypoint e execute o script de fixtures após migrações
-ENTRYPOINT ["/bin/sh", "-c", "/code/entrypoint.sh && python manage.py migrate && /code/load_fixtures.sh"]
+ENTRYPOINT ["/code/entrypoint.sh"]

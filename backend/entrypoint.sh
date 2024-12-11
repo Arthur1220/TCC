@@ -4,10 +4,10 @@
 echo "Aplicando migrações..."
 python manage.py migrate
 
-# Coleta os arquivos estáticos (se necessário)
-# echo "Coletando arquivos estáticos..."
-# python manage.py collectstatic --noinput
+# Carrega os dados das fixtures
+echo "Carregando fixtures..."
+/code/load_fixtures.sh
 
 # Inicia o servidor
 echo "Iniciando o servidor Django..."
-exec "$@"
+exec python manage.py runserver 0.0.0.0:8000
