@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'property',
     'animal',
     'event',
+    'blockchain',
 ]
 
 AUTH_USER_MODEL = 'user.User'

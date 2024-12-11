@@ -6,6 +6,7 @@ urlpatterns = [
     path('property/', include('property.urls')),
     path('animal/', include('animal.urls')),
     path('event/', include('event.urls')),
+    path('blockchain/', include('blockchain.urls')),
 
     path('admin/', admin.site.urls),
 ]

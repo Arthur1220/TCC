@@ -1,0 +1,42 @@
+[
+    {
+        "model": "blockchain.status",
+        "pk": 1,
+        "fields": {
+            "name": "Pendente",
+            "description": "Transação aguardando confirmação na blockchain."
+        }
+    },
+    {
+        "model": "blockchain.status",
+        "pk": 2,
+        "fields": {
+            "name": "Confirmada",
+            "description": "Transação confirmada com sucesso na blockchain."
+        }
+    },
+    {
+        "model": "blockchain.status",
+        "pk": 3,
+        "fields": {
+            "name": "Falhou",
+            "description": "A transação falhou e não foi registrada na blockchain."
+        }
+    },
+    {
+        "model": "blockchain.status",
+        "pk": 4,
+        "fields": {
+            "name": "Cancelada",
+            "description": "A transação foi cancelada antes de ser enviada à blockchain."
+        }
+    },
+    {
+        "model": "blockchain.status",
+        "pk": 5,
+        "fields": {
+            "name": "Em Andamento",
+            "description": "A transação está sendo processada pela blockchain."
+        }
+    }
+]
