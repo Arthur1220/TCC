@@ -3,8 +3,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
-from django.contrib.auth import authenticate
-from rest_framework import generics, status
+from rest_framework import status
 from .models import Property
 from .serializers import PropertySerializer
 
