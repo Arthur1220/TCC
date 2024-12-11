@@ -1,0 +1,114 @@
+[
+    {
+        "model": "event.eventtype",
+        "pk": 1,
+        "fields": {
+            "name": "Vacinação",
+            "description": "Registro de vacinas aplicadas ao animal."
+        }
+    },
+    {
+        "model": "event.eventtype",
+        "pk": 2,
+        "fields": {
+            "name": "Movimentação",
+            "description": "Registro de movimentação do animal entre locais ou propriedades."
+        }
+    },
+    {
+        "model": "event.eventtype",
+        "pk": 3,
+        "fields": {
+            "name": "Abate",
+            "description": "Registro do abate do animal."
+        }
+    },
+    {
+        "model": "event.eventtype",
+        "pk": 4,
+        "fields": {
+            "name": "Reprodução",
+            "description": "Registro de eventos reprodutivos como inseminação ou cobertura."
+        }
+    },
+    {
+        "model": "event.eventtype",
+        "pk": 5,
+        "fields": {
+            "name": "Medicação",
+            "description": "Registro de medicamentos administrados ao animal."
+        }
+    },
+    {
+        "model": "event.eventtype",
+        "pk": 6,
+        "fields": {
+            "name": "Pesagem",
+            "description": "Registro de pesagens realizadas no animal."
+        }
+    },
+    {
+        "model": "event.eventtype",
+        "pk": 7,
+        "fields": {
+            "name": "Ocorrência Especial",
+            "description": "Registro de eventos não planejados, como doenças ou acidentes."
+        }
+    },
+    {
+        "model": "event.eventtype",
+        "pk": 8,
+        "fields": {
+            "name": "Inspeção",
+            "description": "Registro de inspeções sanitárias realizadas no animal."
+        }
+    },
+    {
+        "model": "event.eventtype",
+        "pk": 9,
+        "fields": {
+            "name": "Exame Andrológico",
+            "description": "Registro de exames andrológicos realizados em machos reprodutores."
+        }
+    },
+    {
+        "model": "event.eventtype",
+        "pk": 10,
+        "fields": {
+            "name": "Exame de Gestação",
+            "description": "Registro de exames de gestação realizados nas fêmeas."
+        }
+    },
+    {
+        "model": "event.eventtype",
+        "pk": 11,
+        "fields": {
+            "name": "Alteração de Status",
+            "description": "Registro de alterações no status do animal, como ativação ou desativação."
+        }
+    },
+    {
+        "model": "event.eventtype",
+        "pk": 12,
+        "fields": {
+            "name": "Acompanhamento de Dieta",
+            "description": "Registro de alterações ou acompanhamento da dieta do animal."
+        }
+    },
+    {
+        "model": "event.eventtype",
+        "pk": 13,
+        "fields": {
+            "name": "Análise de Desempenho",
+            "description": "Registro de análises de desempenho do animal."
+        }
+    },
+    {
+        "model": "event.eventtype",
+        "pk": 14,
+        "fields": {
+            "name": "Transporte",
+            "description": "Registro de transporte do animal."
+        }
+    }
+]

@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'user',
     'property',
     'animal',
+    'event',
 ]
 
 AUTH_USER_MODEL = 'user.User'
