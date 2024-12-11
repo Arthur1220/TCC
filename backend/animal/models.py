@@ -51,6 +51,7 @@ class Animal(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="animals")
     group = models.ForeignKey(AnimalGroup, on_delete=models.CASCADE, related_name="animals", blank=True, null=True)
     gender = models.ForeignKey(Gender, on_delete=models.CASCADE, related_name="animals")
+    observartions = models.TextField(max_length=100, blank=True, null=True)
 
     def __str__(self):
         return f"{self.identification} - {self.status.name}"

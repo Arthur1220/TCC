@@ -1,0 +1,322 @@
+[
+    {
+        "model": "animal.breed",
+        "pk": 1,
+        "fields": {
+            "name": "Holandesa",
+            "species": 1
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 2,
+        "fields": {
+            "name": "Angus",
+            "species": 1
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 3,
+        "fields": {
+            "name": "Hereford",
+            "species": 1
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 4,
+        "fields": {
+            "name": "Nelore",
+            "species": 1
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 5,
+        "fields": {
+            "name": "Guzerá",
+            "species": 1
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 6,
+        "fields": {
+            "name": "Santa Inês",
+            "species": 2
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 7,
+        "fields": {
+            "name": "Dorper",
+            "species": 2
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 8,
+        "fields": {
+            "name": "Texel",
+            "species": 2
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 9,
+        "fields": {
+            "name": "Suffolk",
+            "species": 2
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 10,
+        "fields": {
+            "name": "Morada Nova",
+            "species": 2
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 11,
+        "fields": {
+            "name": "Anglo Nubiano",
+            "species": 3
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 12,
+        "fields": {
+            "name": "Saanen",
+            "species": 3
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 13,
+        "fields": {
+            "name": "Boer",
+            "species": 3
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 14,
+        "fields": {
+            "name": "Pardo Alpina",
+            "species": 3
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 15,
+        "fields": {
+            "name": "Toggenburg",
+            "species": 3
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 16,
+        "fields": {
+            "name": "Quarto de Milha",
+            "species": 4
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 17,
+        "fields": {
+            "name": "Árabe",
+            "species": 4
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 18,
+        "fields": {
+            "name": "Mangalarga Marchador",
+            "species": 4
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 19,
+        "fields": {
+            "name": "Crioulo",
+            "species": 4
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 20,
+        "fields": {
+            "name": "Large White",
+            "species": 5
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 21,
+        "fields": {
+            "name": "Landrace",
+            "species": 5
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 22,
+        "fields": {
+            "name": "Duroc",
+            "species": 5
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 23,
+        "fields": {
+            "name": "Pietrain",
+            "species": 5
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 24,
+        "fields": {
+            "name": "Leghorn",
+            "species": 6
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 25,
+        "fields": {
+            "name": "Rhode Island Red",
+            "species": 6
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 26,
+        "fields": {
+            "name": "Cornish",
+            "species": 6
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 27,
+        "fields": {
+            "name": "Plymouth Rock",
+            "species": 6
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 28,
+        "fields": {
+            "name": "Tambaqui",
+            "species": 7
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 29,
+        "fields": {
+            "name": "Tilápia",
+            "species": 7
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 30,
+        "fields": {
+            "name": "Pirarucu",
+            "species": 7
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 31,
+        "fields": {
+            "name": "Italiana",
+            "species": 8
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 32,
+        "fields": {
+            "name": "Africana",
+            "species": 8
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 33,
+        "fields": {
+            "name": "Nova Zelândia",
+            "species": 9
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 34,
+        "fields": {
+            "name": "Califórnia",
+            "species": 9
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 35,
+        "fields": {
+            "name": "Labrador",
+            "species": 10
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 36,
+        "fields": {
+            "name": "Pastor Alemão",
+            "species": 10
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 37,
+        "fields": {
+            "name": "Golden Retriever",
+            "species": 10
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 38,
+        "fields": {
+            "name": "Persa",
+            "species": 11
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 39,
+        "fields": {
+            "name": "Siamês",
+            "species": 11
+        }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 40,
+        "fields": {
+            "name": "Maine Coon",
+            "species": 11
+        }
+    }
+]

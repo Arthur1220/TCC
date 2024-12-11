@@ -1,0 +1,23 @@
+[
+    {
+        "model": "animal.identificationtype",
+        "pk": 1,
+        "fields": {
+            "name": "Chip eletrônico"
+        }
+    },
+    {
+        "model": "animal.identificationtype",
+        "pk": 2,
+        "fields": {
+            "name": "Brinco"
+        }
+    },
+    {
+        "model": "animal.identificationtype",
+        "pk": 3,
+        "fields": {
+            "name": "QR Code"
+        }
+    }
+]

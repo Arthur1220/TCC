@@ -1,0 +1,82 @@
+[
+    {
+        "model": "animal.gender",
+        "pk": 1,
+        "fields": {
+            "name": "Macho",
+            "description": "Animal do sexo masculino."
+        }
+    },
+    {
+        "model": "animal.gender",
+        "pk": 2,
+        "fields": {
+            "name": "Fêmea",
+            "description": "Animal do sexo feminino."
+        }
+    },
+    {
+        "model": "animal.gender",
+        "pk": 3,
+        "fields": {
+            "name": "Macho de Corte",
+            "description": "Animal macho destinado à produção de carne."
+        }
+    },
+    {
+        "model": "animal.gender",
+        "pk": 4,
+        "fields": {
+            "name": "Macho Reprodutor",
+            "description": "Animal macho utilizado para reprodução."
+        }
+    },
+    {
+        "model": "animal.gender",
+        "pk": 5,
+        "fields": {
+            "name": "Fêmea de Corte",
+            "description": "Animal fêmea destinada à produção de carne."
+        }
+    },
+    {
+        "model": "animal.gender",
+        "pk": 6,
+        "fields": {
+            "name": "Fêmea Reprodutora",
+            "description": "Animal fêmea utilizada para reprodução."
+        }
+    },
+    {
+        "model": "animal.gender",
+        "pk": 7,
+        "fields": {
+            "name": "Fêmea Leiteira",
+            "description": "Animal fêmea destinada à produção de leite."
+        }
+    },
+    {
+        "model": "animal.gender",
+        "pk": 8,
+        "fields": {
+            "name": "Fêmea Jovem",
+            "description": "Animal fêmea em fase de crescimento."
+        }
+    },
+    {
+        "model": "animal.gender",
+        "pk": 9,
+        "fields": {
+            "name": "Macho Castrado",
+            "description": "Animal macho que foi castrado."
+        }
+    },
+    {
+        "model": "animal.gender",
+        "pk": 10,
+        "fields": {
+            "name": "Fêmea Não Reprodutiva",
+            "description": "Animal fêmea não destinada à reprodução."
+        }
+    }
+]

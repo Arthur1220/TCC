@@ -19,6 +19,7 @@ class AnimalTestCase(APITestCase):
         self.gender = Gender.objects.create(name="Male", description="Test gender")
         self.status = Status.objects.create(name="Active", description="Animal is active")
         self.identification_type = IdentificationType.objects.create(name="Tag")
+        self.observation = "Test observations"
 
         # Animal data
         self.animal_data = {
@@ -30,7 +31,8 @@ class AnimalTestCase(APITestCase):
             "status": self.status,
             "owner": self.user,
             "group": self.group,
-            "gender": self.gender
+            "gender": self.gender,
+            "observations": self.observation
         }
 
         self.animal = Animal.objects.create(**self.animal_data)
@@ -45,7 +47,8 @@ class AnimalTestCase(APITestCase):
             "status": self.status.id,
             "owner": self.user.id,
             "group": self.group.id,
-            "gender": self.gender.id
+            "gender": self.gender.id,
+            "observations": "Test observations"
         }
         response = self.client.post("/animal/animal-register/", data=animal_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

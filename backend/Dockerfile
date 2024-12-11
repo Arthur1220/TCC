@@ -22,9 +22,13 @@ RUN pip install -r requirements.txt
 # Copie o código do projeto
 COPY . /code/
 
+# Copie o script load_fixtures.sh e torne-o executável
+COPY ./load_fixtures.sh /code/load_fixtures.sh
+RUN chmod +x /code/load_fixtures.sh
+
 # Cole o entrypoint
 COPY ./entrypoint.sh /code/entrypoint.sh
 RUN chmod +x /code/entrypoint.sh
 
-# Defina o entrypoint
-ENTRYPOINT ["/code/entrypoint.sh"]
+# Defina o entrypoint e execute o script de fixtures após migrações
+ENTRYPOINT ["/bin/sh", "-c", "/code/entrypoint.sh && python manage.py migrate && /code/load_fixtures.sh"]

@@ -1,0 +1,86 @@
+[
+    {
+        "model": "animal.species",
+        "pk": 1,
+        "fields": {
+            "name": "Bovinos"
+        }
+    },
+    {
+        "model": "animal.species",
+        "pk": 2,
+        "fields": {
+            "name": "Ovinos"
+        }
+    },
+    {
+        "model": "animal.species",
+        "pk": 3,
+        "fields": {
+            "name": "Caprinos"
+        }
+    },
+    {
+        "model": "animal.species",
+        "pk": 4,
+        "fields": {
+            "name": "Equinos"
+        }
+    },
+    {
+        "model": "animal.species",
+        "pk": 5,
+        "fields": {
+            "name": "Suínos"
+        }
+    },
+    {
+        "model": "animal.species",
+        "pk": 6,
+        "fields": {
+            "name": "Aves"
+        }
+    },
+    {
+        "model": "animal.species",
+        "pk": 7,
+        "fields": {
+            "name": "Peixes"
+        }
+    },
+    {
+        "model": "animal.species",
+        "pk": 8,
+        "fields": {
+            "name": "Abelhas"
+        }
+    },
+    {
+        "model": "animal.species",
+        "pk": 9,
+        "fields": {
+            "name": "Coelhos"
+        }
+    },
+    {
+        "model": "animal.species",
+        "pk": 10,
+        "fields": {
+            "name": "Cães"
+        }
+    },
+    {
+        "model": "animal.species",
+        "pk": 11,
+        "fields": {
+            "name": "Gatos"
+        }
+    },
+    {
+        "model": "animal.species",
+        "pk": 12,
+        "fields": {
+            "name": "Outros"
+        }
+    }
+]
