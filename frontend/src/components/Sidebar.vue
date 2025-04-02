@@ -29,8 +29,6 @@
   <style scoped>
   .sidebar {
     width: 200px;
-    background-color: var(--color-white);
-    border-right: 1px solid var(--color-light-gray);
   }
   
   .sidebar ul {

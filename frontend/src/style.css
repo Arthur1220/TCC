@@ -4,13 +4,13 @@
 /* Variáveis CSS - Identidade Visual com Logo na Cor #F05454 */
 :root {
   /* Cores Primárias e Secundárias */
-  --color-primary: #F05454;         /* Cor da logo */
-  --color-secondary: #0E1F3D;       /* Azul profundo para contraste */
+  --color-primary: #0E1F3D;      /* Azul profundo (ex.: cor do logotipo) */
+  --color-secondary: #00A676;    /* Verde esmeralda */
 
-  --color-primary-light: #F37D77;
-  --color-primary-dark: #C03B3E;
-  --color-secondary-light: #1E365C;
-  --color-secondary-dark: #081324;
+  --color-primary-light: #1E365C;
+  --color-primary-dark: #081324;
+  --color-secondary-light: #33C79F;
+  --color-secondary-dark: #007A54;
 
   /* Neutras */
   --color-white: #FFFFFF;
@@ -22,9 +22,9 @@
   /* Tipografia */
   --font-family-base: 'Roboto', sans-serif;
   --font-family-secondary: 'DM Serif Display', serif;
-  --font-size-base: 16px;
-  --font-size-large: 18px;
-  --font-size-small: 14px;
+  --font-size-base: 14px;
+  --font-size-large: 16px;
+  --font-size-small: 12px;
 }
 
 /* Reset */
@@ -40,7 +40,7 @@
 body {
   font-family: var(--font-family-base);
   font-size: var(--font-size-base);
-  background-color: var(--color-light-gray);
+  background-color: var(--color-white);
   color: var(--color-dark-gray);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -49,7 +49,7 @@ body {
 /* Títulos */
 h1, h2, h3 {
   font-family: var(--font-family-secondary);
-  color: var(--color-primary);
+  color: var(--color-secondary);
   font-weight: 400;
   margin-bottom: 1rem;
 }

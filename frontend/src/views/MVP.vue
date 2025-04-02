@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <Header :backendStatus="backendStatus" :contractStatus="contractStatus" />
+    <Header :LoginStatus="LoginStatus" :contractStatus="contractStatus" />
 
     <div class="main-content">
       <Sidebar :items="menuItems" @selectItem="handleSelection" />
@@ -48,7 +48,7 @@ export default {
   data() {
     return {
       // Status simulados (podem ser atualizados via backend)
-      backendStatus: "Ativo",
+      LoginStatus: "off",
       contractStatus: "Ativo",
       selectedItem: null,
       // Menu com rótulos e componentes correspondentes
@@ -105,7 +105,6 @@ export default {
 .content-area {
   flex: 1;
   padding: 1rem;
-  background-color: var(--color-light-gray);
   overflow-y: auto;
 }
 
