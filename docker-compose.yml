@@ -1,14 +1,29 @@
 version: '3.9'
 
 services:
-  web:
-    build: .backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     volumes:
       - .:/code
     ports:
       - "8000:8000"
     depends_on:
       - db
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"  # Porta padrão do Vite
+    volumes:
+      - ./frontend:/app  # Sincronização de código para hot-reload
+    environment:
+      - CHOKIDAR_USEPOLLING=true  # Necessário em alguns ambientes para detectar mudanças de arquivo
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:
