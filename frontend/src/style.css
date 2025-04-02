@@ -1,0 +1,139 @@
+/* Importação de Fontes */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=DM+Serif+Display&display=swap');
+
+/* Variáveis CSS - Identidade Visual com Logo na Cor #F05454 */
+:root {
+  /* Cores Primárias e Secundárias */
+  --color-primary: #F05454;         /* Cor da logo */
+  --color-secondary: #0E1F3D;       /* Azul profundo para contraste */
+
+  --color-primary-light: #F37D77;
+  --color-primary-dark: #C03B3E;
+  --color-secondary-light: #1E365C;
+  --color-secondary-dark: #081324;
+
+  /* Neutras */
+  --color-white: #FFFFFF;
+  --color-light-gray: #F6F8FA;
+  --color-gray: #707070;
+  --color-dark-gray: #2B2B2B;
+  --color-black: #101010;
+
+  /* Tipografia */
+  --font-family-base: 'Roboto', sans-serif;
+  --font-family-secondary: 'DM Serif Display', serif;
+  --font-size-base: 16px;
+  --font-size-large: 18px;
+  --font-size-small: 14px;
+}
+
+/* Reset */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Corpo */
+body {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  background-color: var(--color-light-gray);
+  color: var(--color-dark-gray);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Títulos */
+h1, h2, h3 {
+  font-family: var(--font-family-secondary);
+  color: var(--color-primary);
+  font-weight: 400;
+  margin-bottom: 1rem;
+}
+
+h1 { font-size: 2.5rem; }
+h2 { font-size: 2rem; }
+h3 { font-size: 1.5rem; }
+
+/* Parágrafos */
+p {
+  font-size: var(--font-size-base);
+  color: var(--color-gray);
+  margin-bottom: 1rem;
+}
+
+/* Links */
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+a:hover {
+  color: var(--color-secondary);
+}
+
+/* Botões */
+.button-primary {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-size: var(--font-size-large);
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+.button-primary:hover {
+  background-color: var(--color-primary-dark);
+  transform: scale(1.02);
+}
+
+.button-secondary {
+  background-color: var(--color-secondary);
+  color: var(--color-white);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-size: var(--font-size-large);
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+.button-secondary:hover {
+  background-color: var(--color-secondary-dark);
+  transform: scale(1.02);
+}
+
+/* Container padrão */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+/* Cards */
+.card {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-light-gray);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsividade Global */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+  .container {
+    padding: 1rem;
+  }
+}
