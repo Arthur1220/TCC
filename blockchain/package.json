@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "npx hardhat test"
+    "test": "npx hardhat test",
+    "run": "npx hardhat node",
+    "local_deploy": "npx hardhat run scripts/deploy.js --network localhost"
   },
   "keywords": [],
   "author": "",
@@ -14,5 +16,8 @@
     "chai": "^4.5.0",
     "hardhat": "^2.22.19",
     "mocha": "^11.1.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.2.0"
   }
 }

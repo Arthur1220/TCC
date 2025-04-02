@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
+import "@openzeppelin/contracts/access/Ownable.sol";
+
 /**
  * @title AnimalTracking
  * @dev Este contrato registra eventos críticos de animais armazenados on-chain,
@@ -11,8 +13,10 @@ pragma solidity ^0.8.17;
  * OBSERVAÇÕES:
  * - O tipo de evento será gerenciado no backend, que repassará um número (uint8) para o contrato.
  * - Não há funcionalidade de pausa; para verificar se o contrato está ativo, há uma função que sempre retorna "true".
+ * - Apenas endereços autorizados (registrars) poderão chamar a função registerEvent().
+ *   O proprietário (ownable) controla quais endereços estão autorizados.
  */
-contract AnimalTracking {
+contract AnimalTracking is Ownable {
 
     /**
      * @dev Estrutura que armazena informações mínimas sobre um evento crítico.
@@ -27,15 +31,14 @@ contract AnimalTracking {
     struct CriticEvent {
         uint256 eventId;
         uint256 animalId;
-        uint8 eventType;  // Recebe o número do tipo de evento, definido no backend.
+        uint8 eventType;
         string dataHash;
         address registrant;
-        bytes32 userHash; // Utiliza bytes32 para armazenamento eficiente do hash.
+        bytes32 userHash;
         uint256 timestamp;
     }
 
     // Mapping: animalId => array de eventos críticos.
-    // Para cada animal (chave), temos uma lista de eventos registrados.
     mapping(uint256 => CriticEvent[]) private eventsByAnimal;
 
     // Evento emitido sempre que um novo evento crítico é registrado.
@@ -48,8 +51,45 @@ contract AnimalTracking {
         bytes32 userHash
     );
 
+    // Mapping para controlar quais endereços estão autorizados a registrar eventos.
+    mapping(address => bool) private authorizedRegistrars;
+
+    /**
+     * @dev Modifier que permite a execução apenas se o chamador estiver autorizado.
+     */
+    modifier onlyRegistrar() {
+        require(authorizedRegistrars[msg.sender] == true, "Not authorized registrar");
+        _;
+    }
+
+    /**
+     * @dev Construtor: Inicializa o contrato e define o proprietário como autorizado.
+     */
+    constructor() Ownable(msg.sender) {
+        authorizedRegistrars[msg.sender] = true;
+    }
+
+    /**
+     * @dev Permite ao proprietário autorizar um novo registrador.
+     * Somente o proprietário (ownable) pode chamar esta função.
+     * @param _registrar Endereço a ser autorizado.
+     */
+    function addRegistrar(address _registrar) external onlyOwner {
+        authorizedRegistrars[_registrar] = true;
+    }
+
+    /**
+     * @dev Permite ao proprietário revogar a autorização de um registrador.
+     * Somente o proprietário (ownable) pode chamar esta função.
+     * @param _registrar Endereço a ser revogado.
+     */
+    function removeRegistrar(address _registrar) external onlyOwner {
+        authorizedRegistrars[_registrar] = false;
+    }
+
     /**
      * @dev Registra um novo evento crítico on-chain.
+     * Somente endereços autorizados podem chamar esta função.
      * @param _eventId O ID do evento no banco de dados off-chain.
      * @param _animalId O ID do animal no banco de dados off-chain.
      * @param _eventType O tipo do evento (como número, repassado pelo backend).
@@ -66,11 +106,10 @@ contract AnimalTracking {
         uint8 _eventType,
         string calldata _dataHash,
         bytes32 _userHash
-    ) external {
+    ) external onlyRegistrar {
         require(bytes(_dataHash).length > 0, "Data hash nao pode ser vazio");
         require(_userHash != 0x0, "User hash nao pode ser vazio");
 
-        // Cria o novo evento crítico com o timestamp atual.
         CriticEvent memory newEvent = CriticEvent({
             eventId: _eventId,
             animalId: _animalId,
@@ -81,10 +120,8 @@ contract AnimalTracking {
             timestamp: block.timestamp
         });
 
-        // Adiciona o evento ao array correspondente ao animal.
         eventsByAnimal[_animalId].push(newEvent);
 
-        // Emite o evento para registro no log.
         emit EventRegistered(
             _animalId,
             _eventId,
@@ -99,8 +136,6 @@ contract AnimalTracking {
      * @dev Retorna todos os eventos críticos de um animal.
      * @param _animalId O ID do animal no banco de dados off-chain.
      * @return Um array de structs CriticEvent.
-     *
-     * Nota: Funções view não consomem gas quando chamadas via "call".
      */
     function getEventsByAnimal(uint256 _animalId)
         external
