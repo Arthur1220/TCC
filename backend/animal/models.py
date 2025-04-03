@@ -1,7 +1,7 @@
 from django.db import models
 from user.models import User
 
-class Species(models.Model):
+class Specie(models.Model):
     name = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
@@ -9,10 +9,11 @@ class Species(models.Model):
 
 class Breed(models.Model):
     name = models.CharField(max_length=50, unique=True)
-    species = models.ForeignKey(Species, on_delete=models.CASCADE, related_name="breeds")
+    description = models.CharField(max_length=255, blank=True, null=True)
+    specie = models.ForeignKey(Specie, on_delete=models.CASCADE, related_name="breeds")
 
     def __str__(self):
-        return f"{self.name} ({self.species.name})"
+        return f"{self.name} ({self.specie.name})"
 
 class AnimalGroup(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -37,21 +38,23 @@ class Status(models.Model):
 
 class IdentificationType(models.Model):
     name = models.CharField(max_length=50, unique=True)
+    description = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
-        return self.description
+        return self.description if self.description else self.name
 
 class Animal(models.Model):
-    identification_type = models.ForeignKey(IdentificationType, on_delete=models.CASCADE)
     identification = models.CharField(max_length=50, unique=True)
-    birth_date = models.DateField(blank=True, null=True)
-    species = models.ForeignKey(Species, on_delete=models.CASCADE, related_name="animals")
-    breed = models.ForeignKey(Breed, on_delete=models.CASCADE, related_name="animals", blank=True, null=True)
-    status = models.ForeignKey(Status, on_delete=models.CASCADE, related_name="animals")
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="animals")
+    breed = models.ForeignKey(Breed, on_delete=models.CASCADE, related_name="animals", blank=True, null=True)
     group = models.ForeignKey(AnimalGroup, on_delete=models.CASCADE, related_name="animals", blank=True, null=True)
     gender = models.ForeignKey(Gender, on_delete=models.CASCADE, related_name="animals")
-    observartions = models.TextField(max_length=100, blank=True, null=True)
+    status = models.ForeignKey(Status, on_delete=models.CASCADE, related_name="animals")
+    identification_type = models.ForeignKey(IdentificationType, on_delete=models.CASCADE)
+    birth_date = models.DateField(blank=True, null=True)
+    observations = models.TextField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.identification} - {self.status.name}"
