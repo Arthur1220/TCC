@@ -37,28 +37,32 @@ export default {
 .app-header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding-left: 1.5rem;
   padding-right: 1.5rem;
+  height: 4rem;
 }
-  
+
 .header-left {
   display: flex;
   align-items: center;
   flex-direction: row;
   justify-content: center;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .header-left h1 {
-  margin-left: 0.5rem;
   margin-bottom: 0rem;
 }
-  
+
 .logo {
   width: 50px;
   height: 50px;
-  margin-right: 0.75rem;
+  margin-right: 0.5rem;
 }
-  
+
 .header-right {
   display: flex;
   flex-direction: column;
@@ -67,15 +71,15 @@ export default {
   font-size: var(--font-size-small);
   text-align: center;
   gap: 0.2rem;
+  position: absolute;
+  right: 1.5rem;
 }
 
-
-  
 .status-active {
   color: var(--color-secondary);
   font-weight: 600;
 }
-  
+
 .status-inactive {
   color: var(--color-gray);
   font-weight: 400;

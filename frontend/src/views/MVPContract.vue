@@ -22,7 +22,7 @@ import Uperbar from "@/components/Uperbar_MVP.vue";
 import Footer from "@/components/Footer_MVP.vue";
 
 export default {
-  name: "MVP",
+  name: "MVPContract",
   components: {
     Header,
     Uperbar,
@@ -30,20 +30,18 @@ export default {
   },
   data() {
     return {
-      // Status simulados (atualize via backend conforme necessário)
+      // Status simulados (podem ser atualizados via backend)
       LoginStatus: "off",
       contractStatus: "Ativo",
       selectedItem: null,
-      // Menu com rótulos e componentes correspondentes (os componentes podem ser importados ou mapeados)
+      // Menu com rótulos e componentes correspondentes
       menuItems: [
-        { label: "Login", component: "LoginContent" },
-        { label: "Cadastro", component: "CadastroContent" },
-        { label: "Propriedade", component: "PropriedadeContent" },
-        { label: "Animal", component: "AnimalContent" },
-        { label: "Evento", component: "EventoContent" },
-        { label: "Blockchain", component: "BlockchainContent" },
-        { label: "Verificar Atividade", component: "VerificarAtividadeContent" },
-        { label: "Visualização", component: "VisualizacaoContent" }
+        { label: "Adicionar Carteira", component: "01" },
+        { label: "Remover Carteira", component: "02" },
+        { label: "Registrar Evento", component: "03" },
+        { label: "Visualizar por Animal", component: "04" },
+        { label: "Visualizar por Index", component: "05" },
+        { label: "Visualizar Numero de Eventos", component: "06" },
       ]
     };
   },
