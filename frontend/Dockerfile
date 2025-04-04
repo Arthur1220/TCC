@@ -37,4 +37,4 @@ EXPOSE 5173
 ENV NODE_ENV=development
 
 # Comando para iniciar o servidor de desenvolvimento
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "dev", "--", "--host"]

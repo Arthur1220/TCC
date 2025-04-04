@@ -1,5 +1,5 @@
 #!/bin/bash
-python manage.py loaddata blockchain/fixtures/status.json
+python manage.py loaddata blockchain/fixtures/blockchain_status.json
 python manage.py loaddata event/fixtures/event_types.json
 python manage.py loaddata animal/fixtures/specie.json
 python manage.py loaddata animal/fixtures/breeds.json
