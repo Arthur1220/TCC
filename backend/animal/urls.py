@@ -1,10 +1,10 @@
 from django.urls import path
-from .views import SpeciesViewSet, BreedViewSet, AnimalGroupViewSet, GenderViewSet, StatusViewSet, IdentificationTypeViewSet, AnimalViewSet
+from .views import SpecieViewSet, BreedViewSet, AnimalGroupViewSet, GenderViewSet, StatusViewSet, IdentificationTypeViewSet, AnimalViewSet
 
 urlpatterns = [
     # Species URLs
-    path('species/', SpeciesViewSet.as_view({'get': 'list', 'post': 'create'})),
-    path('species/<int:pk>/', SpeciesViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'})),
+    path('species/', SpecieViewSet.as_view({'get': 'list', 'post': 'create'})),
+    path('species/<int:pk>/', SpecieViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'})),
 
     # Breed URLs
     path('breed/', BreedViewSet.as_view({'get': 'list', 'post': 'create'})),

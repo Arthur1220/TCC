@@ -1,9 +1,9 @@
 from rest_framework import serializers
-from .models import Animal, IdentificationType, Species, Breed, AnimalGroup, Gender, Status
+from .models import Animal, IdentificationType, Specie, Breed, AnimalGroup, Gender, Status
 
-class SpeciesSerializer(serializers.ModelSerializer):
+class SpecieSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Species
+        model = Specie
         fields = '__all__'
 
 class BreedSerializer(serializers.ModelSerializer):

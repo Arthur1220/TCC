@@ -1,7 +1,7 @@
 from django.contrib import admin
-from .models import Animal, IdentificationType, Species, Breed, AnimalGroup, Gender, Status
+from .models import Animal, IdentificationType, Specie, Breed, AnimalGroup, Gender, Status
 
-admin.site.register(Species)
+admin.site.register(Specie)
 admin.site.register(Breed)
 admin.site.register(AnimalGroup)
 admin.site.register(Animal)

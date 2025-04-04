@@ -1,9 +1,9 @@
 from django.urls import path
-from .views import BlockchainViewSet, StatusViewSet
+from .views import BlockchainViewSet, BlockchainStatusViewSet
 
 urlpatterns = [
-    path('status/', StatusViewSet.as_view({'get': 'list', 'post': 'create'})),
-    path('status/<int:pk>/', StatusViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'})),
+    path('status/', BlockchainStatusViewSet.as_view({'get': 'list', 'post': 'create'})),
+    path('status/<int:pk>/', BlockchainStatusViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'})),
 
     path('blockchain-register/', BlockchainViewSet.register),
     path('blockchain-get/', BlockchainViewSet.get),

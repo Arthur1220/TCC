@@ -9,6 +9,7 @@ from rest_framework import generics, status
 from django.utils import timezone
 from .models import User, Role, UserRole
 from .serializers import UserSerializer, LogoutSerializer, RoleSerializer, UserRoleSerializer
+import uuid
 
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
@@ -17,6 +18,12 @@ class UserViewSet(ModelViewSet):
     @api_view(['POST'])
     @permission_classes([AllowAny])
     def register(request):
+        def generate_unique_user_hash():
+            while True:
+                temp_hash = uuid.uuid4().hex
+                if not User.objects.filter(user_hash=temp_hash).exists():
+                    return temp_hash
+
         data = {
             'username': request.data['username'],
             'first_name': request.data['first_name'],
@@ -24,6 +31,7 @@ class UserViewSet(ModelViewSet):
             'email': request.data['email'],
             'password': request.data['password'],
             'phone': request.data['phone'],
+            'user_hash': generate_unique_user_hash(),
             'data_joined': timezone.now()
         }
         serializer = UserSerializer(data=data)

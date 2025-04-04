@@ -3,13 +3,13 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Species, Breed, AnimalGroup, Gender, Status, IdentificationType, Animal
+from .models import Specie, Breed, AnimalGroup, Gender, Status, IdentificationType, Animal
 from django.core.exceptions import ObjectDoesNotExist
-from .serializers import SpeciesSerializer, BreedSerializer, AnimalGroupSerializer, GenderSerializer, StatusSerializer, IdentificationTypeSerializer, AnimalSerializer
+from .serializers import SpecieSerializer, BreedSerializer, AnimalGroupSerializer, GenderSerializer, StatusSerializer, IdentificationTypeSerializer, AnimalSerializer
 
-class SpeciesViewSet(ModelViewSet):
-    queryset = Species.objects.all()
-    serializer_class = SpeciesSerializer
+class SpecieViewSet(ModelViewSet):
+    queryset = Specie.objects.all()
+    serializer_class = SpecieSerializer
     permission_classes = [AllowAny]
 
 class BreedViewSet(ModelViewSet):
@@ -45,15 +45,15 @@ class AnimalViewSet(ModelViewSet):
     @permission_classes([IsAuthenticated])
     def register(request):
         data = {
-            'identification_type': request.data['identification_type'],
             'identification': request.data['identification'],
-            'birth_date': request.data['birth_date'],
-            'species': request.data['species'],
-            'breed': request.data['breed'],
-            'status': request.data['status'],
             'owner': request.user.id,
+            'breed': request.data['breed'],
             'group': request.data['group'],
-            'gender': request.data['gender']
+            'gender': request.data['gender'],
+            'status': request.data['status'],
+            'identification_type': request.data['identification_type'],
+            'birth_date': request.data['birth_date'],
+            'observations': request.data['observations'],
         }
 
         serializer = AnimalSerializer(data=data)

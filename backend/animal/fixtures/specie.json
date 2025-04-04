@@ -1,83 +1,83 @@
 [
     {
-        "model": "animal.species",
+        "model": "animal.specie",
         "pk": 1,
         "fields": {
             "name": "Bovinos"
         }
     },
     {
-        "model": "animal.species",
+        "model": "animal.specie",
         "pk": 2,
         "fields": {
             "name": "Ovinos"
         }
     },
     {
-        "model": "animal.species",
+        "model": "animal.specie",
         "pk": 3,
         "fields": {
             "name": "Caprinos"
         }
     },
     {
-        "model": "animal.species",
+        "model": "animal.specie",
         "pk": 4,
         "fields": {
             "name": "Equinos"
         }
     },
     {
-        "model": "animal.species",
+        "model": "animal.specie",
         "pk": 5,
         "fields": {
             "name": "Suínos"
         }
     },
     {
-        "model": "animal.species",
+        "model": "animal.specie",
         "pk": 6,
         "fields": {
             "name": "Aves"
         }
     },
     {
-        "model": "animal.species",
+        "model": "animal.specie",
         "pk": 7,
         "fields": {
             "name": "Peixes"
         }
     },
     {
-        "model": "animal.species",
+        "model": "animal.specie",
         "pk": 8,
         "fields": {
             "name": "Abelhas"
         }
     },
     {
-        "model": "animal.species",
+        "model": "animal.specie",
         "pk": 9,
         "fields": {
             "name": "Coelhos"
         }
     },
     {
-        "model": "animal.species",
+        "model": "animal.specie",
         "pk": 10,
         "fields": {
             "name": "Cães"
         }
     },
     {
-        "model": "animal.species",
+        "model": "animal.specie",
         "pk": 11,
         "fields": {
             "name": "Gatos"
         }
     },
     {
-        "model": "animal.species",
+        "model": "animal.specie",
         "pk": 12,
         "fields": {
             "name": "Outros"

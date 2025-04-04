@@ -3,13 +3,13 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Status, Blockchain
+from .models import BlockchainStatus, Blockchain
 from django.core.exceptions import ObjectDoesNotExist
-from .serializers import StatusSerializer, BlockchainSerializer
+from .serializers import BlockchainStatusSerializer, BlockchainSerializer
 
-class StatusViewSet(ModelViewSet):
-    queryset = Status.objects.all()
-    serializer_class = StatusSerializer
+class BlockchainStatusViewSet(ModelViewSet):
+    queryset = BlockchainStatus.objects.all()
+    serializer_class = BlockchainStatusSerializer
     permission_classes = [AllowAny]
 
 class BlockchainViewSet(ModelViewSet):
@@ -24,7 +24,7 @@ class BlockchainViewSet(ModelViewSet):
             'event': request.data['event'],
             'transaction_hash': request.data['transaction_hash'],
             'owner': request.user.id,
-            'status': request.data['status']
+            'status': request.data['status'],
         }
 
         serializer = BlockchainSerializer(data=data)
