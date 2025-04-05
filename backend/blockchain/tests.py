@@ -1,9 +1,9 @@
 from rest_framework.test import APITestCase
 from rest_framework import status
 from user.models import User
-from animal.models import Animal, IdentificationType, Species, Breed, Status as AnimalStatus, Gender
+from animal.models import Animal, IdentificationType, Specie, Breed, Status as AnimalStatus, Gender
 from event.models import Event, EventType
-from .models import Status, Blockchain
+from .models import BlockchainStatus, Blockchain
 
 class BlockchainTestCase(APITestCase):
     def setUp(self):
@@ -14,8 +14,8 @@ class BlockchainTestCase(APITestCase):
         # Criar tipos relacionados a animais
         self.gender = Gender.objects.create(name="Macho", description="Animal do sexo masculino.")
         self.identification_type = IdentificationType.objects.create(name="Brinco")
-        self.species = Species.objects.create(name="Bovino")
-        self.breed = Breed.objects.create(name="Nelore", species=self.species)
+        self.specie = Specie.objects.create(name="Bovino")
+        self.breed = Breed.objects.create(name="Nelore", specie=self.specie)
         self.animal_status = AnimalStatus.objects.create(name="Ativo", description="Animal ativo no sistema.")
 
         # Criar animal
@@ -23,7 +23,6 @@ class BlockchainTestCase(APITestCase):
             identification_type=self.identification_type,
             identification="123456",
             birth_date="2022-01-01",
-            species=self.species,
             breed=self.breed,
             status=self.animal_status,
             owner=self.user,
@@ -37,14 +36,14 @@ class BlockchainTestCase(APITestCase):
         self.event = Event.objects.create(
             animal=self.animal,
             event_type=self.event_type,
-            event_date="2023-12-10T10:00:00Z",
+            date="2023-12-10T10:00:00Z",
             location="Fazenda Modelo",
             observations="Vacina aplicada",
             recorded_by=self.user
         )
 
         # Criar status
-        self.blockchain_status = Status.objects.create(name="Confirmada", description="Transação confirmada com sucesso na blockchain.")
+        self.blockchain_status = BlockchainStatus.objects.create(name="Confirmada", description="Transação confirmada com sucesso na blockchain.")
 
         # URLs
         self.blockchain_register_url = '/blockchain/blockchain-register/'

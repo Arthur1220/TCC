@@ -17,7 +17,7 @@ class AnimalTestCase(APITestCase):
 
         # Criação de objetos necessários para os testes
         self.specie = Specie.objects.create(name="Cattle")
-        self.breed = Breed.objects.create(name="Angus", species=self.species)
+        self.breed = Breed.objects.create(name="Angus", specie=self.specie)
         self.group = AnimalGroup.objects.create(name="Group A", description="Test group")
         self.gender = Gender.objects.create(name="Male", description="Test gender")
         self.status = Status.objects.create(name="Active", description="Animal is active")
@@ -60,7 +60,6 @@ class AnimalTestCase(APITestCase):
             "identification_type": self.identification_type.id,
             "identification": "456DEF",
             "birth_date": "2021-06-01",
-            "specie": self.specie.id,
             "breed": self.breed.id,
             "status": self.status.id,
             "owner": self.user.id,
@@ -93,7 +92,6 @@ class AnimalTestCase(APITestCase):
         Testa a filtragem de animais com base em specie, breed e status.
         """
         filter_params = {
-            "specie": self.specie.id,
             "breed": self.breed.id,
             "status": self.status.id
         }
@@ -133,7 +131,6 @@ class AnimalTestCase(APITestCase):
             "identification_type": self.identification_type.id,
             "identification": "999XYZ",
             "birth_date": "2022-01-01",
-            "specie": self.specie.id,
             "breed": self.breed.id,
             "status": self.status.id,
             "owner": self.user.id,
@@ -154,7 +151,6 @@ class AnimalTestCase(APITestCase):
         Testa a filtragem de animais para garantir que apenas os que correspondem aos critérios sejam retornados.
         """
         filter_params = {
-            "specie": self.specie.id,
             "breed": self.breed.id,
             "status": self.status.id
         }

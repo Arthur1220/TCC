@@ -546,7 +546,7 @@ class EventViewSet(ModelViewSet):
         data = {
             'animal': request.data['animal'],
             'event_type': request.data['event_type'],
-            'event_date': request.data['event_date'],
+            'date': request.data['date'],
             'location': request.data['location'],
             'observations': request.data['observations'],
             'recorded_by': request.user.id
