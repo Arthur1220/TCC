@@ -3,21 +3,24 @@
         "model": "animal.identificationtype",
         "pk": 1,
         "fields": {
-            "name": "Chip eletrônico"
+            "name": "Chip eletrônico",
+            "description": "Chip eletrônico implantado no animal, utilizado para identificação e rastreamento."
         }
     },
     {
         "model": "animal.identificationtype",
         "pk": 2,
         "fields": {
-            "name": "Brinco"
+            "name": "Brinco",
+            "description": "Brinco de identificação, utilizado para marcar o animal e facilitar a sua identificação."
         }
     },
     {
         "model": "animal.identificationtype",
         "pk": 3,
         "fields": {
-            "name": "QR Code"
+            "name": "QR Code",
+            "description": "Código QR impresso em um adesivo ou etiqueta, utilizado para identificar o animal através de leitura óptica."
         }
     }
 ]
