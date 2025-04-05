@@ -7,6 +7,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - .:/backend
+      - ./backend/.env:/code/backend/.env  # Atualizado para montar no caminho esperado
     ports:
       - "8000:8000"
     environment:

@@ -6,3 +6,6 @@ docker-compose up --build -d
 
 docker-compose down --rmi all --volumes --remove-orphans
 docker-compose up --build -d
+
+#
+npx hardhat run scripts/deploy.js --network localhost
