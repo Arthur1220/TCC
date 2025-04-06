@@ -33,16 +33,6 @@ CONTRACT_ADDRESS = CONTRACT_ADDRESS
 WALLET_PUBLIC = WALLET_PUBLIC
 WALLET_PRIVATE = WALLET_PRIVATE
 
-# Debug: Imprima as configurações carregadas
-print("=== Variáveis de Ambiente Carregadas ===")
-print("BACKEND_PORT:", BACKEND_PORT)
-print("BACKEND_URL:", BACKEND_URL)
-print("BLOCKCHAIN_PROVIDER:", BLOCKCHAIN_PROVIDER)
-print("CONTRACT_ADDRESS:", CONTRACT_ADDRESS)
-print("WALLET_PUBLIC:", WALLET_PUBLIC)
-print("WALLET_PRIVATE:", WALLET_PRIVATE)
-print("=========================================")
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 

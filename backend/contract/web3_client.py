@@ -1,47 +1,32 @@
-import os
 import json
 from pathlib import Path
 from web3 import Web3
 from django.conf import settings
 
-print("=== Configurações do settings no web3_client ===")
-bp = getattr(settings, "BLOCKCHAIN_PROVIDER", None)
-ca = getattr(settings, "CONTRACT_ADDRESS", None)
-wp = getattr(settings, "WALLET_PUBLIC", None)
-wpr = getattr(settings, "WALLET_PRIVATE", None)
-print("BLOCKCHAIN_PROVIDER:", repr(bp))
-print("CONTRACT_ADDRESS:", repr(ca))
-print("WALLET_PUBLIC:", repr(wp))
-print("WALLET_PRIVATE:", repr(wpr))
-print("===================================================")
+# Assumindo que o módulo de configuração (core/config.py) já validou e exportou as variáveis,
+# basta importá-las do settings:
+BLOCKCHAIN_PROVIDER = settings.BLOCKCHAIN_PROVIDER
+CONTRACT_ADDRESS = settings.CONTRACT_ADDRESS
+WALLET_PUBLIC = settings.WALLET_PUBLIC
+WALLET_PRIVATE = settings.WALLET_PRIVATE
 
-# Obtenha as configurações do blockchain a partir do settings
-BLOCKCHAIN_PROVIDER = bp
-CONTRACT_ADDRESS = ca
-WALLET_PRIVATE = wpr
-WALLET_PUBLIC = wp
-
-# Define o caminho para o ABI
+# Define o caminho para o ABI do contrato
 ABI_PATH = Path(__file__).parent / "contract_abi.json"
 
+# Carrega o arquivo de ABI e, se for um artifact, extrai a chave "abi"
 with open(ABI_PATH, "r") as f:
-    contract_abi = json.load(f)
+    loaded = json.load(f)
+    if isinstance(loaded, dict) and "abi" in loaded:
+        contract_abi = loaded["abi"]
+    else:
+        contract_abi = loaded
 
-# Obtenha as configurações do blockchain a partir do settings
-BLOCKCHAIN_PROVIDER = getattr(settings, "BLOCKCHAIN_PROVIDER", None)
-CONTRACT_ADDRESS = getattr(settings, "KYC_CONTRACT_ADDRESS", None)
-WALLET_PRIVATE = getattr(settings, "WALLET_PRIVATE", None)
-WALLET_PUBLIC = getattr(settings, "WALLET_PUBLIC", None)
-
-if not BLOCKCHAIN_PROVIDER or not CONTRACT_ADDRESS:
-    raise Exception("As configurações de blockchain não estão definidas no settings.")
-
-# Conecte-se ao provider
+# Conecta-se ao provider blockchain
 w3 = Web3(Web3.HTTPProvider(BLOCKCHAIN_PROVIDER))
-if not w3.isConnected():
+if not w3.is_connected():
     raise Exception("Falha ao conectar ao provider blockchain.")
 
-# Instancie o contrato
+# Instancia o contrato inteligente
 contract = w3.eth.contract(address=CONTRACT_ADDRESS, abi=contract_abi)
 
 def register_event(event_id: int, animal_id: int, event_type: int, data_hash: str, user_hash: str):
@@ -49,7 +34,9 @@ def register_event(event_id: int, animal_id: int, event_type: int, data_hash: st
     Chama a função registerEvent do contrato e retorna o hash da transação.
     """
     account = w3.eth.account.from_key(WALLET_PRIVATE)
-    txn = contract.functions.registerEvent(event_id, animal_id, event_type, data_hash, user_hash).buildTransaction({
+    txn = contract.functions.registerEvent(
+        event_id, animal_id, event_type, data_hash, user_hash
+    ).buildTransaction({
         'from': account.address,
         'nonce': w3.eth.getTransactionCount(account.address),
         'gas': 3000000,

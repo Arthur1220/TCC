@@ -1,11 +1,17 @@
 from django.test import TestCase, Client
+from rest_framework.test import APITestCase, APIClient
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
 import json
 
+User = get_user_model()
+
 class ContractAPITestCase(TestCase):
     def setUp(self):
-        self.client = Client()
+        self.client = APIClient()
+        self.user = User.objects.create_user(username="testuser", password="testpassword")
+        self.client.force_authenticate(user=self.user)
 
     def test_contract_status(self):
         url = reverse("contract-status")
