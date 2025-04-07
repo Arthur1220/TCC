@@ -78,7 +78,6 @@ class UserViewSet(ModelViewSet):
                 response.set_cookie('access', access_token, httponly=True, secure=False, samesite='Lax', path='/')
                 response.set_cookie('refresh', refresh_token, httponly=True, secure=False, samesite='Lax', path='/')
 
-                print("DEBUG - Cookies definidos:", response.cookies)  # Debug
                 # Adicione os tokens ao payload da resposta
                 response.data = {
                     'access': access_token,
@@ -221,4 +220,4 @@ class UserRoleViewSet(ModelViewSet):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
-            print("Serializer error:", serializer.errors)
+            return Response("Serializer error:", serializer.errors, status=status.HTTP_400_BAD_REQUEST)
