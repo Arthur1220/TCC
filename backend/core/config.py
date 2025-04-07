@@ -6,9 +6,6 @@ from pydantic import BaseSettings, Field, ValidationError
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 class EnvSettings(BaseSettings):
-    # Configurações do backend
-    BACKEND_PORT: str = Field(..., description="Porta do backend")
-    BACKEND_URL: str = Field(..., description="URL do backend")
     # Configurações do Contrato (blockchain)
     BLOCKCHAIN_PROVIDER: str = Field(..., description="URL do provider blockchain")
     CONTRACT_ADDRESS: str = Field(..., description="Endereço do contrato de KYC")
@@ -27,8 +24,6 @@ except ValidationError as e:
     raise Exception(f"Erro nas variáveis de ambiente: {e}")
 
 # Exporta as variáveis validadas
-BACKEND_PORT = env_settings.BACKEND_PORT
-BACKEND_URL = env_settings.BACKEND_URL
 BLOCKCHAIN_PROVIDER = env_settings.BLOCKCHAIN_PROVIDER
 CONTRACT_ADDRESS = env_settings.CONTRACT_ADDRESS
 WALLET_PUBLIC = env_settings.WALLET_PUBLIC
