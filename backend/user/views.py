@@ -68,6 +68,7 @@ class UserViewSet(ModelViewSet):
                     )
 
             user = authenticate(username=username, password=password)
+            
             if user is not None:
                 refresh = RefreshToken.for_user(user)
                 access_token = str(refresh.access_token)

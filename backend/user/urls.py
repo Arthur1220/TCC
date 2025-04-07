@@ -5,7 +5,7 @@ from .views import UserViewSet, RoleViewSet, UserRoleViewSet
 urlpatterns = [
     path('register/', UserViewSet.register),
     path('login/', UserViewSet.login),
-    path('profile/', UserViewSet.profile),
+    path('profile/<int:pk>/', UserViewSet.profile),
     path('update/', UserViewSet.update),
     path('refresh/', UserViewSet.refresh),
     path('logout/', UserViewSet.logout),
