@@ -5,7 +5,7 @@ from rest_framework import status
 from .web3_client import register_event, get_number_of_events, get_event_by_index, is_active
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def contract_status(request):
     try:
         active = is_active()

@@ -36,8 +36,6 @@ export default {
       selectedItem: null,
       // Menu com rótulos e componentes correspondentes (os componentes podem ser importados ou mapeados)
       menuItems: [
-        { label: "Login", component: "LoginContent" },
-        { label: "Cadastro", component: "CadastroContent" },
         { label: "Propriedade", component: "PropriedadeContent" },
         { label: "Animal", component: "AnimalContent" },
         { label: "Evento", component: "EventoContent" },

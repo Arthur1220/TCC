@@ -8,14 +8,21 @@ import axiosInstance from './axiosSetup';
  * @param {string} password - Senha do usuário.
  * @returns {Promise<Object>} - Resposta da API.
  */
-export async function login(username, password) {
+export async function login(data = {}) {  // Valor padrão definido
   try {
-    const response = await axiosInstance.post('user/login/', { username, password });
-    // Os cookies são definidos automaticamente pelo navegador, pois usamos withCredentials.
+    // Se "username" for um objeto, extrai os valores desejados
+    if (data.username && typeof data.username === 'object') {
+      data = {
+        ...data,
+        username: data.username.username || '',
+        password: data.username.password || data.password || ''
+      };
+    }
+    const response = await axiosInstance.post('user/login/', data);
     return response.data;
   } catch (error) {
-    console.error('Erro ao fazer login:', error);
-    throw error;
+    console.error("Erro ao efetuar login:", error);
+    throw error.response ? error.response.data : error;
   }
 }
 

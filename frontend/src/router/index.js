@@ -1,11 +1,22 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import MVP from '../views/MVP.vue';
-import MVPContract from '../views/MVPContract.vue';
 
 const routes = [
-  { path: '/MVP', name: 'MVP', component: MVP },
-  {path: '/MVPContract', name: 'MVPContract', component: MVPContract},
-  // Adicione outras rotas conforme necessário
+  {
+    path: '/',
+    name: 'home',
+    component: () => import('../views/Home.vue')
+  },
+
+  { 
+    path: '/MVP', 
+    name: 'MVP', 
+    component: () => import('../views/MVP.vue')
+  },
+  {
+    path: '/MVPContract', 
+    name: 'MVPContract', 
+    component: () => import('../views/MVPContract.vue')
+  }
 ];
 
 const router = createRouter({

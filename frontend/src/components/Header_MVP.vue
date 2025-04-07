@@ -5,34 +5,58 @@
       <h1>AnimalTracking</h1>
     </div>
     <div class="header-right">
-      <!-- Exibindo status do backend e do contrato -->
-      <span :class="statusClass(LoginStatus)">Login: {{ LoginStatus }}</span>
-      <span :class="statusClass(contractStatus)">Contrato: {{ contractStatus }}</span>
+      <!-- Exibe os status dinâmicos -->
+      <span :class="statusClass(currentLoginStatus)">Login: {{ currentLoginStatus }}</span>
+      <span :class="statusClass(currentContractStatus)">Contrato: {{ currentContractStatus }}</span>
     </div>
   </header>
 </template>
-  
+
 <script>
+import { getUserProfile } from '@/services/userService';
+import { checkContractStatus } from '@/services/contractService';
+
 export default {
   name: "Header",
-  props: {
-    LoginStatus: {
-      type: String,
-      default: "Desconhecido"
-    },
-    contractStatus: {
-      type: String,
-      default: "Inativo"
-    }
+  data() {
+    return {
+      currentLoginStatus: "Desconhecido",
+      currentContractStatus: "Inativo",
+    };
   },
   methods: {
     statusClass(status) {
       return status === "Ativo" ? "status-active" : "status-inactive";
-    }
-  }
+    },
+    async checkLoginStatus() {
+      try {
+        // Tenta obter o perfil do usuário autenticado
+        await getUserProfile();
+        // Se a requisição for bem-sucedida, o usuário está logado
+        this.currentLoginStatus = "Ativo";
+      } catch (error) {
+        // Se houver erro, assume que o usuário não está autenticado
+        this.currentLoginStatus = "Desconhecido";
+      }
+    },
+    async updateContractStatus() {
+      try {
+        const result = await checkContractStatus();
+        this.currentContractStatus = result.active ? "Ativo" : "Inativo";
+      } catch (error) {
+        console.error("Erro ao obter status do contrato:", error);
+        this.currentContractStatus = "Inativo";
+      }
+    },
+  },
+  mounted() {
+    // Verifica o status de login e do contrato assim que o componente é montado
+    this.checkLoginStatus();
+    this.updateContractStatus();
+  },
 };
 </script>
-  
+
 <style scoped>
 .app-header {
   display: flex;
@@ -54,7 +78,7 @@ export default {
 }
 
 .header-left h1 {
-  margin-bottom: 0rem;
+  margin-bottom: 0;
 }
 
 .logo {
@@ -85,4 +109,3 @@ export default {
   font-weight: 400;
 }
 </style>
-  

@@ -75,8 +75,28 @@ class UserViewSet(ModelViewSet):
                 refresh_token = str(refresh)
                 response = Response({'message': 'Login realizado com sucesso.'}, status=status.HTTP_200_OK)
                 # Configure os cookies:
-                response.set_cookie('access', access_token, httponly=True, secure=False, samesite='Lax')
-                response.set_cookie('refresh', refresh_token, httponly=True, secure=False, samesite='Lax')
+                response.set_cookie('access', access_token, httponly=True, secure=False, samesite='Lax', path='/')
+                response.set_cookie('refresh', refresh_token, httponly=True, secure=False, samesite='Lax', path='/')
+
+                print("DEBUG - Cookies definidos:", response.cookies)  # Debug
+                # Adicione os tokens ao payload da resposta
+                response.data = {
+                    'access': access_token,
+                    'refresh': refresh_token,
+                    'user': {
+                        'username': user.username,
+                        'email': user.email,
+                        'first_name': user.first_name,
+                        'last_name': user.last_name,
+                        'phone': user.phone,
+                        'user_hash': user.user_hash
+                    }
+                }
+                # Adicione o ID do usuário ao payload da resposta
+                response.data['user']['id'] = user.id
+                # Adicione o hash do usuário ao payload da resposta
+                response.data['user']['user_hash'] = user.user_hash
+
                 return response
             else:
                 return Response({'error': 'Credenciais inválidas.'}, status=status.HTTP_400_BAD_REQUEST)
