@@ -20,7 +20,10 @@ RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
 # Copie o código do projeto
-COPY . /code/
+#COPY . /code/
+
+# Exponha a porta 8000
+EXPOSE 8000
 
 # Copie o script load_fixtures.sh e torne-o executável
 COPY ./load_fixtures.sh /code/load_fixtures.sh

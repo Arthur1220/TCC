@@ -1,17 +1,12 @@
 <template>
   <div class="app-container">
     <Header :LoginStatus="LoginStatus" :contractStatus="contractStatus" />
-
     <div class="main-content">
-      <!-- Passa a propriedade selectedItem para o Uperbar -->
       <Uperbar :items="menuItems" :selectedItem="selectedItem" @selectItem="handleSelection" />
-      
-      <!-- Espaço reservado para o conteúdo dinâmico -->
       <section class="content-area">
         <component :is="currentComponent" />
       </section>
     </div>
-
     <Footer />
   </div>
 </template>
@@ -21,34 +16,43 @@ import Header from "@/components/Header_MVP.vue";
 import Uperbar from "@/components/Uperbar_MVP.vue";
 import Footer from "@/components/Footer_MVP.vue";
 
+// Importe os componentes de contrato
+import AddWallet from "@/components/AddWallet.vue";
+import RemoveWallet from "@/components/RemoveWallet.vue";
+import RegisterEvent from "@/components/RegisterEvent.vue";
+import ViewEventByAnimal from "@/components/ViewEventByAnimal.vue";
+import ViewEventCount from "@/components/ViewEventCount.vue";
+
 export default {
   name: "MVPContract",
   components: {
     Header,
     Uperbar,
     Footer,
+    AddWallet,
+    RemoveWallet,
+    RegisterEvent,
+    ViewEventByAnimal,
+    ViewEventCount
   },
   data() {
     return {
-      // Status simulados (podem ser atualizados via backend)
       LoginStatus: "off",
       contractStatus: "Ativo",
       selectedItem: null,
-      // Menu com rótulos e componentes correspondentes
       menuItems: [
-        { label: "Adicionar Carteira", component: "01" },
-        { label: "Remover Carteira", component: "02" },
-        { label: "Registrar Evento", component: "03" },
-        { label: "Visualizar por Animal", component: "04" },
-        { label: "Visualizar por Index", component: "05" },
-        { label: "Visualizar Numero de Eventos", component: "06" },
+        { label: "Adicionar Carteira", component: "AddWallet" },
+        { label: "Remover Carteira", component: "RemoveWallet" },
+        { label: "Registrar Evento", component: "RegisterEvent" },
+        { label: "Visualizar por Animal", component: "ViewEventByAnimal" },
+        { label: "Visualizar Número de Eventos", component: "ViewEventCount" }
       ]
     };
   },
   computed: {
     currentComponent() {
       if (!this.selectedItem) {
-        return "div"; // Exibe um container vazio se nada estiver selecionado
+        return "div";
       }
       const selected = this.menuItems.find(item => item.label === this.selectedItem);
       return selected ? selected.component : "div";

@@ -105,17 +105,33 @@ class UserViewSet(ModelViewSet):
     @api_view(['POST'])
     @permission_classes([AllowAny])
     def refresh(request):
+        print("DEBUG - Refresh endpoint iniciado")
+        # Verifica o refresh token nos cookies
         refresh_token = request.COOKIES.get('refresh')
+        print("DEBUG - Refresh token recebido:", refresh_token)
+        
         if refresh_token is None:
-            return Response({'error': 'Refresh token ausente.'}, status=status.HTTP_400_BAD_REQUEST)
+            print("DEBUG - Refresh token ausente nos cookies")
+            response = Response({'error': 'Refresh token ausente.'}, status=status.HTTP_400_BAD_REQUEST)
+            response.delete_cookie('access', path='/')
+            response.delete_cookie('refresh', path='/')
+            print("DEBUG - Cookies 'access' e 'refresh' deletados")
+            return response
+        
         try:
             refresh = RefreshToken(refresh_token)
             new_access = str(refresh.access_token)
             response = Response({'message': 'Token atualizado com sucesso.'}, status=status.HTTP_200_OK)
-            response.set_cookie('access', new_access, httponly=True, secure=False, samesite='Lax')
+            response.set_cookie('access', new_access, httponly=True, secure=False, samesite='Lax', path='/')
+            print("DEBUG - Novo access token definido:", new_access)
             return response
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            print("ERROR in refresh endpoint:", e)
+            response = Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            response.delete_cookie('access', path='/')
+            response.delete_cookie('refresh', path='/')
+            print("DEBUG - Em caso de erro, cookies 'access' e 'refresh' deletados")
+            return response
 
     @api_view(['POST'])
     @permission_classes([IsAuthenticated])
@@ -128,7 +144,7 @@ class UserViewSet(ModelViewSet):
                 token.blacklist()
             except Exception as e:
                 # Se houver erro (por exemplo, se o token já estiver na blacklist), logue o erro
-                print(f"Erro ao invalidar token: {e}")
+                print(f"Erro ao invalidar token, token atualmente invalido: {e}")
         response = Response({'message': 'Logout realizado com sucesso.'}, status=status.HTTP_200_OK)
         # Remove os cookies definindo-os com expiração no passado
         response.delete_cookie('access')

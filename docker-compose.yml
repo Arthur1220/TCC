@@ -6,7 +6,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     volumes:
-      - .:/backend
+      - ./backend:/code  # Sincronização de código para hot-reload
       - ./backend/.env:/code/backend/.env  # Atualizado para montar no caminho esperado
     ports:
       - "8000:8000"

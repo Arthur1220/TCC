@@ -15,8 +15,6 @@ const axiosInstance = axios.create({
 // Request interceptor (não precisamos adicionar Authorization manualmente, pois os cookies são enviados automaticamente)
 axiosInstance.interceptors.request.use(
     (config) => {
-      // Se desejar, você pode adicionar alguma lógica extra aqui, mas
-      // quando se utiliza cookies HTTP‑only, não há acesso ao token via JS.
       return config;
     },
     (error) => Promise.reject(error)
@@ -36,10 +34,8 @@ axiosInstance.interceptors.response.use(
       originalRequest._retry = true;
       try {
         // Chama o endpoint de refresh.
-        // Como o refresh token está em um cookie HTTP‑only, não precisamos enviá-lo no corpo.
         refreshToken();
-        // Se a renovação for bem-sucedida, o backend já atualizou o cookie 'access'.
-        // Agora, refazemos a requisição original. O navegador enviará o novo cookie automaticamente.
+        // Reenvia a requisição original; o navegador deve enviar os novos cookies automaticamente
         return axiosInstance(originalRequest);
       } catch (refreshError) {
         console.error('Erro ao renovar token:', refreshError);

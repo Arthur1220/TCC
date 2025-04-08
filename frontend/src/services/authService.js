@@ -35,7 +35,9 @@ export async function refreshToken() {
     const response = await axiosInstance.post('user/refresh/', {});
     return response.data;
   } catch (error) {
-    console.error('Erro ao renovar token:', error);
+    console.error('Erro ao renovar token:', error.response ? error.response.data : error);
+    // Futuramente criar uma função de logout para limpar os dados do cliente
+    // logout();
     throw error;
   }
 }

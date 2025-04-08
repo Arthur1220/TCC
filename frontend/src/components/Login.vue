@@ -36,7 +36,7 @@ export default {
         // O payload será um objeto simples: { username: "teste", password: "123" }
         const response = await login(this.form);
         // Após o login bem-sucedido, redirecione para a rota desejada
-        this.$router.push({ name: "MVP" });
+        this.$router.push({ name: "MVPContract" });
       } catch (err) {
         this.error = err.error || "Erro no login";
         console.error("Erro no login:", err);
