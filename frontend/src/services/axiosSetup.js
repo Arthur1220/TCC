@@ -25,6 +25,18 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
+    // Se a requisição que falhou foi para refresh, não tente renovar novamente
+    if (
+      originalRequest.url.includes("/user/refresh/") ||
+      originalRequest._retry // Já tentou renovar
+    ) {
+      // Remova os cookies para evitar enviar tokens inválidos
+      // Você pode chamar uma função logout() que faça isso (do lado do frontend ou backend)
+      logout(); // Opcional: disparar logout ou notificar o usuário
+      return Promise.reject(error);
+    }
+
     // Se a resposta for 401 (não autorizado) e a requisição ainda não foi reexecutada...
     if (
       error.response &&

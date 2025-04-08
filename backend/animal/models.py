@@ -18,6 +18,7 @@ class Breed(models.Model):
 class AnimalGroup(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.CharField(max_length=255, blank=True, null=True)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="animal_groups", blank=False, null=False)
 
     def __str__(self):
         return self.name

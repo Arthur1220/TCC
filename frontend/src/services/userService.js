@@ -44,4 +44,16 @@ import axiosInstance from './axiosSetup';
     }
   }
 
-
+/**
+ * Deleta a conta do usuário autenticado.
+ * @returns {Promise<Object>} - Resposta da API.
+ */
+export async function deleteUserAccount() {
+  try {
+    const response = await axiosInstance.delete('user/delete/');
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao deletar conta:', error);
+    throw error;
+  }
+}

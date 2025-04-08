@@ -563,13 +563,13 @@ class EventViewSet(ModelViewSet):
     def get(request, id=None):
         if id:
             try:
-                event = Event.objects.get(pk=id)
+                event = Event.objects.get(pk=id, recorded_by=request.user.id)
                 serializer = EventSerializer(event)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             except ObjectDoesNotExist:
                 return Response({'error': 'Event not found'}, status=status.HTTP_404_NOT_FOUND)
         else:
-            events = Event.objects.all()
+            events = Event.objects.filter(recorded_by=request.user.id)
             serializer = EventSerializer(events, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         

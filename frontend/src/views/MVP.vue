@@ -20,6 +20,12 @@
 import Header from "@/components/Header_MVP.vue";
 import Uperbar from "@/components/Uperbar_MVP.vue";
 import Footer from "@/components/Footer_MVP.vue";
+import UserContent from "@/components/UserContent.vue";
+import PropertyContent from "@/components/PropertyContent.vue";
+import AnimalContent from "@/components/AnimalContent.vue";
+import BlockchainContent from "@/components/BlockchainContent.vue";
+import EventContent from "@/components/EventContent.vue";
+import VisualizacaoContent from "@/components/VisualizacaoContent.vue";
 
 export default {
   name: "MVP",
@@ -27,20 +33,25 @@ export default {
     Header,
     Uperbar,
     Footer,
+    UserContent,
+    PropertyContent,
+    AnimalContent,
+    BlockchainContent,
+    EventContent,
+    VisualizacaoContent
   },
   data() {
     return {
-      // Status simulados (atualize via backend conforme necessário)
       LoginStatus: "off",
       contractStatus: "Ativo",
       selectedItem: null,
       // Menu com rótulos e componentes correspondentes (os componentes podem ser importados ou mapeados)
       menuItems: [
-        { label: "Propriedade", component: "PropriedadeContent" },
+        { label: "Usuario", component: "UserContent" },
+        { label: "Propriedade", component: "PropertyContent" },
         { label: "Animal", component: "AnimalContent" },
-        { label: "Evento", component: "EventoContent" },
+        { label: "Evento", component: "EventContent" },
         { label: "Blockchain", component: "BlockchainContent" },
-        { label: "Verificar Atividade", component: "VerificarAtividadeContent" },
         { label: "Visualização", component: "VisualizacaoContent" }
       ]
     };

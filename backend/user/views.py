@@ -134,7 +134,7 @@ class UserViewSet(ModelViewSet):
             return response
 
     @api_view(['POST'])
-    @permission_classes([IsAuthenticated])
+    @permission_classes([AllowAny])
     def logout(request):
         refresh_token = request.COOKIES.get('refresh')
         if refresh_token:
@@ -176,7 +176,7 @@ class UserViewSet(ModelViewSet):
         
 class LogoutAPIView(generics.GenericAPIView):
     serializer_class = LogoutSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)

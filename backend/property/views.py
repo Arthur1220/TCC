@@ -35,13 +35,13 @@ class PropertyViewSet(ModelViewSet):
     def get(request, id=None):
         if id:
             try:
-                property = Property.objects.get(pk=id)
+                property = Property.objects.get(pk=id, owner=request.user.id)
                 serializer = PropertySerializer(property)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             except ObjectDoesNotExist:
                 return Response({'error': 'Property not found'}, status=status.HTTP_404_NOT_FOUND)
         else:
-            properties = Property.objects.all()
+            properties = Property.objects.filter(owner=request.user)
             serializer = PropertySerializer(properties, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         

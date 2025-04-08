@@ -17,12 +17,8 @@ with open(ABI_PATH, "r") as f:
     loaded = json.load(f)
     if isinstance(loaded, dict) and "abi" in loaded:
         contract_abi = loaded["abi"]
-        print("DEBUG - ABI carregado:", contract_abi)
-        print("DEBUG - Tipo do ABI:", type(contract_abi))
     else:
         contract_abi = loaded
-        print("DEBUG - ABI carregado:", contract_abi)
-        print("DEBUG - Tipo do ABI:", type(contract_abi))
 
 
 # Conecta-se ao provider blockchain
@@ -50,21 +46,17 @@ def register_event(event_id: int, animal_id: int, event_type: int, data_hash: st
     # Converte o user_hash para bytes32 se necessário
     try:
         if not (user_hash.startswith("0x") and len(user_hash) == 66):
-            print("DEBUG - user_hash antes da conversão:", user_hash)
             user_hash = convert_to_bytes32(user_hash)
-            print("DEBUG - user_hash após conversão:", user_hash)
     except Exception as e:
         raise Exception("Erro convertendo user_hash para bytes32: " + str(e))
         
     account = w3.eth.account.from_key(WALLET_PRIVATE)
-    print("DEBUG - Usando conta:", account.address)
     
     try:
         # Obtém a função diretamente usando o atributo functions
         function_call = contract.functions.registerEvent(
             event_id, animal_id, event_type, data_hash, user_hash
         )
-        print("DEBUG - Objeto da função:", function_call)
         # Constrói a transação
         txn = function_call.build_transaction({
             'from': account.address,
@@ -75,11 +67,8 @@ def register_event(event_id: int, animal_id: int, event_type: int, data_hash: st
     except Exception as e:
         raise Exception("Erro ao construir a transação: " + str(e))
     
-    print("DEBUG - Transação construída:", txn)
     signed_txn = account.sign_transaction(txn)
-    print("DEBUG - Transação assinada:", signed_txn)
     tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
-    print("DEBUG - Transação enviada, TX hash:", tx_hash.hex())
     return tx_hash.hex()
 
 
