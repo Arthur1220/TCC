@@ -5,12 +5,17 @@
   <header class="header" role="banner">
     <div class="header-container">
       <h1 class="logo" tabindex="0" @click="goHome" @keydown.enter="goHome">AnimalTracking</h1>
-      <nav class="nav" role="navigation" aria-label="Main">
+      <nav class="nav" role="navigation" aria-label="Main navigation">
         <ul class="nav-list">
-          <li><a href="#benefits">Benefícios</a></li>
-          <li><a href="#details">Como Funciona</a></li>
-          <li><a href="#plans">Preços</a></li>
-          <li><a href="#faq">FAQ</a></li>
+          <li v-for="link in navLinks" :key="link.id">
+            <a
+              :href="link.href"
+              :class="{ active: activeSection === link.id }"
+              @click.prevent="scrollToSection(link.id)"
+            >
+              {{ link.label }}
+            </a>
+          </li>
         </ul>
       </nav>
       <div class="user-icon">
@@ -25,10 +30,34 @@
 <script>
 export default {
   name: 'AppHeader',
+  data() {
+    return {
+      navLinks: [
+        { id: 'benefits', label: 'Benefícios', href: '#benefits' },
+        { id: 'details', label: 'Como Funciona', href: '#details' },
+        { id: 'plans', label: 'Cobrança', href: '#plans' },
+        { id: 'faq', label: 'FAQ', href: '#faq' }
+      ],
+      activeSection: ''
+    };
+  },
   methods: {
-    goHome() {
-      this.$router.push('/');
+    goHome() { this.$router.push('/'); },
+    scrollToSection(id) {
+      document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+    },
+    onIntersection(entries) {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          this.activeSection = entry.target.id;
+        }
+      });
     }
+  },
+  mounted() {
+    const sections = this.navLinks.map(l => document.getElementById(l.id));
+    const observer = new IntersectionObserver(this.onIntersection, { threshold: 0.3 });
+    sections.forEach(sec => sec && observer.observe(sec));
   }
 };
 </script>
@@ -40,6 +69,7 @@ export default {
   background: rgba(255,255,255,0.8);
   backdrop-filter: saturate(180%) blur(10px);
   border-bottom: 1px solid var(--color-border);
+  z-index: 1000;
 }
 .header-container {
   display: flex;
@@ -47,8 +77,7 @@ export default {
   justify-content: space-between;
   max-width: 1200px;
   margin: 0 auto;
-  padding: var(--sp-md) var(--sp-md);
-  /* maior espaço vertical */
+  padding: var(--sp-lg) var(--sp-md);
 }
 .logo {
   font-family: var(--font-heading);
@@ -79,6 +108,9 @@ export default {
   color: var(--color-accent);
   outline: none;
 }
+.nav-list a.active {
+  color: var(--color-accent);
+}
 .user-icon img {
   width: var(--sp-lg);
   height: var(--sp-lg);
@@ -92,7 +124,7 @@ export default {
 @media (max-width: 768px) {
   .header-container {
     flex-direction: column;
-    padding: var(--sp-lg);
+    padding: var(--sp-md);
   }
   .nav-list {
     flex-direction: column;

@@ -6,6 +6,16 @@ const routes = [
     name: 'LandingPage',
     component: () => import('../views/LandingPage.vue')
   },
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import('../views/LoginPage.vue')
+  },
+  {
+    path: '/register',
+    name: 'Register',
+    component: () => import('../views/RegisterPage.vue')
+  },
 
   { 
     path: '/MVP', 
