@@ -1,139 +1,162 @@
-/* Importação de Fontes */
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=DM+Serif+Display&display=swap');
+/* ============================
+   Novo Style Sheet - AnimalTracking
+   Identidade Visual Minimalista
+   ============================ */
 
-/* Variáveis CSS - Identidade Visual com Logo na Cor #F05454 */
+/* 1. Importação de Fontes */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Merriweather:wght@400;700&display=swap');
+
+/* 2. Variáveis - Paleta Minimalista */
 :root {
-  /* Cores Primárias e Secundárias */
-  --color-primary: #0E1F3D;      /* Azul profundo (ex.: cor do logotipo) */
-  --color-secondary: #00A676;    /* Verde esmeralda */
-
-  --color-primary-light: #1E365C;
-  --color-primary-dark: #081324;
-  --color-secondary-light: #33C79F;
-  --color-secondary-dark: #007A54;
-
   /* Neutras */
-  --color-white: #FFFFFF;
-  --color-light-gray: #F6F8FA;
-  --color-gray: #707070;
-  --color-dark-gray: #2B2B2B;
-  --color-black: #101010;
+  --color-bg: #FFFFFF;
+  --color-text: #000000;
+  --color-muted: #F5F5F5;
+  --color-border: #E0E0E0;
+
+  /* Cor de Destaque */
+  --color-accent: #1A73E8;
 
   /* Tipografia */
-  --font-family-base: 'Roboto', sans-serif;
-  --font-family-secondary: 'DM Serif Display', serif;
-  --font-size-base: 14px;
-  --font-size-large: 16px;
-  --font-size-small: 12px;
+  --font-body: 'Inter', sans-serif;
+  --font-heading: 'Merriweather', serif;
+
+  /* Tamanhos de Fonte */
+  --fs-base: 14px;
+  --fs-small: 12px;
+  --fs-large: 18px;
+
+  /* Espaçamentos */
+  --sp-sm: 0.5rem;
+  --sp-md: 1rem;
+  --sp-lg: 1.5rem;
+  --sp-xl: 2rem;
 }
 
-/* Reset */
-*,
-*::before,
-*::after {
+/* 3. Reset & Box-sizing */
+*, *::before, *::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* Corpo */
+/* 4. Estilos Base */
 body {
-  font-family: var(--font-family-base);
-  font-size: var(--font-size-base);
-  background-color: var(--color-white);
-  color: var(--color-dark-gray);
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  line-height: 1.5;
 }
 
-/* Títulos */
-h1, h2, h3 {
-  font-family: var(--font-family-secondary);
-  color: var(--color-secondary);
-  font-weight: 400;
-  margin-bottom: 1rem;
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
+  color: var(--color-text);
+  margin-bottom: var(--sp-md);
 }
-
 h1 { font-size: 2.5rem; }
 h2 { font-size: 2rem; }
-h3 { font-size: 1.5rem; }
+h3 { font-size: 1.75rem; }
+h4 { font-size: 1.5rem; }
 
-/* Parágrafos */
 p {
-  font-size: var(--font-size-base);
-  color: var(--color-gray);
-  margin-bottom: 1rem;
+  margin-bottom: var(--sp-md);
 }
 
-/* Links */
 a {
-  color: var(--color-primary);
+  color: var(--color-accent);
   text-decoration: none;
-  transition: color 0.3s ease;
+  transition: color 0.2s;
 }
-a:hover {
-  color: var(--color-secondary);
+a:hover, a:focus {
+  color: var(--color-text);
+  outline: none;
 }
 
-/* Botões */
-.button-primary {
-  background-color: var(--color-primary);
-  color: var(--color-white);
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  font-size: var(--font-size-large);
+/* 5. Botões */
+.button {
+  font-family: var(--font-body);
+  font-size: var(--fs-large);
+  padding: var(--sp-sm) var(--sp-md);
+  border: 2px solid var(--color-accent);
+  border-radius: var(--sp-sm);
+  background-color: var(--color-accent);
+  color: var(--color-bg);
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  transition: background-color 0.2s, color 0.2s, transform 0.2s;
 }
-.button-primary:hover {
-  background-color: var(--color-primary-dark);
+.button:hover, .button:focus {
+  background-color: var(--color-bg);
+  color: var(--color-accent);
   transform: scale(1.02);
+  outline: none;
 }
 
-.button-secondary {
-  background-color: var(--color-secondary);
-  color: var(--color-white);
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  font-size: var(--font-size-large);
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-}
-.button-secondary:hover {
-  background-color: var(--color-secondary-dark);
-  transform: scale(1.02);
-}
-
-/* Container padrão */
+/* 6. Containers & Layout */
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 1.5rem;
+  padding: 0 var(--sp-md);
 }
 
-/* Cards */
+.grid {
+  display: grid;
+  gap: var(--sp-lg);
+}
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+
+/* 7. Cards */
 .card {
-  background-color: var(--color-white);
-  border: 1px solid var(--color-light-gray);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  padding: 1.5rem;
-  margin-bottom: 1rem;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--sp-sm);
+  padding: var(--sp-md);
+  transition: box-shadow 0.2s, transform 0.2s;
 }
-.card:hover {
+.card:hover, .card:focus-within {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
   transform: translateY(-4px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  outline: none;
 }
 
-/* Responsividade Global */
+/* 8. Formulários */
+.input, .textarea, .select {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  padding: var(--sp-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--sp-sm);
+  transition: border-color 0.2s;
+}
+.input:focus, .textarea:focus, .select:focus {
+  border-color: var(--color-accent);
+  outline: none;
+}
+
+/* 9. Utilitários */
+.mt-1 { margin-top: var(--sp-sm); }
+.mt-2 { margin-top: var(--sp-md); }
+.mb-1 { margin-bottom: var(--sp-sm); }
+.mb-2 { margin-bottom: var(--sp-md); }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 10. Responsividade */
 @media (max-width: 768px) {
-  body {
-    font-size: 14px;
-  }
-  .container {
-    padding: 1rem;
-  }
+  body { font-size: var(--fs-small); }
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.75rem; }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .container { padding: 0 var(--sp-sm); }
 }

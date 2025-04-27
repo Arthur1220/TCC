@@ -1,30 +1,29 @@
-version: '3.9'
-
 services:
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    env_file:
+      - ./backend/.env 
     volumes:
       - ./backend:/code  # Sincronização de código para hot-reload
-      - ./backend/.env:/code/backend/.env  # Atualizado para montar no caminho esperado
     ports:
       - "8000:8000"
     environment:
       - DJANGO_SUPERUSER_USERNAME=admin
       - DJANGO_SUPERUSER_EMAIL=admin@example.com
       - DJANGO_SUPERUSER_PASSWORD=123
-
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "5173:5173"  # Porta padrão do Vite
+      - "5173:5173"
     volumes:
-      - ./frontend:/app  # Sincronização de código para hot-reload
+      - ./frontend:/app          # hot-reload
+      - /app/node_modules        # preserva dependências do contêiner
     environment:
-      - CHOKIDAR_USEPOLLING=true  # Necessário em alguns ambientes para detectar mudanças de arquivo
+      - CHOKIDAR_USEPOLLING=true # caso o hot-reload não dispare no WSL
     depends_on:
       - backend
 

@@ -1,40 +1,21 @@
-# frontend/Dockerfile
-
-# Etapa 1: Construção da aplicação com Node.js
-FROM node:18-alpine AS build
-
-# Definir o diretório de trabalho
-WORKDIR /app
-
-# Copiar os arquivos de dependências
-COPY package.json package-lock.json ./
-
-# Instalar dependências
-RUN npm install
-
-# Copiar o restante do código fonte
-COPY . .
-
-# (Opcional) Executar build para verificar se tudo está funcionando
-# RUN npm run build
-
-# Etapa 2: Ambiente de Desenvolvimento
+# frontend/Dockerfile  ── DEV ONLY
 FROM node:18-alpine
 
-# Definir o diretório de trabalho
+# 1. diretório de trabalho
 WORKDIR /app
 
-# Copiar apenas as dependências instaladas da etapa de build
-COPY --from=build /app/node_modules ./node_modules
+# 2. copiar arquivos de dependência e instalar TUDO (inclui vite)
+COPY package.json package-lock.json ./
+RUN npm install            # ou: npm ci
 
-# Copiar o restante do código fonte
+# 3. copiar o resto do código
 COPY . .
 
-# Expor a porta utilizada pelo Vite (por padrão, 5173)
+# 4. expor a porta padrão do Vite
 EXPOSE 5173
 
-# Definir variáveis de ambiente (se necessário)
+# 5. garantir modo dev
 ENV NODE_ENV=development
 
-# Comando para iniciar o servidor de desenvolvimento
+# 6. comando default
 CMD ["npm", "run", "dev", "--", "--host"]
