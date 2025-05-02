@@ -4,24 +4,32 @@
 <template>
   <header class="header" role="banner">
     <div class="header-container">
-      <h1 class="logo" tabindex="0" @click="goHome" @keydown.enter="goHome">AnimalTracking</h1>
+      <h1 class="logo" tabindex="0" @click="goHome">AnimalTracking</h1>
       <nav class="nav" role="navigation" aria-label="Main navigation">
         <ul class="nav-list">
           <li v-for="link in navLinks" :key="link.id">
             <a
-              :href="link.href"
+              @click.prevent="handleLink(link)"
               :class="{ active: activeSection === link.id }"
-              @click.prevent="scrollToSection(link.id)"
+              tabindex="0"
             >
               {{ link.label }}
             </a>
           </li>
         </ul>
       </nav>
-      <div class="user-icon">
-        <a href="/login" aria-label="Login">
-          <img src="https://img.icons8.com/ios-glyphs/30/000000/user--v1.png" alt="Login" tabindex="0" />
-        </a>
+      <div class="user-icon-wrapper">
+        <img
+          src="https://img.icons8.com/ios-glyphs/30/000000/user--v1.png"
+          alt="Menu de usuário"
+          tabindex="0"
+          @click="toggleMenu"
+        />
+        <ul v-if="showMenu" class="user-menu" @click.stop>
+          <li tabindex="0" @click="goProfile">Perfil</li>
+          <li tabindex="0" @click="goSettings">Configurações</li>
+          <li tabindex="0" @click="logout">Sair</li>
+        </ul>
       </div>
     </div>
   </header>
@@ -36,28 +44,86 @@ export default {
         { id: 'benefits', label: 'Benefícios', href: '#benefits' },
         { id: 'details', label: 'Como Funciona', href: '#details' },
         { id: 'plans', label: 'Cobrança', href: '#plans' },
-        { id: 'faq', label: 'FAQ', href: '#faq' }
+        { id: 'faq', label: 'FAQ', href: '#faq' },
+        { id: 'auditoria', label: 'Auditoria', href: '/search-blockchain' }
       ],
-      activeSection: ''
+      activeSection: '',
+      showMenu: false,
+      observer: null
     };
   },
   methods: {
-    goHome() { this.$router.push('/'); },
-    scrollToSection(id) {
-      document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+    goHome() {
+      this.$router.push('/');
+      this.activeSection = '';
     },
-    onIntersection(entries) {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          this.activeSection = entry.target.id;
-        }
+    handleLink(link) {
+      this.showMenu = false;
+      if (link.href.startsWith('#')) {
+        this.$router.push({ path: '/', hash: link.href })
+          .then(() => this.scrollToSection(link.id));
+      } else {
+        this.$router.push(link.href);
+      }
+    },
+    scrollToSection(id) {
+      this.$nextTick(() => {
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
       });
+    },
+    toggleMenu() {
+      this.showMenu = !this.showMenu;
+    },
+    goProfile() {
+      this.showMenu = false;
+      this.$router.push('/profile');
+    },
+    goSettings() {
+      this.showMenu = false;
+      this.$router.push('/settings');
+    },
+    logout() {
+      this.showMenu = false;
+      console.log('Logout');
+    },
+    initObserver() {
+      if (this.observer) {
+        this.observer.disconnect();
+        this.observer = null;
+      }
+      if (this.$route.path !== '/') return;
+      const sectionIds = this.navLinks.filter(l => l.href.startsWith('#')).map(l => l.id);
+      const sections = sectionIds.map(id => document.getElementById(id)).filter(el => el);
+      this.observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            this.activeSection = entry.target.id;
+          }
+        });
+      }, { threshold: 0.5 });
+      sections.forEach(sec => this.observer.observe(sec));
+    }
+  },
+  watch: {
+    '$route'(to) {
+      this.initObserver();
+      if (to.hash && to.path === '/') {
+        this.activeSection = to.hash.replace('#','');
+      } else if (to.path !== '/') {
+        const match = this.navLinks.find(l => l.href === to.path);
+        this.activeSection = match ? match.id : '';
+      }
     }
   },
   mounted() {
-    const sections = this.navLinks.map(l => document.getElementById(l.id));
-    const observer = new IntersectionObserver(this.onIntersection, { threshold: 0.3 });
-    sections.forEach(sec => sec && observer.observe(sec));
+    this.initObserver();
+  },
+  beforeDestroy() {
+    if (this.observer) {
+      this.observer.disconnect();
+      this.observer = null;
+    }
   }
 };
 </script>
@@ -77,7 +143,7 @@ export default {
   justify-content: space-between;
   max-width: 1200px;
   margin: 0 auto;
-  padding: var(--sp-lg) var(--sp-md);
+  padding: var(--sp-sm) var(--sp-md);
 }
 .logo {
   font-family: var(--font-heading);
@@ -102,6 +168,7 @@ export default {
   color: var(--color-text);
   text-decoration: none;
   transition: color 0.2s;
+  cursor: pointer;
 }
 .nav-list a:hover,
 .nav-list a:focus {
@@ -111,14 +178,45 @@ export default {
 .nav-list a.active {
   color: var(--color-accent);
 }
-.user-icon img {
+.user-icon-wrapper {
+  position: relative;
+}
+.user-icon-wrapper img {
   width: var(--sp-lg);
   height: var(--sp-lg);
+  cursor: pointer;
   transition: transform 0.3s;
 }
-.user-icon img:hover,
-.user-icon img:focus {
-  transform: rotate(15deg) scale(1.2);
+.user-icon-wrapper img:hover,
+.user-icon-wrapper img:focus {
+  transform: scale(1.5);
+  outline: none;
+}
+.user-menu {
+  position: absolute;
+  top: calc(100% + var(--sp-sm));
+  right: 0;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--sp-sm);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  list-style: none;
+  padding: var(--sp-sm) 0;
+  margin: 0;
+  min-width: 160px;
+  z-index: 1001;
+}
+.user-menu li {
+  padding: var(--sp-sm) var(--sp-md);
+  font-family: var(--font-body);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.user-menu li:hover,
+.user-menu li:focus {
+  background: var(--color-primary-light);
+  color: var(--color-white);
   outline: none;
 }
 @media (max-width: 768px) {

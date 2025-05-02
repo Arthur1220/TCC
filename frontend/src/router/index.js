@@ -16,6 +16,16 @@ const routes = [
     name: 'Register',
     component: () => import('../views/RegisterPage.vue')
   },
+  {
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: () => import('../views/DashboardPage.vue')
+  },
+  {
+    path: '/search-blockchain',
+    name: 'BlockchainSearchPage',
+    component: () => import('../views/BlockchainSearchPage.vue')
+  },
 
   { 
     path: '/MVP', 
