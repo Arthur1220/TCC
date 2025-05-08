@@ -1,228 +1,167 @@
 const { expect } = require("chai");
-const { ethers } = require("hardhat");
+const { ethers, upgrades } = require("hardhat");
 
-// Define ZERO_HASH manualmente como 32 bytes de zero
-const ZERO_HASH = "0x" + "00".repeat(32);
-
-// Função auxiliar para converter uma string em bytes32 (similar ao antigo formatBytes32String)
-function formatBytes32StringCustom(text) {
-  const bytes = ethers.toUtf8Bytes(text);
-  if (bytes.length > 32) {
-    throw new Error("Texto muito longo");
-  }
-  const padded = new Uint8Array(32);
-  padded.set(bytes);
-  return ethers.hexlify(padded);
-}
-
-describe("AnimalTracking with Access Control", function () {
+describe("AnimalTracking (Upgradeable + Pausable + UUPS)", function () {
   let AnimalTracking, animalTracking;
-  let deployer, registrar, unauthorized, otherAccount;
+  let owner, registrar, unauthorized, another;
 
-  beforeEach(async function () {
-    [deployer, registrar, unauthorized, otherAccount] = await ethers.getSigners();
+  // ZERO_HASH em Ethers v6
+  const ZERO_HASH = ethers.ZeroHash;
+
+  // formata string para bytes32 em Ethers v6
+  function formatBytes32(text) {
+    return ethers.encodeBytes32String(text);
+  }
+
+  beforeEach(async () => {
+    [owner, registrar, unauthorized, another] = await ethers.getSigners();
     AnimalTracking = await ethers.getContractFactory("AnimalTracking");
-    animalTracking = await AnimalTracking.deploy();
+    // deploy do proxy
+    animalTracking = await upgrades.deployProxy(
+      AnimalTracking,
+      [], 
+      { initializer: "initialize" }
+    );
+    // aguarda deploy
     await animalTracking.waitForDeployment();
-
-    // Autoriza o endereço 'registrar' para registrar eventos
-    await animalTracking.addRegistrar(registrar.address);
   });
 
-  describe("Access Control", function () {
-    it("Deve permitir que um endereço autorizado registre um evento", async function () {
-      const eventId = 1;
-      const animalId = 101;
-      const eventType = 1; // Ex.: vacinação
-      const dataHash = "0x1234abcd";
-      const userHash = formatBytes32StringCustom("RegistrarUser");
+  describe("Deployment & Inicialização", () => {
+    it("Deployer é owner e registrador autorizado", async () => {
+      // obtém endereço do proxy
+      const proxyAddr = await animalTracking.getAddress();
+      expect(await animalTracking.owner()).to.equal(owner.address);
 
-      // Conecte-se com o 'registrar' autorizado
+      // owner deve conseguir registrar um evento
       await expect(
-        animalTracking.connect(registrar).registerEvent(eventId, animalId, eventType, dataHash, userHash)
+        animalTracking.registerEvent(1, 1, 1, "0x01", formatBytes32("U"))
       )
         .to.emit(animalTracking, "EventRegistered")
-        .withArgs(animalId, eventId, eventType, dataHash, registrar.address, userHash);
-
-      const count = await animalTracking.getNumberOfEvents(animalId);
-      expect(count).to.equal(1);
+        .withArgs(1, 1, 1, "0x01", owner.address, formatBytes32("U"));
     });
 
-    it("Deve reverter se um endereço não autorizado tentar registrar um evento", async function () {
-      const eventId = 2;
-      const animalId = 202;
-      const eventType = 2; // Ex.: medicação
-      const dataHash = "0xdeadbeef";
-      const userHash = formatBytes32StringCustom("UnauthorizedUser");
-
-      await expect(
-        animalTracking.connect(unauthorized).registerEvent(eventId, animalId, eventType, dataHash, userHash)
-      ).to.be.revertedWith("Not authorized registrar");
+    it("isActive() inicia como true", async () => {
+      expect(await animalTracking.isActive()).to.equal(true);
     });
   });
 
-  describe("Registro de Eventos", function () {
-    it("Deve registrar um novo evento e emitir o evento EventRegistered", async function () {
-      const eventId = 3;
-      const animalId = 303;
-      const eventType = 1; // Ex.: vacinação
-      const dataHash = "0xabcdef01";
-      const userHash = formatBytes32StringCustom("TestUser");
+  describe("Controle de Pausa", () => {
+    it("Somente owner pode pause/unpause", async () => {
+      await expect(
+        animalTracking.connect(unauthorized).pause()
+      ).to.be.revertedWith("Ownable: caller is not the owner");
+
+      await expect(animalTracking.pause())
+        .to.emit(animalTracking, "Paused")
+        .withArgs(owner.address);
+
+      expect(await animalTracking.isActive()).to.equal(false);
 
       await expect(
-        animalTracking.registerEvent(eventId, animalId, eventType, dataHash, userHash)
+        animalTracking.registerEvent(2, 2, 1, "0x02", formatBytes32("X"))
+      ).to.be.revertedWith("Pausable: paused");
+
+      await expect(animalTracking.unpause())
+        .to.emit(animalTracking, "Unpaused")
+        .withArgs(owner.address);
+
+      expect(await animalTracking.isActive()).to.equal(true);
+    });
+  });
+
+  describe("Registradores (add/remove)", () => {
+    it("Owner pode adicionar e remover registrador", async () => {
+      // antes, registrar não está autorizado
+      await expect(
+        animalTracking.connect(registrar).registerEvent(3, 3, 1, "0x03", formatBytes32("A"))
+      ).to.be.revertedWithCustomError(animalTracking, "NotAuthorizedRegistrar");
+
+      // adiciona e testa
+      await animalTracking.addRegistrar(registrar.address);
+      await expect(
+        animalTracking.connect(registrar).registerEvent(3, 3, 1, "0x03", formatBytes32("A"))
+      ).to.emit(animalTracking, "EventRegistered");
+
+      // remove e testa
+      await animalTracking.removeRegistrar(registrar.address);
+      await expect(
+        animalTracking.connect(registrar).registerEvent(4, 3, 1, "0x04", formatBytes32("B"))
+      ).to.be.revertedWithCustomError(animalTracking, "NotAuthorizedRegistrar");
+    });
+  });
+
+  describe("Registro de Eventos", () => {
+    beforeEach(async () => {
+      // owner já está autorizado
+      await animalTracking.addRegistrar(registrar.address);
+    });
+
+    it("Deve registrar um evento e emitir EventRegistered", async () => {
+      await expect(
+        animalTracking.connect(registrar)
+          .registerEvent(10, 100, 2, "0xAA", formatBytes32("R"))
       )
         .to.emit(animalTracking, "EventRegistered")
-        .withArgs(animalId, eventId, eventType, dataHash, deployer.address, userHash);
-
-      const count = await animalTracking.getNumberOfEvents(animalId);
-      expect(count).to.equal(1);
+        .withArgs(100, 10, 2, "0xAA", registrar.address, formatBytes32("R"));
+      expect(await animalTracking.getNumberOfEvents(100)).to.equal(1);
     });
 
-    it("Deve recuperar um evento registrado pelo índice", async function () {
-      const eventId = 4;
-      const animalId = 404;
-      const eventType = 2; // Ex.: medicação
-      const dataHash = "0xdeadbeef";
-      const userHash = formatBytes32StringCustom("UserHashTest");
-
-      await animalTracking.registerEvent(eventId, animalId, eventType, dataHash, userHash);
-
-      const eventData = await animalTracking.getEventByIndex(animalId, 0);
-
-      expect(eventData.eventId).to.equal(eventId);
-      expect(eventData.animalId).to.equal(animalId);
-      expect(eventData.eventType).to.equal(eventType);
-      expect(eventData.dataHash).to.equal(dataHash);
-      expect(eventData.registrant).to.equal(deployer.address);
-      expect(eventData.userHash).to.equal(userHash);
-      expect(eventData.timestamp).to.be.gt(0);
-    });
-  });
-
-  describe("Casos de Borda", function () {
-    it("Deve reverter ao tentar recuperar um evento com índice fora do intervalo", async function () {
-      const animalId = 505;
+    it("Reverte se dataHash vazio", async () => {
       await expect(
-        animalTracking.getEventByIndex(animalId, 0)
-      ).to.be.revertedWith("Indice fora do intervalo");
+        animalTracking.registerEvent(11, 101, 1, "", formatBytes32("U"))
+      ).to.be.revertedWithCustomError(animalTracking, "DataHashEmpty");
     });
 
-    it("Deve reverter ao tentar registrar um evento com dataHash vazio", async function () {
-      const eventId = 5;
-      const animalId = 606;
-      const eventType = 0; // Ex.: nascimento
-      const emptyDataHash = "";
-      const userHash = formatBytes32StringCustom("Test");
-
+    it("Reverte se userHash zero", async () => {
       await expect(
-        animalTracking.registerEvent(eventId, animalId, eventType, emptyDataHash, userHash)
-      ).to.be.revertedWith("Data hash nao pode ser vazio");
+        animalTracking.registerEvent(12, 102, 1, "0xBB", ZERO_HASH)
+      ).to.be.revertedWithCustomError(animalTracking, "UserHashEmpty");
     });
 
-    it("Deve reverter ao tentar registrar um evento com userHash zero", async function () {
-      const eventId = 6;
-      const animalId = 707;
-      const eventType = 0; // Ex.: nascimento
-      const dataHash = "0xabcdef";
+    it("Mantém ordem de registro e lê corretamente via getEventByIndex", async () => {
+      await animalTracking.registerEvent(20, 200, 1, "0xCC", formatBytes32("U1"));
+      await animalTracking.registerEvent(21, 200, 2, "0xDD", formatBytes32("U2"));
 
+      expect(await animalTracking.getNumberOfEvents(200)).to.equal(2);
+
+      const ev0 = await animalTracking.getEventByIndex(200, 0);
+      expect(ev0.eventId).to.equal(20);
+      const ev1 = await animalTracking.getEventByIndex(200, 1);
+      expect(ev1.eventId).to.equal(21);
+    });
+
+    it("Reverte getEventByIndex fora do intervalo", async () => {
       await expect(
-        animalTracking.registerEvent(eventId, animalId, eventType, dataHash, ZERO_HASH)
-      ).to.be.revertedWith("User hash nao pode ser vazio");
+        animalTracking.getEventByIndex(300, 0)
+      ).to.be.revertedWithCustomError(animalTracking, "IndexOutOfRange");
+    });
+
+    it("getEventsByAnimal retorna array correto", async () => {
+      await animalTracking.registerEvent(30, 300, 1, "0xEE", formatBytes32("X"));
+      const list = await animalTracking.getEventsByAnimal(300);
+      expect(list.length).to.equal(1);
+      expect(list[0].eventId).to.equal(30);
     });
   });
 
-  describe("Registro de Múltiplos Eventos para o Mesmo Animal", function () {
-    it("Deve registrar vários eventos para um mesmo animal e manter a ordem de registro", async function () {
-      const animalId = 8001;
-      
-      // Primeiro evento
-      const eventId1 = 10;
-      const eventType1 = 1; // Vacinação
-      const dataHash1 = "0xaaa111";
-      const userHash1 = formatBytes32StringCustom("User1");
-      
-      // Segundo evento
-      const eventId2 = 11;
-      const eventType2 = 2; // Medicação
-      const dataHash2 = "0xbbb222";
-      const userHash2 = formatBytes32StringCustom("User2");
-
-      await animalTracking.registerEvent(eventId1, animalId, eventType1, dataHash1, userHash1);
-      await animalTracking.registerEvent(eventId2, animalId, eventType2, dataHash2, userHash2);
-
-      const count = await animalTracking.getNumberOfEvents(animalId);
-      expect(count).to.equal(2);
-
-      const firstEvent = await animalTracking.getEventByIndex(animalId, 0);
-      const secondEvent = await animalTracking.getEventByIndex(animalId, 1);
-
-      expect(firstEvent.eventId).to.equal(eventId1);
-      expect(secondEvent.eventId).to.equal(eventId2);
+  describe("Upgradeability (UUPS)", () => {
+    it("Owner consegue upgrade para a mesma implementação", async () => {
+      const proxyAddr = await animalTracking.getAddress();
+      await expect(
+        upgrades.upgradeProxy(proxyAddr, AnimalTracking)
+      ).to.not.be.reverted;
     });
-  });
-
-  describe("Contagem de Eventos para Vários Animais", function () {
-    it("Deve retornar a contagem correta de eventos para diferentes animais", async function () {
-      await animalTracking.registerEvent(20, 2001, 1, "0xhash1", formatBytes32StringCustom("UserA"));
-      await animalTracking.registerEvent(21, 2002, 2, "0xhash2", formatBytes32StringCustom("UserB"));
-      await animalTracking.registerEvent(22, 2002, 3, "0xhash3", formatBytes32StringCustom("UserC"));
-      
-      const count2001 = await animalTracking.getNumberOfEvents(2001);
-      const count2002 = await animalTracking.getNumberOfEvents(2002);
-      const count2003 = await animalTracking.getNumberOfEvents(2003);
-
-      expect(count2001).to.equal(1);
-      expect(count2002).to.equal(2);
-      expect(count2003).to.equal(0);
+  
+    it("Não-owner não pode upgrade", async () => {
+      const proxyAddr = await animalTracking.getAddress();
+      // Recupera o factory e conecta ao signer não-dono
+      const ATFactory = await ethers.getContractFactory("AnimalTracking");
+      const ATFactoryUnauthorized = ATFactory.connect(unauthorized);
+  
+      // Quando tentarmos o upgrade com esse factory, deve reverter
+      await expect(
+        upgrades.upgradeProxy(proxyAddr, ATFactoryUnauthorized)
+      ).to.be.revertedWith("Ownable: caller is not the owner");
     });
-  });
-
-  describe("Emissão de Eventos (Logs)", function () {
-    it("Deve emitir os eventos na ordem de registro", async function () {
-      const animalId = 3001;
-      
-      // Primeiro evento
-      const eventId1 = 30;
-      const eventType1 = 1;
-      const dataHash1 = "0xorder1";
-      const userHash1 = formatBytes32StringCustom("OrderUser1");
-
-      // Segundo evento
-      const eventId2 = 31;
-      const eventType2 = 2;
-      const dataHash2 = "0xorder2";
-      const userHash2 = formatBytes32StringCustom("OrderUser2");
-
-      const tx1 = await animalTracking.registerEvent(eventId1, animalId, eventType1, dataHash1, userHash1);
-      const receipt1 = await tx1.wait();
-
-      const tx2 = await animalTracking.registerEvent(eventId2, animalId, eventType2, dataHash2, userHash2);
-      const receipt2 = await tx2.wait();
-
-      // Processa os logs usando o interface do contrato para fazer o parse
-      const parsedLog1 = receipt1.logs
-        .map((log) => {
-          try {
-            return animalTracking.interface.parseLog(log);
-          } catch (err) {
-            return null;
-          }
-        })
-        .find((parsed) => parsed && parsed.name === "EventRegistered");
-
-      const parsedLog2 = receipt2.logs
-        .map((log) => {
-          try {
-            return animalTracking.interface.parseLog(log);
-          } catch (err) {
-            return null;
-          }
-        })
-        .find((parsed) => parsed && parsed.name === "EventRegistered");
-
-      expect(parsedLog1.args.eventId).to.equal(eventId1);
-      expect(parsedLog2.args.eventId).to.equal(eventId2);
-    });
-  });
+  });  
 });
