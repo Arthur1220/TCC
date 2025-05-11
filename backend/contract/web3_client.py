@@ -20,9 +20,8 @@ with open(ABI_PATH, "r") as f:
     else:
         contract_abi = loaded
 
-
 # Conecta-se ao provider blockchain
-w3 = Web3(Web3.HTTPProvider(BLOCKCHAIN_PROVIDER))
+w3 = Web3(Web3.HTTPProvider(BLOCKCHAIN_PROVIDER, request_kwargs={"timeout": 10}))
 if not w3.is_connected():
     raise Exception("Falha ao conectar ao provider blockchain.")
 
@@ -30,12 +29,6 @@ if not w3.is_connected():
 contract = w3.eth.contract(address=CONTRACT_ADDRESS, abi=contract_abi)
 
 def convert_to_bytes32(text: str) -> str:
-    """
-    Converte uma string para um valor hexadecimal de 32 bytes (bytes32).
-    Se o texto for menor que 32 bytes, preenche à direita com zeros.
-    Se for maior, lança exceção.
-    Retorna a string hexadecimal com prefixo "0x".
-    """
     encoded = text.encode('utf-8')
     if len(encoded) > 32:
         raise Exception("O texto é muito longo para ser convertido em bytes32")
@@ -60,7 +53,7 @@ def register_event(event_id: int, animal_id: int, event_type: int, data_hash: st
         # Constrói a transação
         txn = function_call.build_transaction({
             'from': account.address,
-            'nonce': w3.eth.get_transaction_count(account.address),
+            'nonce': w3.eth.get_transaction_count(account.address, "pending"),
             'gas': 3000000,
             'gasPrice': w3.eth.gas_price,
         })
@@ -69,8 +62,8 @@ def register_event(event_id: int, animal_id: int, event_type: int, data_hash: st
     
     signed_txn = account.sign_transaction(txn)
     tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
-    return tx_hash.hex()
-
+    receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
+    return receipt.transactionHash.hex()
 
 def get_number_of_events(animal_id: int):
     return contract.functions.getNumberOfEvents(animal_id).call()
@@ -78,29 +71,64 @@ def get_number_of_events(animal_id: int):
 def get_event_by_index(animal_id: int, index: int):
     return contract.functions.getEventByIndex(animal_id, index).call()
 
-def is_active():
+def get_events_by_animal(animal_id: int):
+    return contract.functions.getEventsByAnimal(animal_id).call()
+
+def is_active() -> bool:
     return contract.functions.isActive().call()
 
 def add_registrar(registrar_address: str):
     account = w3.eth.account.from_key(WALLET_PRIVATE)
     txn = contract.functions.addRegistrar(registrar_address).build_transaction({
         'from': account.address,
-        'nonce': w3.eth.get_transaction_count(account.address),
+        'nonce': w3.eth.get_transaction_count(account.address, "pending"),
         'gas': 3000000,
         'gasPrice': w3.eth.gas_price,
     })
     signed_txn = account.sign_transaction(txn)
     tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
-    return tx_hash.hex()
+    receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
+    return receipt.transactionHash.hex()
 
 def remove_registrar(registrar_address: str):
     account = w3.eth.account.from_key(WALLET_PRIVATE)
     txn = contract.functions.removeRegistrar(registrar_address).build_transaction({
         'from': account.address,
-        'nonce': w3.eth.get_transaction_count(account.address),
+        'nonce': w3.eth.get_transaction_count(account.address, "pending"),
         'gas': 3000000,
         'gasPrice': w3.eth.gas_price,
     })
     signed_txn = account.sign_transaction(txn)
     tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
-    return tx_hash.hex()
+    receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
+    return receipt.transactionHash.hex()
+
+def pause_contract() -> str:
+    acct = w3.eth.account.from_key(WALLET_PRIVATE)
+    fn   = contract.functions.pause()
+    txn  = fn.build_transaction({
+        "from": acct.address,
+        "nonce": w3.eth.get_transaction_count(acct.address, "pending"),
+        "gas": 200_000,
+        "maxPriorityFeePerGas": w3.to_wei(2, "gwei"),
+        "maxFeePerGas": w3.to_wei(50, "gwei"),
+    })
+    signed = acct.sign_transaction(txn)
+    txh    = w3.eth.send_raw_transaction(signed.rawTransaction)
+    receipt = w3.eth.wait_for_transaction_receipt(txh)
+    return receipt.transactionHash.hex()
+
+def unpause_contract() -> str:
+    acct = w3.eth.account.from_key(WALLET_PRIVATE)
+    fn   = contract.functions.unpause()
+    txn  = fn.build_transaction({
+        "from": acct.address,
+        "nonce": w3.eth.get_transaction_count(acct.address, "pending"),
+        "gas": 200_000,
+        "maxPriorityFeePerGas": w3.to_wei(2, "gwei"),
+        "maxFeePerGas": w3.to_wei(50, "gwei"),
+    })
+    signed = acct.sign_transaction(txn)
+    txh    = w3.eth.send_raw_transaction(signed.rawTransaction)
+    receipt = w3.eth.wait_for_transaction_receipt(txh)
+    return receipt.transactionHash.hex()
