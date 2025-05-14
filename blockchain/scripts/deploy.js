@@ -19,7 +19,7 @@ async function main() {
   // 4) Obtém o endereço já resolvido
   const proxyAddress = await instance.getAddress();
 
-  console.log("AnimalTracking proxy deployed to:", proxyAddress);
+  console.log("DEPLOYED_ADDRESS=", proxyAddress);
 }
 
 main()
