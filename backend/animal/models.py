@@ -1,8 +1,10 @@
 from django.db import models
 from user.models import User
+from simple_history.models import HistoricalRecords
 
 class Specie(models.Model):
     name = models.CharField(max_length=50, unique=True)
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.name
@@ -11,6 +13,7 @@ class Breed(models.Model):
     name = models.CharField(max_length=50, unique=True)
     description = models.CharField(max_length=255, blank=True, null=True)
     specie = models.ForeignKey(Specie, on_delete=models.CASCADE, related_name="breeds")
+    history = HistoricalRecords()
 
     def __str__(self):
         return f"{self.name} ({self.specie.name})"
@@ -19,6 +22,7 @@ class AnimalGroup(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.CharField(max_length=255, blank=True, null=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="animal_groups", blank=False, null=False)
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.name
@@ -26,6 +30,7 @@ class AnimalGroup(models.Model):
 class Gender(models.Model):
     name = models.CharField(max_length=50, unique=True)
     description = models.CharField(max_length=100, blank=True, null=True)
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.name
@@ -33,6 +38,7 @@ class Gender(models.Model):
 class Status(models.Model):
     name = models.CharField(max_length=50, unique=True)
     description = models.CharField(max_length=100, blank=True, null=True)
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.name
@@ -40,6 +46,7 @@ class Status(models.Model):
 class IdentificationType(models.Model):
     name = models.CharField(max_length=50, unique=True)
     description = models.CharField(max_length=255, blank=True, null=True)
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.description if self.description else self.name
@@ -56,6 +63,7 @@ class Animal(models.Model):
     observations = models.TextField(max_length=100, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    history = HistoricalRecords()
 
     def __str__(self):
         return f"{self.identification} - {self.status.name}"

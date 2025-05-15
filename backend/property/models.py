@@ -1,5 +1,6 @@
 from django.db import models
 from user.models import User
+from simple_history.models import HistoricalRecords
 
 class Property(models.Model):
     name = models.CharField(max_length=50, blank=True, null=True)
@@ -9,6 +10,7 @@ class Property(models.Model):
     zip_code = models.CharField(max_length=10, blank=False, null=False)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.name if self.name else f"Property {self.id}"
