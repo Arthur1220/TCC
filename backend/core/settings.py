@@ -157,6 +157,17 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
+    # Throttling / Rate Limiting
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        # até 100 requisições anônimas por dia
+        "anon": "100/day",
+        # até 1000 requisições de usuário autenticado por dia
+        "user": "1000/day",
+    },
 }
 
 SPETACULAR_SETTINGS = {
