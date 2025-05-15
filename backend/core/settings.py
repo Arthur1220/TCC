@@ -56,6 +56,10 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'drf_spectacular_sidecar',
     'simple_history',
+    'health_check',           # endpoint principal
+    'health_check.db',        # verifica conexão com o DB
+    'health_check.cache',     # verifica backend de cache
+    'health_check.storage',  # verifica backend de storage
     'user',
     'property',
     'animal',
