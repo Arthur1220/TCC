@@ -1,25 +1,44 @@
+// ------------------------------
+// File: src/views/DashboardPage.vue
+// ------------------------------
 <template>
   <div class="dashboard-page">
     <AppHeader />
+
     <div class="dashboard-body">
       <!-- Sidebar Navigation -->
       <aside class="sidebar">
         <nav aria-label="Main Navigation">
           <ul>
-            <li><router-link to="/dashboard" active-class="active-link">Home</router-link></li>
-            <li><router-link to="/properties">Propriedades</router-link></li>
-            <li><router-link to="/lots">Lotes</router-link></li>
-            <li><router-link to="/animals">Animais</router-link></li>
-            <li><router-link to="/events">Eventos</router-link></li>
-            <li><router-link to="/blockchain">Blockchain</router-link></li>
+            <li :class="{ 'active-link': activeContent === 'home' }">
+              <a href="#" @click.prevent="selectContent('home')">Home</a>
+            </li>
+            <li :class="{ 'active-link': activeContent === 'properties' }">
+              <a href="#" @click.prevent="selectContent('properties')">Propriedades</a>
+            </li>
+            <li :class="{ 'active-link': activeContent === 'lots' }">
+              <a href="#" @click.prevent="selectContent('lots')">Lotes</a>
+            </li>
+            <li :class="{ 'active-link': activeContent === 'animals' }">
+              <a href="#" @click.prevent="selectContent('animals')">Animais</a>
+            </li>
+            <li :class="{ 'active-link': activeContent === 'events' }">
+              <a href="#" @click.prevent="selectContent('events')">Eventos</a>
+            </li>
+            <li :class="{ 'active-link': activeContent === 'blockchain' }">
+              <a href="#" @click.prevent="selectContent('blockchain')">Blockchain</a>
+            </li>
           </ul>
         </nav>
       </aside>
 
       <!-- Main Content -->
       <main class="dashboard-content">
-        <!-- Search & Filter (full width) -->
-        <div class="search-filter-group full-width">
+        <!-- Search & Filter (Home only) -->
+        <div
+          class="search-filter-group"
+          v-if="activeContent === 'home'"
+        >
           <input
             type="text"
             class="search-input"
@@ -28,7 +47,12 @@
             @input="onSearch"
             aria-label="Busca"
           />
-          <select class="filter-select" v-model="filterOption" @change="onFilter" aria-label="Filtro">
+          <select
+            class="filter-select"
+            v-model="filterOption"
+            @change="onFilter"
+            aria-label="Filtro"
+          >
             <option value="all">Todos</option>
             <option value="animals">Animais</option>
             <option value="lots">Lotes</option>
@@ -37,16 +61,14 @@
         </div>
 
         <!-- Home Overview -->
-        <section class="home-overview">
-          <!-- Welcome & Last Event -->
+        <section v-if="activeContent === 'home'" class="home-overview">
           <div class="welcome-section">
             <h2 class="welcome-title">Bem-vindo, Usuário X!</h2>
             <p class="last-event">
-              Último evento registrado: <strong>{{ lastEvent.description }}</strong> em {{ lastEvent.date }}
+              Último evento registrado: <strong>{{ lastEvent.description }}</strong>
+              em {{ lastEvent.date }}
             </p>
           </div>
-
-          <!-- Stats Cards -->
           <div class="stats-grid">
             <div class="stat-card" tabindex="0">
               <h4>{{ stats.animals }}</h4>
@@ -62,38 +84,95 @@
             </div>
           </div>
         </section>
+
+        <!-- Dynamic Content -->
+        <AnimalContent
+          v-if="activeContent === 'animals'"
+          :search-query="searchQuery"
+          :filter-option="filterOption"
+        />
+        <PropertyContent
+          v-if="activeContent === 'properties'"
+          :search-query="searchQuery"
+          :filter-option="filterOption"
+        />
+        <LotContent
+          v-if="activeContent === 'lots'"
+          :search-query="searchQuery"
+          :filter-option="filterOption"
+        />
+        <EventContent
+          v-if="activeContent === 'events'"
+          :search-query="searchQuery"
+          :filter-option="filterOption"
+        />
+        <BlockchainContent
+          v-if="activeContent === 'blockchain'"
+          :search-query="searchQuery"
+          :filter-option="filterOption"
+        />
       </main>
     </div>
 
     <AppFooter />
 
     <!-- Sticky New Event Button -->
-    <button class="sticky-new-event button-primary" @click="goToNewEvent" aria-label="Registrar novo evento">
+    <button
+      class="sticky-new-event button-primary"
+      @click="goToNewEvent"
+      aria-label="Registrar novo evento"
+    >
       + Novo Evento
     </button>
   </div>
 </template>
 
 <script>
-import AppHeader from '@/components/AppHeader.vue';
-import AppFooter from '@/components/AppFooter.vue';
+import AppHeader from '@/components/AppHeader.vue'
+import AppFooter from '@/components/AppFooter.vue'
+import AnimalContent from '@/components/AnimalContent.vue'
+import PropertyContent from '@/components/PropertyContent.vue'
+import LotContent from '@/components/LotContent.vue'
+import EventContent from '@/components/EventContent.vue'
+import BlockchainContent from '@/components/BlockchainContent.vue'
+
 export default {
-  name: 'Dashboard',
-  components: { AppHeader, AppFooter },
+  name: 'DashboardPage',
+  components: {
+    AppHeader,
+    AppFooter,
+    AnimalContent,
+    PropertyContent,
+    LotContent,
+    EventContent,
+    BlockchainContent
+  },
   data() {
     return {
       stats: { animals: 120, lots: 8, properties: 3 },
       lastEvent: { description: 'Vacinação do Animal 042', date: '2025-04-30' },
       searchQuery: '',
-      filterOption: 'all'
-    };
+      filterOption: 'all',
+      activeContent: 'home'
+    }
   },
   methods: {
-    goToNewEvent() { this.$router.push({ name: 'NewEvent' }); },
-    onSearch() { console.log('Buscando:', this.searchQuery); },
-    onFilter() { console.log('Filtrando por:', this.filterOption); }
+    selectContent(tab) {
+      this.activeContent = tab
+      this.searchQuery = ''
+      this.filterOption = 'all'
+    },
+    goToNewEvent() {
+      this.$router.push({ name: 'NewEvent' })
+    },
+    onSearch() {
+      console.log('Buscando:', this.searchQuery)
+    },
+    onFilter() {
+      console.log('Filtrando por:', this.filterOption)
+    }
   }
-};
+}
 </script>
 
 <style scoped>
@@ -133,7 +212,7 @@ export default {
   color: var(--color-bg);
   transform: translateX(4px);
 }
-.sidebar nav a.active-link {
+.sidebar nav li.active-link > a {
   background: var(--color-white);
   color: var(--color-accent);
 }
@@ -143,13 +222,14 @@ export default {
   padding: var(--sp-lg);
   overflow-y: auto;
 }
-.full-width {
+.search-filter-group {
   width: 100%;
   display: flex;
   gap: var(--sp-md);
   margin-bottom: var(--sp-xl);
 }
-.search-input, .filter-select {
+.search-input,
+.filter-select {
   flex: 1;
   padding: var(--sp-sm);
   border: 1px solid var(--color-border);
@@ -157,7 +237,8 @@ export default {
   font-size: var(--font-size-base);
   transition: border-color 0.2s;
 }
-.search-input:focus, .filter-select:focus {
+.search-input:focus,
+.filter-select:focus {
   border-color: var(--color-primary);
   outline: none;
 }
@@ -200,7 +281,8 @@ export default {
   text-align: center;
   transition: transform 0.2s, box-shadow 0.2s;
 }
-.stat-card:hover, .stat-card:focus {
+.stat-card:hover,
+.stat-card:focus {
   box-shadow: 0 4px 16px rgba(0,0,0,0.1);
   transform: translateY(-4px);
   outline: none;
@@ -230,10 +312,9 @@ export default {
   border-radius: var(--sp-sm);
   font-size: var(--font-size-small);
   cursor: pointer;
-  transition: background 0.3s, transform 0.2s;
 }
-
-.sticky-new-event:hover, .sticky-new-event:focus {
+.sticky-new-event:hover,
+.sticky-new-event:focus {
   background-color: var(--color-accent);
   color: var(--color-bg);
   transform: scale(1.1);
@@ -241,9 +322,19 @@ export default {
   outline: none;
 }
 @media (max-width: 768px) {
-  .dashboard-body { flex-direction: column; }
-  .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--color-border); }
-  .full-width { flex-direction: column; }
-  .stats-grid { flex-direction: column; }
+  .dashboard-body {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .search-filter-group {
+    flex-direction: column;
+  }
+  .stats-grid {
+    flex-direction: column;
+  }
 }
 </style>
