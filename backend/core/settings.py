@@ -164,9 +164,9 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_THROTTLE_RATES": {
         # até 100 requisições anônimas por dia
-        "anon": "100/day",
+        "anon": "1000/day",
         # até 1000 requisições de usuário autenticado por dia
-        "user": "1000/day",
+        "user": "10000/day",
     },
 }
 

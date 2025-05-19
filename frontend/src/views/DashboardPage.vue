@@ -1,6 +1,3 @@
-// ------------------------------
-// File: src/views/DashboardPage.vue
-// ------------------------------
 <template>
   <div class="dashboard-page">
     <AppHeader />
@@ -15,9 +12,6 @@
             </li>
             <li :class="{ 'active-link': activeContent === 'properties' }">
               <a href="#" @click.prevent="selectContent('properties')">Propriedades</a>
-            </li>
-            <li :class="{ 'active-link': activeContent === 'lots' }">
-              <a href="#" @click.prevent="selectContent('lots')">Lotes</a>
             </li>
             <li :class="{ 'active-link': activeContent === 'animals' }">
               <a href="#" @click.prevent="selectContent('animals')">Animais</a>
@@ -96,11 +90,7 @@
           :search-query="searchQuery"
           :filter-option="filterOption"
         />
-        <LotContent
-          v-if="activeContent === 'lots'"
-          :search-query="searchQuery"
-          :filter-option="filterOption"
-        />
+
         <EventContent
           v-if="activeContent === 'events'"
           :search-query="searchQuery"
@@ -132,7 +122,6 @@ import AppHeader from '@/components/AppHeader.vue'
 import AppFooter from '@/components/AppFooter.vue'
 import AnimalContent from '@/components/AnimalContent.vue'
 import PropertyContent from '@/components/PropertyContent.vue'
-import LotContent from '@/components/LotContent.vue'
 import EventContent from '@/components/EventContent.vue'
 import BlockchainContent from '@/components/BlockchainContent.vue'
 
@@ -143,7 +132,6 @@ export default {
     AppFooter,
     AnimalContent,
     PropertyContent,
-    LotContent,
     EventContent,
     BlockchainContent
   },
