@@ -34,23 +34,36 @@
       </div>
       <button type="submit" class="button-primary">Entrar</button>
     </form>
+
     <p class="switch-text">
       Não tem conta? 
       <a @click.prevent="$emit('navigate','register')" href="#">Cadastre-se</a>
     </p>
+
     <div v-if="error" class="error-message">{{ error }}</div>
+
+    <!-- Modal de sucesso -->
+    <div v-if="success" class="modal-overlay">
+      <div class="modal-content">
+        <p>Login realizado com sucesso! Você será redirecionado em {{ countdown }}s...</p>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import { login } from '@/services/authService';
+
 export default {
   name: 'Login',
   data() {
     return {
       form: { username: '', password: '' },
       error: null,
-      showPassword: false
+      showPassword: false,
+      success: false,
+      countdown: 3,
+      timer: null
     };
   },
   methods: {
@@ -58,7 +71,15 @@ export default {
       this.error = null;
       try {
         await login(this.form);
-        this.$router.push({ name: 'MVPContract' });
+        this.success = true;
+        this.countdown = 3;
+        this.timer = setInterval(() => {
+          this.countdown--;
+          if (this.countdown === 0) {
+            clearInterval(this.timer);
+            this.$router.push({ name: 'Dashboard' });
+          }
+        }, 1000);
       } catch (err) {
         this.error = err.error || 'Usuário ou senha inválidos';
       }
@@ -66,6 +87,9 @@ export default {
     togglePassword() {
       this.showPassword = !this.showPassword;
     }
+  },
+  beforeUnmount() {
+    if (this.timer) clearInterval(this.timer);
   }
 };
 </script>
@@ -133,7 +157,8 @@ export default {
   transition: background 0.3s, transform 0.2s;
   margin-top: var(--sp-md);
 }
-.button-primary:hover, .button-primary:focus {
+.button-primary:hover,
+.button-primary:focus {
   background-color: var(--color-accent);
   color: var(--color-bg);
   outline: none;
@@ -156,5 +181,33 @@ export default {
   color: var(--color-secondary);
   text-align: center;
   font-size: var(--font-size-small);
+}
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+/* Modal Content */
+.modal-content {
+  background-color: #ffffff !important;
+  padding: var(--sp-lg);
+  border-radius: var(--sp-sm);
+  text-align: center;
+  max-width: 320px;
+  width: 80%;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+.modal-content p {
+  margin-bottom: var(--sp-md);
 }
 </style>

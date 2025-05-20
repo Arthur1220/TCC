@@ -1,10 +1,8 @@
-// ------------------------------
-// File: src/components/AppHeader.vue
-// ------------------------------
+<!-- src/components/AppHeader.vue -->
 <template>
   <header class="header" role="banner">
     <div class="header-container">
-      <h1 class="logo" tabindex="0" @click="goHome">AnimalTracking</h1>
+      <h1 class="logo" tabindex="0" @click="goHome" @keydown.enter="goHome">AnimalTracking</h1>
       <nav class="nav" role="navigation" aria-label="Main navigation">
         <ul class="nav-list">
           <li v-for="link in navLinks" :key="link.id">
@@ -16,19 +14,24 @@
               {{ link.label }}
             </a>
           </li>
+          <li v-if="isAuthenticated" class="dashboard-link">
+            <a @click.prevent="goDashboard" tabindex="0">Dashboard</a>
+          </li>
         </ul>
       </nav>
-      <div class="user-icon-wrapper">
+
+      <div class="user-icon-wrapper" ref="userMenuWrapper">
         <img
           src="https://img.icons8.com/ios-glyphs/30/000000/user--v1.png"
           alt="Menu de usuário"
           tabindex="0"
-          @click="toggleMenu"
+          @click.stop="onUserIconClick"
+          @keydown.enter.prevent="onUserIconClick"
         />
         <ul v-if="showMenu" class="user-menu" @click.stop>
           <li tabindex="0" @click="goProfile">Perfil</li>
           <li tabindex="0" @click="goSettings">Configurações</li>
-          <li tabindex="0" @click="logout">Sair</li>
+          <li tabindex="0" @click="onLogout">Sair</li>
         </ul>
       </div>
     </div>
@@ -36,6 +39,9 @@
 </template>
 
 <script>
+import { getUserProfile } from '@/services/userService';
+import { logout as userLogout } from '@/services/authService';
+
 export default {
   name: 'AppHeader',
   data() {
@@ -49,6 +55,8 @@ export default {
       ],
       activeSection: '',
       showMenu: false,
+      isAuthenticated: false,
+      userProfile: null,
       observer: null
     };
   },
@@ -56,6 +64,10 @@ export default {
     goHome() {
       this.$router.push('/');
       this.activeSection = '';
+    },
+    goDashboard() {
+      this.showMenu = false;
+      this.$router.push('/dashboard');
     },
     handleLink(link) {
       this.showMenu = false;
@@ -66,14 +78,23 @@ export default {
         this.$router.push(link.href);
       }
     },
+    onUserIconClick() {
+      if (!this.isAuthenticated) {
+        this.$router.push('/login');
+      } else {
+        this.showMenu = !this.showMenu;
+      }
+    },
+    handleDocumentClick(event) {
+      if (this.showMenu && this.$refs.userMenuWrapper && !this.$refs.userMenuWrapper.contains(event.target)) {
+        this.showMenu = false;
+      }
+    },
     scrollToSection(id) {
       this.$nextTick(() => {
         const el = document.getElementById(id);
         if (el) el.scrollIntoView({ behavior: 'smooth' });
       });
-    },
-    toggleMenu() {
-      this.showMenu = !this.showMenu;
     },
     goProfile() {
       this.showMenu = false;
@@ -83,9 +104,16 @@ export default {
       this.showMenu = false;
       this.$router.push('/settings');
     },
-    logout() {
+    async onLogout() {
+      try {
+        await userLogout();
+      } catch (e) {
+        console.error('Erro no logout', e);
+      }
+      this.isAuthenticated = false;
+      this.userProfile = null;
       this.showMenu = false;
-      console.log('Logout');
+      this.$router.push('/login');
     },
     initObserver() {
       if (this.observer) {
@@ -117,9 +145,20 @@ export default {
     }
   },
   mounted() {
+    getUserProfile()
+      .then(profile => {
+        this.userProfile = profile;
+        this.isAuthenticated = true;
+      })
+      .catch(() => {
+        this.isAuthenticated = false;
+        this.userProfile = null;
+      });
+    document.addEventListener('click', this.handleDocumentClick);
     this.initObserver();
   },
   beforeDestroy() {
+    document.removeEventListener('click', this.handleDocumentClick);
     if (this.observer) {
       this.observer.disconnect();
       this.observer = null;
@@ -178,6 +217,10 @@ export default {
 .nav-list a.active {
   color: var(--color-accent);
 }
+.dashboard-link a {
+  color: var(--color-accent) !important;
+  font-weight: bold;
+}
 .user-icon-wrapper {
   position: relative;
 }
@@ -196,7 +239,7 @@ export default {
   position: absolute;
   top: calc(100% + var(--sp-sm));
   right: 0;
-  background: var(--color-white);
+  background-color: #ffffff;
   border: 1px solid var(--color-border);
   border-radius: var(--sp-sm);
   box-shadow: 0 4px 16px rgba(0,0,0,0.1);

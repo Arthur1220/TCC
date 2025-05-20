@@ -162,12 +162,12 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
     ],
-    "DEFAULT_THROTTLE_RATES": {
+    #"DEFAULT_THROTTLE_RATES": {
         # até 100 requisições anônimas por dia
-        "anon": "1000/day",
+        #"anon": "1000/day",
         # até 1000 requisições de usuário autenticado por dia
-        "user": "10000/day",
-    },
+        #"user": "10000/day",
+    #},
 }
 
 SPECTACULAR_SETTINGS = {

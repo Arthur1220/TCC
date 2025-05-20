@@ -1,3 +1,4 @@
+<!-- File: src/views/DashboardPage.vue -->
 <template>
   <div class="dashboard-page">
     <AppHeader />
@@ -29,10 +30,7 @@
       <!-- Main Content -->
       <main class="dashboard-content">
         <!-- Search & Filter (Home only) -->
-        <div
-          class="search-filter-group"
-          v-if="activeContent === 'home'"
-        >
+        <div class="search-filter-group" v-if="activeContent === 'home'">
           <input
             type="text"
             class="search-input"
@@ -57,10 +55,10 @@
         <!-- Home Overview -->
         <section v-if="activeContent === 'home'" class="home-overview">
           <div class="welcome-section">
-            <h2 class="welcome-title">Bem-vindo, Usuário X!</h2>
+            <h2 class="welcome-title">Bem-vindo, {{ user.username }}!</h2>
             <p class="last-event">
-              Último evento registrado: <strong>{{ lastEvent.description }}</strong>
-              em {{ lastEvent.date }}
+              Último evento registrado:
+              <strong>{{ lastEvent.description }}</strong> em {{ lastEvent.date }}
             </p>
           </div>
           <div class="stats-grid">
@@ -90,7 +88,6 @@
           :search-query="searchQuery"
           :filter-option="filterOption"
         />
-
         <EventContent
           v-if="activeContent === 'events'"
           :search-query="searchQuery"
@@ -125,6 +122,11 @@ import PropertyContent from '@/components/PropertyContent.vue'
 import EventContent from '@/components/EventContent.vue'
 import BlockchainContent from '@/components/BlockchainContent.vue'
 
+import { getUserProfile } from '@/services/userService'
+import { getAnimals } from '@/services/animalService'
+import { getAnimalGroups } from '@/services/lookupService'
+import { getUserProperties } from '@/services/propertyService'
+
 export default {
   name: 'DashboardPage',
   components: {
@@ -137,11 +139,45 @@ export default {
   },
   data() {
     return {
-      stats: { animals: 120, lots: 8, properties: 3 },
-      lastEvent: { description: 'Vacinação do Animal 042', date: '2025-04-30' },
+      user: { username: '' },
+      stats: { animals: 0, lots: 0, properties: 0 },
+      lastEvent: { description: '', date: '' },
       searchQuery: '',
       filterOption: 'all',
       activeContent: 'home'
+    }
+  },
+  async mounted() {
+    // 1) Perfil do usuário
+    try {
+      const profile = await getUserProfile()
+      this.user = profile
+
+      // 2) Animais do usuário
+      const animals = await getAnimals({ owner: profile.id })
+      this.stats.animals = animals.length
+
+      // 3) Grupos (lotes)
+      const groups = await getAnimalGroups()
+      // filtrar apenas grupos do usuário, se aplicável
+      this.stats.lots = groups.length
+
+      // 4) Propriedades do usuário
+      const props = await getUserProperties()
+      this.stats.properties = props.length
+
+      // 5) Evento mais recente (mock ou chamada real)
+      if (animals.length) {
+        const last = animals[animals.length - 1]  // ex: usar último animal como placeholder
+        this.lastEvent = {
+          description: `Evento em Animal ${last.identification}`,
+          date: new Date().toLocaleDateString()
+        }
+      } else {
+        this.lastEvent = { description: 'Nenhum evento encontrado', date: '' }
+      }
+    } catch (err) {
+      console.error('Erro ao carregar dados do dashboard:', err)
     }
   },
   methods: {
@@ -154,10 +190,10 @@ export default {
       this.$router.push({ name: 'NewEvent' })
     },
     onSearch() {
-      console.log('Buscando:', this.searchQuery)
+      // opcional: propagar para o conteúdo ativo
     },
     onFilter() {
-      console.log('Filtrando por:', this.filterOption)
+      // opcional: propagar para o conteúdo ativo
     }
   }
 }
@@ -167,7 +203,7 @@ export default {
 .dashboard-page {
   display: flex;
   flex-direction: column;
-  height: 120vh; /* Forçar rolagem para que footer fique mais abaixo */
+  height: 100vh;
 }
 .dashboard-body {
   display: flex;
@@ -288,7 +324,7 @@ export default {
 /* Sticky Button */
 .sticky-new-event {
   position: fixed;
-  bottom: var(--sp-xxl);
+  bottom: 12.5rem;
   right: var(--sp-lg);
   z-index: 100;
   transition: transform 0.2s, box-shadow 0.2s;

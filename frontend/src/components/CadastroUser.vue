@@ -2,6 +2,7 @@
   <div class="cadastro-form auth-form">
     <h2>Cadastro</h2>
     <form @submit.prevent="handleRegister">
+      <!-- Usuário -->
       <div class="form-group">
         <label for="username">Usuário</label>
         <input
@@ -12,6 +13,8 @@
           required
         />
       </div>
+
+      <!-- Nome -->
       <div class="form-group">
         <label for="first_name">Nome</label>
         <input
@@ -22,6 +25,8 @@
           required
         />
       </div>
+
+      <!-- Sobrenome -->
       <div class="form-group">
         <label for="last_name">Sobrenome</label>
         <input
@@ -32,6 +37,8 @@
           required
         />
       </div>
+
+      <!-- E-mail -->
       <div class="form-group">
         <label for="email">E-mail</label>
         <input
@@ -42,16 +49,52 @@
           required
         />
       </div>
-      <div class="form-group">
+
+      <!-- Senha -->
+      <div class="form-group password-group">
         <label for="password">Senha</label>
-        <input
-          type="password"
-          id="password"
-          v-model="form.password"
-          placeholder="Crie uma senha"
-          required
-        />
+        <div class="password-wrapper">
+          <input
+            :type="showPassword ? 'text' : 'password'"
+            id="password"
+            v-model="form.password"
+            placeholder="Crie uma senha"
+            required
+          />
+          <button
+            type="button"
+            class="toggle-password"
+            @click="showPassword = !showPassword"
+            :aria-label="showPassword ? 'Ocultar senha' : 'Mostrar senha'"
+          >
+            {{ showPassword ? '🙈' : '👁️' }}
+          </button>
+        </div>
       </div>
+
+      <!-- Repita a senha -->
+      <div class="form-group password-group">
+        <label for="confirm_password">Repita a senha</label>
+        <div class="password-wrapper">
+          <input
+            :type="showConfirm ? 'text' : 'password'"
+            id="confirm_password"
+            v-model="form.confirm_password"
+            placeholder="Repita sua senha"
+            required
+          />
+          <button
+            type="button"
+            class="toggle-password"
+            @click="showConfirm = !showConfirm"
+            :aria-label="showConfirm ? 'Ocultar senha' : 'Mostrar senha'"
+          >
+            {{ showConfirm ? '🙈' : '👁️' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Telefone -->
       <div class="form-group">
         <label for="phone">Telefone</label>
         <input
@@ -62,12 +105,21 @@
           required
         />
       </div>
-      <button type="submit" class="button button-primary">Cadastrar</button>
+
+      <!-- Botão -->
+      <button type="submit" class="button-primary">Cadastrar</button>
     </form>
+
+    <!-- Mensagens -->
+    <div v-if="success" class="success-message">
+      Cadastro realizado com sucesso! Você será redirecionado em {{ countdown }}s...
+    </div>
+    <div v-if="error" class="error-message">{{ error }}</div>
+
+    <!-- Link para login -->
     <p class="switch-text">
       Já tem conta? <a @click.prevent="$emit('navigate','login')" href="#">Faça login</a>
     </p>
-    <div v-if="error" class="error-message">{{ error }}</div>
   </div>
 </template>
 
@@ -83,21 +135,46 @@ export default {
         last_name: '',
         email: '',
         password: '',
+        confirm_password: '',
         phone: ''
       },
-      error: null
+      showPassword: false,
+      showConfirm: false,
+      error: null,
+      success: false,
+      countdown: 3,
+      timer: null
     };
   },
   methods: {
     async handleRegister() {
       this.error = null;
+
+      if (this.form.password !== this.form.confirm_password) {
+        this.error = 'As senhas não coincidem.';
+        return;
+      }
+
+      const { confirm_password, ...payload } = this.form;
+
       try {
-        await registerUser(this.form);
-        this.$emit('navigate','login');
+        await registerUser(payload);
+        this.success = true;
+        this.countdown = 3;
+        this.timer = setInterval(() => {
+          this.countdown--;
+          if (this.countdown === 0) {
+            clearInterval(this.timer);
+            this.$emit('navigate', 'login');
+          }
+        }, 1000);
       } catch (err) {
         this.error = err.message || 'Erro no cadastro';
       }
     }
+  },
+  beforeUnmount() {
+    if (this.timer) clearInterval(this.timer);
   }
 };
 </script>
@@ -137,26 +214,64 @@ export default {
   font-family: var(--font-body);
   font-size: var(--font-size-base);
 }
+
+/* wrapper e botão de toggle */
+.password-wrapper {
+  position: relative;
+}
+.password-wrapper input {
+  padding-right: calc(var(--sp-lg) + var(--sp-sm));
+}
+.toggle-password {
+  position: absolute;
+  top: 50%;
+  right: var(--sp-sm);
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: var(--font-size-large);
+  cursor: pointer;
+}
+
+/* botão primário */
 .button-primary {
   width: 100%;
   padding: var(--sp-md);
-  background-color: var(--color-bg);
-  color: var(--color-accent);
-  border: 2px solid var(--color-accent);
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  border: none;
   border-radius: var(--sp-sm);
   font-size: var(--font-size-large);
   cursor: pointer;
   transition: background 0.3s, transform 0.2s;
   margin-top: var(--sp-md);
 }
-.button-primary:hover, .button-primary:focus {
-  background-color: var(--color-accent);
-  color: var(--color-bg);
+.button-primary:hover,
+.button-primary:focus {
+  background-color: var(--color-primary-dark);
   outline: none;
 }
+
+/* mensagens */
+.success-message {
+  margin-top: var(--sp-md);
+  padding: var(--sp-sm);
+  background: var(--color-secondary-light);
+  color: var(--color-white);
+  text-align: center;
+  border-radius: var(--sp-sm);
+  font-weight: 500;
+}
+.error-message {
+  margin-top: var(--sp-sm);
+  color: var(--color-secondary);
+  text-align: center;
+  font-size: var(--font-size-small);
+}
+
 .switch-text {
   text-align: center;
-  margin-top: var(--sp-md);
+  margin-top: var(--sp-lg);
   font-size: var(--font-size-small);
 }
 .switch-text a {
@@ -166,11 +281,5 @@ export default {
 }
 .switch-text a:hover {
   text-decoration: underline;
-}
-.error-message {
-  margin-top: var(--sp-sm);
-  color: var(--color-secondary);
-  text-align: center;
-  font-size: var(--font-size-small);
 }
 </style>
