@@ -22,5 +22,13 @@
             "name": "QR Code",
             "description": "Código QR impresso em um adesivo ou etiqueta, utilizado para identificar o animal através de leitura óptica."
         }
+    },
+    {
+        "model": "animal.identificationtype",
+        "pk": 4,
+        "fields": {
+            "name": "Nenhum",
+            "description": "Nenhum tipo de identificação utilizado."
+        }
     }
 ]
