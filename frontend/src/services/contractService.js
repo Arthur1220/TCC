@@ -15,7 +15,7 @@ export async function checkContractStatus() {
 
 /**
  * Registra um evento crítico no contrato.
- * @param {Object} data - Dados do evento.
+ * @param {Object} data - Dados do evento (event_id, animal_id, event_type, data_hash, user_hash)
  */
 export async function registerContractEvent(data) {
   try {
@@ -31,12 +31,12 @@ export async function registerContractEvent(data) {
 
 /**
  * Adiciona um novo registrador (carteira) no contrato.
- * @param {string} registrar - Endereço da carteira.
+ * @param {string} address - Endereço da carteira.
  */
-export async function addRegistrar(registrar) {
+export async function addRegistrar(address) {
   try {
     // Envia o objeto com a chave "registrar_address"
-    const response = await axiosInstance.post('contract/add-registrar/', { registrar_address: registrar });
+    const response = await axiosInstance.post('contract/add-registrar/', { registrar_address: address });
     return response.data;
   } catch (error) {
     console.error('Erro ao adicionar registrador:', error.response ? error.response.data : error);
@@ -46,11 +46,11 @@ export async function addRegistrar(registrar) {
 
 /**
  * Remove um registrador (carteira) do contrato.
- * @param {string} registrar - Endereço da carteira.
+ * @param {string} address - Endereço da carteira.
  */
-export async function removeRegistrar(registrar) {
+export async function removeRegistrar(address) {
   try {
-    const response = await axiosInstance.post('contract/remove-registrar/', { registrar });
+    const response = await axiosInstance.post('contract/remove-registrar/', { address });
     return response.data;
   } catch (error) {
     console.error('Erro ao remover registrador:', error);
@@ -59,18 +59,35 @@ export async function removeRegistrar(registrar) {
 }
 
 /**
- * Obtém um evento por animal e índice.
+ * Obtém um evento específico por animal e índice.
  * @param {number} animalId - ID do animal.
- * @param {number} index - Índice do evento (opcional, default 0).
+ * @param {number} index - Índice do evento (default: 0).
  */
-export async function getEventByAnimal(animalId, index = 0) {
+export async function getContractEvent(animalId, index = 0) {
   try {
-    const response = await axiosInstance.get(`contract/get-event/${animalId}/`, {
-      params: { index }
-    });
+    const response = await axiosInstance.get(
+      `contract/get-event/${animalId}/`,
+      { params: { index } }
+    );
     return response.data;
   } catch (error) {
     console.error('Erro ao obter evento por animal:', error);
+    throw error;
+  }
+}
+
+/**
+ * Lista todos os eventos de um animal.
+ * @param {number} animalId - ID do animal.
+ */
+export async function listContractEvents(animalId) {
+  try {
+    const response = await axiosInstance.get(
+      `contract/list-events/${animalId}/`
+    );
+    return response.data.events;
+  } catch (error) {
+    console.error('Erro ao listar eventos do contrato:', error);
     throw error;
   }
 }
@@ -81,10 +98,39 @@ export async function getEventByAnimal(animalId, index = 0) {
  */
 export async function getNumberOfEvents(animalId) {
   try {
-    const response = await axiosInstance.get(`contract/get-number/${animalId}/`);
-    return response.data;
+    const response = await axiosInstance.get(
+      'contract/get-number-events/',
+      { params: { animal_id: animalId } }
+    );
+    return response.data.count;
   } catch (error) {
     console.error('Erro ao obter número de eventos:', error);
+    throw error;
+  }
+}
+
+/**
+ * Pausa o contrato.
+ */
+export async function pauseContract() {
+  try {
+    const response = await axiosInstance.post('contract/pause/');
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao pausar contrato:', error);
+    throw error;
+  }
+}
+
+/**
+ * Despausa o contrato.
+ */
+export async function unpauseContract() {
+  try {
+    const response = await axiosInstance.post('contract/unpause/');
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao despausar contrato:', error);
     throw error;
   }
 }

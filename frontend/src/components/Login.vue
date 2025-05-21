@@ -145,6 +145,7 @@ export default {
   font-size: var(--font-size-large);
   cursor: pointer;
 }
+/* Botões */
 .button-primary {
   width: 100%;
   padding: var(--sp-md);

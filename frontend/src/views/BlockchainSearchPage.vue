@@ -79,7 +79,7 @@
               type="text"
               class="search-input"
               v-model="searchQuery"
-              placeholder="Hash de transação ou ID de bloco"
+              placeholder="Digite o ID do animal"
               aria-label="Busca Blockchain"
             />
             <button
@@ -94,18 +94,20 @@
             <div v-if="results.length" class="results-list">
               <div
                 v-for="op in results"
-                :key="op.id"
+                :key="op.eventId"
                 class="result-card card"
                 tabindex="0"
               >
-                <p><strong>ID:</strong> {{ op.id }}</p>
-                <p><strong>Status:</strong> {{ op.status }}</p>
+                <p><strong>Event ID:</strong> {{ op.eventId }}</p>
+                <p><strong>Animal ID:</strong> {{ op.animalId }}</p>
+                <p><strong>Tipo:</strong> {{ op.eventType }}</p>
+                <p><strong>Hash de dados:</strong> {{ op.dataHash }}</p>
+                <p><strong>Registrant:</strong> {{ op.registrant }}</p>
                 <p><strong>Timestamp:</strong> {{ op.timestamp }}</p>
-                <pre class="result-data">{{ op.data }}</pre>
               </div>
             </div>
             <div v-else-if="hasSearched" class="results-placeholder">
-              <p>Nenhum resultado encontrado para "<em>{{ searchQuery }}</em>".</p>
+              <p>Nenhum evento encontrado para o animal "<em>{{ searchQuery }}</em>".</p>
             </div>
           </div>
         </aside>
@@ -119,6 +121,7 @@
 <script>
 import AppHeader from '@/components/AppHeader.vue';
 import AppFooter from '@/components/AppFooter.vue';
+import { listContractEvents } from '@/services/contractService';
 
 export default {
   name: 'BlockchainSearchPage',
@@ -141,31 +144,27 @@ export default {
         },
         {
           question: 'Como obter dados completos?',
-          answer: 'Os resultados aqui são um resumo básico. Para acesso a relatórios completos ou dados históricos, entre em contato com o usuario do sistema.',
+          answer: 'Os resultados aqui são um resumo básico. Para acesso a relatórios completos ou dados históricos, entre em contato com o administrador do sistema.',
           open: false
         }
       ]
     };
   },
   methods: {
-    performSearch() {
+    async performSearch() {
       this.hasSearched = true;
-      if (!this.searchQuery.trim()) {
+      this.results = [];
+      const animalId = this.searchQuery.trim();
+      if (!animalId) return;
+
+      try {
+        const events = await listContractEvents(Number(animalId));
+        // events já é um array de objetos com as chaves conforme o backend
+        this.results = events;
+      } catch (err) {
+        console.error('Erro ao buscar eventos na blockchain:', err);
         this.results = [];
-        return;
       }
-      // Chamada real ao serviço de blockchain
-      const mockData = {
-        id: this.searchQuery.trim(),
-        status: 'Confirmado',
-        timestamp: new Date().toISOString(),
-        data: JSON.stringify({
-          evento: 'Vacinação',
-          animalId: '042',
-          propriedade: 'Fazenda Exemplo'
-        }, null, 2)
-      };
-      this.results = [mockData];
     },
     toggleFaq(i) {
       this.faqs[i].open = !this.faqs[i].open;
@@ -189,13 +188,6 @@ export default {
   grid-template-columns: 2fr 1fr;
   gap: var(--sp-lg);
   padding: var(--sp-lg) 0;
-}
-/* Exclusivo para o painel de busca */
-.card {
-  background: var(--color-white);
-  padding: var(--sp-lg);
-  border-radius: var(--sp-sm);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 /* Explicação sem borda */
 .blockchain-explain {
@@ -255,6 +247,11 @@ export default {
 .blockchain-search-panel {
   position: sticky;
   top: var(--sp-lg);
+  background: var(--color-white);
+  padding: var(--sp-lg);
+  border-radius: var(--sp-sm);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border-right: 4px solid var(--color-primary);
 }
 .search-filter-group {
   display: flex;
@@ -273,7 +270,7 @@ export default {
   border-color: var(--color-primary);
   outline: none;
 }
-/* Botão primário restaurado e sempre ativo */
+/* Botão primário */
 .button-primary {
   padding: var(--sp-sm) var(--sp-lg);
   background-color: var(--color-bg);
@@ -312,18 +309,6 @@ export default {
   box-shadow: 0 4px 16px rgba(0,0,0,0.1);
   outline: none;
 }
-.result-data {
-  margin-top: var(--sp-sm);
-  background: var(--color-light-gray);
-  padding: var(--sp-sm);
-  border-radius: var(--sp-sm);
-  overflow-x: auto;
-}
-.results-placeholder {
-  text-align: center;
-  color: var(--color-gray);
-  margin-top: var(--sp-md);
-}
 /* Responsivo */
 @media (max-width: 768px) {
   .blockchain-grid {
@@ -332,6 +317,7 @@ export default {
   .blockchain-search-panel {
     position: relative;
     top: auto;
+    border-right: none;
   }
 }
 </style>

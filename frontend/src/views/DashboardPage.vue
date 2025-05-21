@@ -324,7 +324,7 @@ export default {
 /* Sticky Button */
 .sticky-new-event {
   position: fixed;
-  bottom: 12.5rem;
+  bottom: var(--sp-xl);
   right: var(--sp-lg);
   z-index: 100;
   transition: transform 0.2s, box-shadow 0.2s;
