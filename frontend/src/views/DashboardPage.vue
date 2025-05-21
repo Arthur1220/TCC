@@ -36,7 +36,7 @@
             class="search-input"
             placeholder="Buscar animais, lotes ou propriedades..."
             v-model="searchQuery"
-            @input="onSearch"
+            @keyup.enter="onSearch"
             aria-label="Busca"
           />
           <select
@@ -50,6 +50,13 @@
             <option value="lots">Lotes</option>
             <option value="properties">Propriedades</option>
           </select>
+          <button
+            class="button-primary"
+            @click="onSearch"
+            aria-label="Executar busca"
+          >
+            Buscar
+          </button>
         </div>
 
         <!-- Home Overview -->
@@ -148,27 +155,21 @@ export default {
     }
   },
   async mounted() {
-    // 1) Perfil do usuário
     try {
       const profile = await getUserProfile()
       this.user = profile
 
-      // 2) Animais do usuário
       const animals = await getAnimals({ owner: profile.id })
       this.stats.animals = animals.length
 
-      // 3) Grupos (lotes)
       const groups = await getAnimalGroups()
-      // filtrar apenas grupos do usuário, se aplicável
       this.stats.lots = groups.length
 
-      // 4) Propriedades do usuário
       const props = await getUserProperties()
       this.stats.properties = props.length
 
-      // 5) Evento mais recente (mock ou chamada real)
       if (animals.length) {
-        const last = animals[animals.length - 1]  // ex: usar último animal como placeholder
+        const last = animals[animals.length - 1]
         this.lastEvent = {
           description: `Evento em Animal ${last.identification}`,
           date: new Date().toLocaleDateString()
@@ -190,10 +191,12 @@ export default {
       this.$router.push({ name: 'NewEvent' })
     },
     onSearch() {
-      // opcional: propagar para o conteúdo ativo
+      // Aqui você pode propagar a busca para o conteúdo ativo,
+      // por exemplo emitindo um evento ou chamando um método do child via ref.
+      console.log('Buscando com:', this.searchQuery, this.filterOption)
     },
     onFilter() {
-      // opcional: propagar para o conteúdo ativo
+      console.log('Filtrando por:', this.filterOption)
     }
   }
 }
@@ -251,6 +254,7 @@ export default {
   display: flex;
   gap: var(--sp-md);
   margin-bottom: var(--sp-xl);
+  align-items: center;
 }
 .search-input,
 .filter-select {
@@ -269,6 +273,24 @@ export default {
 .filter-select {
   max-width: 200px;
 }
+
+/* Botão de Buscar */
+.button-primary {
+  padding: var(--sp-sm) var(--sp-lg);
+  background-color: var(--color-bg);
+  color: var(--color-accent);
+  border: 2px solid var(--color-accent);
+  border-radius: var(--sp-sm);
+  cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+}
+.button-primary:hover,
+.button-primary:focus {
+  background-color: var(--color-accent);
+  color: var(--color-bg);
+  outline: none;
+}
+
 /* Home Overview */
 .home-overview {
   background: var(--color-white);
@@ -328,19 +350,11 @@ export default {
   right: var(--sp-lg);
   z-index: 100;
   transition: transform 0.2s, box-shadow 0.2s;
-  width: 10%;
-  padding: var(--sp-sm);
-  background-color: var(--color-bg);
-  color: var(--color-accent);
-  border: 2px solid var(--color-accent);
-  border-radius: var(--sp-sm);
-  font-size: var(--font-size-small);
-  cursor: pointer;
+  width: auto;
+  padding: var(--sp-sm) var(--sp-lg);
 }
 .sticky-new-event:hover,
 .sticky-new-event:focus {
-  background-color: var(--color-accent);
-  color: var(--color-bg);
   transform: scale(1.1);
   box-shadow: 0 4px 16px rgba(0,0,0,0.1);
   outline: none;
