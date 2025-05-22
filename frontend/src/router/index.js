@@ -26,6 +26,12 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/admin',
+    name: 'AdminPage',
+    component: () => import('../views/AdminPage.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/search-blockchain',
     name: 'BlockchainSearchPage',
     component: () => import('../views/BlockchainSearchPage.vue'),
