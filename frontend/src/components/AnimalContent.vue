@@ -1,125 +1,134 @@
 <!-- File: src/components/AnimalContent.vue -->
 <template>
-  <section class="content-panel">
-    <h2 class="panel-title">Gerenciar Animais</h2>
-    <p class="panel-description">
-      Nesta tela você pode cadastrar novos animais, editar dados existentes ou removê-los.
-    </p>
+  <div>
+    <!-- Tela de Animais -->
+    <section v-if="!showGroupManager" class="content-panel">
+      <h2 class="panel-title">Gerenciar Animais</h2>
+      <p class="panel-description">
+        Nesta tela você pode cadastrar novos animais, editar dados existentes ou removê-los.
+      </p>
 
-    <!-- Botão para abrir modal de adicionar -->
-    <div class="add-button-wrapper">
-      <button class="button-primary" @click="openModalForAdd">
-        + Cadastrar Animal
-      </button>
-    </div>
-
-    <!-- Lista de animais -->
-    <div v-if="animals.length" class="list-group">
-      <ul>
-        <li v-for="animal in animals" :key="animal.id" class="list-item">
-          <div class="item-info">
-            <strong>{{ animal.identification }}</strong><br />
-            Espécie: {{ animal.specie_name }} • Raça: {{ animal.breed_name }} • Grupo: {{ animal.group_name }}
-          </div>
-          <div class="item-actions">
-            <button class="button-secondary" @click="openModalForEdit(animal)">
-              Editar
-            </button>
-            <button class="button-danger" @click="handleDelete(animal.id)">
-              Deletar
-            </button>
-          </div>
-        </li>
-      </ul>
-    </div>
-    <div v-else class="empty-state">
-      <p>Nenhum animal cadastrado.</p>
-    </div>
-
-    <!-- Modal de Cadastrar/Editar Animal -->
-    <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
-      <div class="modal-content">
-        <h3 class="modal-title">{{ editing ? 'Editar Animal' : 'Cadastrar Animal' }}</h3>
-        <form @submit.prevent="handleSubmit" class="form-group">
-          <label for="identification">Identificação</label>
-          <input id="identification" v-model="form.identification" type="text" required />
-
-          <label for="specie">Espécie</label>
-          <select id="specie" v-model="form.specie" required>
-            <option disabled value="">Selecione</option>
-            <option v-for="o in species" :key="o.id" :value="o.id">{{ o.name }}</option>
-          </select>
-
-          <label for="breed">Raça</label>
-          <select id="breed" v-model="form.breed" required>
-            <option disabled value="">Selecione</option>
-            <option v-for="o in breeds" :key="o.id" :value="o.id">{{ o.name }}</option>
-          </select>
-
-          <label for="group">Grupo / Lote</label>
-          <select id="group" v-model="form.group" @change="handleGroupChange" required>
-            <option disabled value="">Selecione</option>
-            <option v-for="o in animalGroups" :key="o.id" :value="o.id">{{ o.name }}</option>
-            <option value="new">+ Novo Grupo</option>
-          </select>
-
-          <label for="gender">Gênero</label>
-          <select id="gender" v-model="form.gender" required>
-            <option disabled value="">Selecione</option>
-            <option v-for="o in genders" :key="o.id" :value="o.id">{{ o.name }}</option>
-          </select>
-
-          <label for="status">Status</label>
-          <select id="status" v-model="form.status" required>
-            <option disabled value="">Selecione</option>
-            <option v-for="o in statuses" :key="o.id" :value="o.id">{{ o.name }}</option>
-          </select>
-
-          <label for="identification_type">Tipo de Identificação</label>
-          <select id="identification_type" v-model="form.identification_type" required>
-            <option disabled value="">Selecione</option>
-            <option v-for="o in identificationTypes" :key="o.id" :value="o.id">{{ o.name }}</option>
-          </select>
-
-          <label for="birth_date">Data de Nascimento</label>
-          <input id="birth_date" v-model="form.birth_date" type="date" required />
-
-          <label for="observations">Observações</label>
-          <textarea id="observations" v-model="form.observations"></textarea>
-
-          <div class="form-actions">
-            <button type="submit" class="button-primary">
-              {{ editing ? 'Atualizar' : 'Cadastrar' }}
-            </button>
-            <button type="button" class="button-secondary" @click="closeModal">
-              Cancelar
-            </button>
-          </div>
-        </form>
+      <div class="add-button-wrapper">
+        <button class="button-primary" @click="openModalForAdd">
+          + Cadastrar Animal
+        </button>
+        <button class="button-primary" @click="openGroupManager">
+          Gerenciar Lotes
+        </button>
       </div>
-    </div>
 
-    <!-- Modal de Novo Grupo -->
-    <div v-if="showGroupModal" class="modal-overlay" @click.self="closeGroupModal">
-      <div class="modal-content">
-        <h3 class="modal-title">Cadastrar Novo Grupo</h3>
-        <form @submit.prevent="saveNewGroup" class="form-group">
-          <label for="new-group-name">Nome do Grupo</label>
-          <input id="new-group-name" v-model="newGroup.name" type="text" required />
-
-          <label for="new-group-desc">Descrição</label>
-          <input id="new-group-desc" v-model="newGroup.description" type="text" />
-
-          <div class="form-actions">
-            <button type="submit" class="button-primary">Salvar Grupo</button>
-            <button type="button" class="button-secondary" @click="closeGroupModal">
-              Cancelar
-            </button>
-          </div>
-        </form>
+      <div v-if="animals.length" class="list-group">
+        <ul>
+          <li v-for="animal in animals" :key="animal.id" class="list-item">
+            <div class="item-info">
+              <strong>{{ animal.identification }}</strong><br />
+              Espécie: {{ animal.specie_name }} • Raça: {{ animal.breed_name }} • Grupo: {{ animal.group_name }}
+            </div>
+            <div class="item-actions">
+              <button class="button-secondary" @click="openModalForEdit(animal)">
+                Editar
+              </button>
+              <button class="button-danger" @click="handleDelete(animal.id)">
+                Deletar
+              </button>
+            </div>
+          </li>
+        </ul>
       </div>
-    </div>
-  </section>
+      <div v-else class="empty-state">
+        <p>Nenhum animal cadastrado.</p>
+      </div>
+
+      <!-- Modal de Cadastrar/Editar Animal -->
+      <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
+        <div class="modal-content">
+          <h3 class="modal-title">
+            {{ editing ? 'Editar Animal' : 'Cadastrar Animal' }}
+          </h3>
+          <form @submit.prevent="handleSubmit" class="form-group">
+            <label for="identification">Identificação</label>
+            <input id="identification" v-model="form.identification" type="text" required />
+
+            <label for="specie">Espécie</label>
+            <select id="specie" v-model="form.specie" required>
+              <option disabled value="">Selecione</option>
+              <option v-for="o in species" :key="o.id" :value="o.id">{{ o.name }}</option>
+            </select>
+
+            <label for="breed">Raça</label>
+            <select id="breed" v-model="form.breed" required>
+              <option disabled value="">Selecione</option>
+              <option v-for="o in breeds" :key="o.id" :value="o.id">{{ o.name }}</option>
+            </select>
+
+            <label for="group">Grupo / Lote</label>
+            <select id="group" v-model="form.group" @change="handleGroupChange" required>
+              <option disabled value="">Selecione</option>
+              <option v-for="o in animalGroups" :key="o.id" :value="o.id">{{ o.name }}</option>
+              <option value="new">+ Novo Grupo</option>
+            </select>
+
+            <label for="gender">Gênero</label>
+            <select id="gender" v-model="form.gender" required>
+              <option disabled value="">Selecione</option>
+              <option v-for="o in genders" :key="o.id" :value="o.id">{{ o.name }}</option>
+            </select>
+
+            <label for="status">Status</label>
+            <select id="status" v-model="form.status" required>
+              <option disabled value="">Selecione</option>
+              <option v-for="o in statuses" :key="o.id" :value="o.id">{{ o.name }}</option>
+            </select>
+
+            <label for="identification_type">Tipo de Identificação</label>
+            <select id="identification_type" v-model="form.identification_type" required>
+              <option disabled value="">Selecione</option>
+              <option v-for="o in identificationTypes" :key="o.id" :value="o.id">{{ o.name }}</option>
+            </select>
+
+            <label for="birth_date">Data de Nascimento</label>
+            <input id="birth_date" v-model="form.birth_date" type="date" required />
+
+            <label for="observations">Observações</label>
+            <textarea id="observations" v-model="form.observations"></textarea>
+
+            <div class="form-actions">
+              <button type="submit" class="button-primary">
+                {{ editing ? 'Atualizar' : 'Cadastrar' }}
+              </button>
+              <button type="button" class="button-secondary" @click="closeModal">
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Modal de Novo Grupo -->
+      <div v-if="showGroupModal" class="modal-overlay" @click.self="closeGroupModal">
+        <div class="modal-content">
+          <h3 class="modal-title">Cadastrar Novo Grupo</h3>
+          <form @submit.prevent="saveNewGroup" class="form-group">
+            <label for="new-group-name">Nome do Grupo</label>
+            <input id="new-group-name" v-model="newGroup.name" type="text" required />
+
+            <label for="new-group-desc">Descrição</label>
+            <input id="new-group-desc" v-model="newGroup.description" type="text" />
+
+            <div class="form-actions">
+              <button type="submit" class="button-primary">Salvar Grupo</button>
+              <button type="button" class="button-secondary" @click="closeGroupModal">
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tela de Lotes -->
+    <LotContent v-else @back="closeGroupManager" />
+  </div>
 </template>
 
 <script>
@@ -128,7 +137,7 @@ import {
   getAnimals,
   updateAnimal,
   deleteAnimal
-} from '@/services/animalService';
+} from '@/services/animalService'
 import {
   getSpecies,
   getBreeds,
@@ -137,12 +146,15 @@ import {
   getStatuses,
   getIdentificationTypes,
   registerAnimalGroup
-} from '@/services/lookupService';
+} from '@/services/lookupService'
+import LotContent from '@/components/LotContent.vue'
 
 export default {
   name: 'AnimalContent',
+  components: { LotContent },
   data() {
     return {
+      showGroupManager: false,
       animals: [],
       form: {
         identification: '',
@@ -166,99 +178,105 @@ export default {
       showModal: false,
       newGroup: { name: '', description: '' },
       showGroupModal: false
-    };
+    }
   },
   async created() {
-    await this.loadAnimals();
-    await this.loadLookups();
+    await this.loadAnimals()
+    await this.loadLookups()
   },
   methods: {
+    openGroupManager() {
+      this.showGroupManager = true
+    },
+    closeGroupManager() {
+      this.showGroupManager = false
+    },
     async loadAnimals() {
       try {
-        this.animals = await getAnimals();
+        this.animals = await getAnimals()
       } catch (e) {
-        console.error(e);
+        console.error(e)
       }
     },
     async loadLookups() {
       try {
-        this.species = await getSpecies();
-        this.breeds = await getBreeds();
-        this.animalGroups = await getAnimalGroups();
-        this.genders = await getGenders();
-        this.statuses = await getStatuses();
-        this.identificationTypes = await getIdentificationTypes();
+        this.species = await getSpecies()
+        this.breeds = await getBreeds()
+        this.animalGroups = await getAnimalGroups()
+        this.genders = await getGenders()
+        this.statuses = await getStatuses()
+        this.identificationTypes = await getIdentificationTypes()
       } catch (e) {
-        console.error(e);
+        console.error(e)
       }
     },
     openModalForAdd() {
-      this.editing = false;
-      this.editingId = null;
-      this.resetForm();
-      this.showModal = true;
+      this.editing = false
+      this.editingId = null
+      this.resetForm()
+      this.showModal = true
     },
     openModalForEdit(animal) {
-      this.editing = true;
-      this.editingId = animal.id;
-      this.form = { ...animal };
-      this.showModal = true;
+      this.editing = true
+      this.editingId = animal.id
+      this.form = { ...animal }
+      this.showModal = true
     },
     closeModal() {
-      this.showModal = false;
+      this.showModal = false
     },
     async handleSubmit() {
       try {
         if (this.editing) {
-          const updated = await updateAnimal(this.editingId, this.form);
-          const idx = this.animals.findIndex(a => a.id === this.editingId);
-          this.animals.splice(idx, 1, updated);
-          alert('Animal atualizado com sucesso.');
+          const updated = await updateAnimal(this.editingId, this.form)
+          const idx = this.animals.findIndex(a => a.id === this.editingId)
+          this.animals.splice(idx, 1, updated)
+          alert('Animal atualizado com sucesso.')
         } else {
-          const created = await registerAnimal(this.form);
-          this.animals.push(created);
-          alert('Animal cadastrado com sucesso.');
+          const created = await registerAnimal(this.form)
+          this.animals.push(created)
+          alert('Animal cadastrado com sucesso.')
         }
-        this.closeModal();
+        this.closeModal()
       } catch (e) {
-        console.error(e);
-        alert('Erro ao salvar animal.');
+        console.error(e)
+        alert('Erro ao salvar animal.')
       }
     },
     handleDelete(id) {
       if (confirm('Deseja realmente deletar este animal?')) {
         deleteAnimal(id)
           .then(() => {
-            this.animals = this.animals.filter(a => a.id !== id);
-            alert('Animal deletado com sucesso.');
+            this.animals = this.animals.filter(a => a.id !== id)
+            alert('Animal deletado com sucesso.')
           })
           .catch(e => {
-            console.error(e);
-            alert('Erro ao deletar animal.');
-          });
+            console.error(e)
+            alert('Erro ao deletar animal.')
+          })
       }
     },
     handleGroupChange(e) {
       if (e.target.value === 'new') {
-        this.showGroupModal = true;
-        this.newGroup = { name: '', description: '' };
+        this.showGroupModal = true
+        this.newGroup = { name: '', description: '' }
       }
     },
     async saveNewGroup() {
       try {
-        const created = await registerAnimalGroup(this.newGroup);
-        this.animalGroups.push(created);
-        this.form.group = created.id;
-        this.closeGroupModal();
-        alert('Grupo cadastrado com sucesso.');
+        const created = await registerAnimalGroup(this.newGroup)
+        this.animalGroups.push(created)
+        this.form.group = created.id
+        this.closeGroupModal()
+        alert('Grupo cadastrado com sucesso.')
       } catch (e) {
-        console.error(e);
-        alert('Erro ao cadastrar grupo.');
+        console.error(e)
+        alert('Erro ao cadastrar grupo.')
       }
     },
     closeGroupModal() {
-      this.showGroupModal = false;
-      if (!this.editing) this.form.group = '';
+      this.showGroupModal = false
+      if (!this.editing) this.form.group = ''
     },
     resetForm() {
       this.form = {
@@ -271,10 +289,10 @@ export default {
         identification_type: '',
         birth_date: '',
         observations: ''
-      };
+      }
     }
   }
-};
+}
 </script>
 
 <style scoped>
@@ -298,7 +316,9 @@ export default {
   font-size: var(--font-size-base);
 }
 .add-button-wrapper {
-  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-sm);
   margin-bottom: var(--sp-md);
 }
 .list-group ul {
@@ -365,7 +385,6 @@ export default {
   gap: var(--sp-sm);
   margin-top: var(--sp-md);
 }
-/* Botões */
 .button-primary {
   background-color: var(--color-bg);
   color: var(--color-accent);
@@ -383,16 +402,16 @@ export default {
 }
 .button-secondary {
   background-color: var(--color-bg);
-  color: #e74c3c;
-  border: 2px solid #e74c3c;
-  padding: var(--sp-sm) var(--sp-md);
+  color: var(--color-accent);
+  border: 2px solid var(--color-accent);
+  padding: var(--sp-sm) var(--sp-lg);
   border-radius: var(--sp-sm);
   cursor: pointer;
   transition: background 0.3s, transform 0.2s;
 }
 .button-secondary:hover,
 .button-secondary:focus {
-  background-color: #e74c3c;
+  background-color: var(--color-accent);
   color: var(--color-bg);
   outline: none;
 }
