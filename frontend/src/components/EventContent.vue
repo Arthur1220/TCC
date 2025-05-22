@@ -18,9 +18,18 @@
       <div class="modal-content">
         <h3 class="modal-title">{{ editing ? 'Editar Evento' : 'Registrar Evento' }}</h3>
         <form @submit.prevent="handleSubmit" class="form-group">
-          <!-- Campos Comuns -->
-          <label for="animal">ID do Animal</label>
-          <input id="animal" v-model.number="form.animal" type="number" required />
+          <!-- Seleção de Animal ativo do usuário -->
+          <label for="animal">Animal</label>
+          <select id="animal" v-model.number="form.animal" required>
+            <option disabled value="">Selecione</option>
+            <option
+              v-for="a in animals"
+              :key="a.id"
+              :value="a.id"
+            >
+              {{ a.identification }}
+            </option>
+          </select>
 
           <label for="date">Data</label>
           <input id="date" v-model="form.date" type="date" required />
@@ -32,14 +41,20 @@
           <textarea id="observations" v-model="form.observations"></textarea>
 
           <label for="eventType">Tipo de Evento</label>
-          <select id="eventType" v-model.number="form.event_type" @change="handleEventTypeChange" required>
+          <select id="eventType" v-model="form.event_type" @change="handleEventTypeChange" required>
             <option disabled value="">Selecione</option>
-            <option v-for="o in eventTypes" :key="o.id" :value="o.id">{{ o.name }}</option>
+            <option
+              v-for="o in eventTypes"
+              :key="o.id"
+              :value="o.name"
+            >
+              {{ o.name }}
+            </option>
           </select>
 
-          <!-- Campos Dinâmicos -->
-          <div v-if="selectedEventType === 'movement'" class="dynamic-form">
-            <h4>Movimento</h4>
+          <!-- Campos Dinâmicos por NOME -->
+          <div v-if="selectedEventType === 'Movimentação'" class="dynamic-form">
+            <h4>Movimentação</h4>
             <label for="origin">Propriedade Origem</label>
             <input id="origin" v-model.number="movement.origin_property" type="number" required />
             <label for="destination">Propriedade Destino</label>
@@ -48,14 +63,14 @@
             <input id="reason" v-model="movement.reason" type="text" required />
           </div>
 
-          <div v-else-if="selectedEventType === 'weighing'" class="dynamic-form">
+          <div v-else-if="selectedEventType === 'Pesagem'" class="dynamic-form">
             <h4>Pesagem</h4>
             <label for="weight">Peso (kg)</label>
             <input id="weight" v-model.number="weighing.weight" type="number" step="0.01" required />
           </div>
 
-          <div v-else-if="selectedEventType === 'vacine'" class="dynamic-form">
-            <h4>Vacina</h4>
+          <div v-else-if="selectedEventType === 'Vacinação'" class="dynamic-form">
+            <h4>Vacinação</h4>
             <label for="vacine-name">Nome</label>
             <input id="vacine-name" v-model="vaccine.name" type="text" required />
             <label for="vacine-manufacturer">Fabricante</label>
@@ -70,7 +85,7 @@
             <input id="vacine-next" v-model="vaccine.next_dose_date" type="date" />
           </div>
 
-          <div v-else-if="selectedEventType === 'medicine'" class="dynamic-form">
+          <div v-else-if="selectedEventType === 'Medicação'" class="dynamic-form">
             <h4>Medicação</h4>
             <label for="med-name">Nome</label>
             <input id="med-name" v-model="medicine.name" type="text" required />
@@ -90,7 +105,7 @@
             <input id="med-withdrawal" v-model="medicine.withdrawal_time" type="text" />
           </div>
 
-          <div v-else-if="selectedEventType === 'reproduction'" class="dynamic-form">
+          <div v-else-if="selectedEventType === 'Reprodução'" class="dynamic-form">
             <h4>Reprodução</h4>
             <label for="rep-type">Tipo</label>
             <input id="rep-type" v-model="reproduction.reproduction_type" type="text" required />
@@ -104,7 +119,7 @@
             <input id="rep-result" v-model="reproduction.result" type="text" />
           </div>
 
-          <div v-else-if="selectedEventType === 'slaughter'" class="dynamic-form">
+          <div v-else-if="selectedEventType === 'Abate'" class="dynamic-form">
             <h4>Abate</h4>
             <label for="sl-date">Data</label>
             <input id="sl-date" v-model="slaughter.date" type="date" required />
@@ -116,7 +131,7 @@
             <input id="sl-inspection" v-model="slaughter.inspection_result" type="text" required />
           </div>
 
-          <div v-else-if="selectedEventType === 'occurrence'" class="dynamic-form">
+          <div v-else-if="selectedEventType === 'Ocorrência Especial'" class="dynamic-form">
             <h4>Ocorrência Especial</h4>
             <label for="occ-type">Tipo</label>
             <input id="occ-type" v-model="occurrence.occurrence_type" type="text" required />
@@ -155,6 +170,8 @@ import {
   registerSpecialOccurrence
 } from '@/services/eventService';
 import { getEventTypes } from '@/services/lookupService';
+import { getUserProfile } from '@/services/userService';
+import { getAnimals } from '@/services/animalService';
 
 export default {
   name: 'EventContent',
@@ -163,6 +180,8 @@ export default {
       showModal: false,
       editing: false,
       editingId: null,
+      user: null,
+      animals: [],
       form: {
         animal: '',
         date: '',
@@ -182,19 +201,15 @@ export default {
   },
   computed: {
     selectedEventType() {
-      const map = {
-        1: 'movement',
-        2: 'weighing',
-        3: 'vacine',
-        4: 'medicine',
-        5: 'reproduction',
-        6: 'slaughter',
-        7: 'occurrence'
-      };
-      return map[this.form.event_type] || '';
+      return this.form.event_type;
     }
   },
   methods: {
+    async loadUserAndAnimals() {
+      this.user = await getUserProfile();
+      const list = await getAnimals({ owner: this.user.id, status: 1 });
+      this.animals = list;
+    },
     openModal() {
       this.resetAll();
       this.editing = false;
@@ -211,15 +226,15 @@ export default {
       }
     },
     handleEventTypeChange() {
-      // limpa dados do subform conforme tipo
-      const type = this.selectedEventType;
-      if (type === 'movement') this.movement = { origin_property: '', destination_property: '', reason: '' };
-      else if (type === 'weighing') this.weighing = { weight: '' };
-      else if (type === 'vacine') this.vaccine = { name: '', manufacturer: '', batch: '', validity: '', dose: '', next_dose_date: '' };
-      else if (type === 'medicine') this.medicine = { name: '', manufacturer: '', batch: '', validity: '', dose: '', next_dose_date: '', reason: '', withdrawal_time: '' };
-      else if (type === 'reproduction') this.reproduction = { reproduction_type: '', male_id: '', female_id: '', date: '', result: '' };
-      else if (type === 'slaughter') this.slaughter = { date: '', location: '', final_weight: '', inspection_result: '' };
-      else if (type === 'occurrence') this.occurrence = { occurrence_type: '', description: '', date: '', actions_taken: '' };
+      // limpa o sub-form atual
+      const t = this.selectedEventType;
+      if (t === 'Movimentação') this.movement = { origin_property: '', destination_property: '', reason: '' };
+      else if (t === 'Pesagem') this.weighing = { weight: '' };
+      else if (t === 'Vacinação') this.vaccine = { name: '', manufacturer: '', batch: '', validity: '', dose: '', next_dose_date: '' };
+      else if (t === 'Medicação') this.medicine = { name: '', manufacturer: '', batch: '', validity: '', dose: '', next_dose_date: '', reason: '', withdrawal_time: '' };
+      else if (t === 'Reprodução') this.reproduction = { reproduction_type: '', male_id: '', female_id: '', date: '', result: '' };
+      else if (t === 'Abate') this.slaughter = { date: '', location: '', final_weight: '', inspection_result: '' };
+      else if (t === 'Ocorrência Especial') this.occurrence = { occurrence_type: '', description: '', date: '', actions_taken: '' };
     },
     async handleSubmit() {
       try {
@@ -227,15 +242,15 @@ export default {
           ? await updateEvent(this.editingId, this.form)
           : await registerEvent(this.form);
         const eid = res.id;
-        // dispara subevento
-        const type = this.selectedEventType;
-        if (type === 'movement') await registerMovement({ event: eid, ...this.movement });
-        else if (type === 'weighing') await registerWeighing({ event: eid, ...this.weighing });
-        else if (type === 'vacine') await registerVacine({ event: eid, ...this.vaccine });
-        else if (type === 'medicine') await registerMedicine({ event: eid, ...this.medicine });
-        else if (type === 'reproduction') await registerReproduction({ event: eid, ...this.reproduction });
-        else if (type === 'slaughter') await registerSlaughter({ event: eid, ...this.slaughter });
-        else if (type === 'occurrence') await registerSpecialOccurrence({ event: eid, ...this.occurrence });
+        // dispara subevento conforme nome
+        const t = this.selectedEventType;
+        if (t === 'Movimentação') await registerMovement({ event: eid, ...this.movement });
+        else if (t === 'Pesagem') await registerWeighing({ event: eid, ...this.weighing });
+        else if (t === 'Vacinação') await registerVacine({ event: eid, ...this.vaccine });
+        else if (t === 'Medicação') await registerMedicine({ event: eid, ...this.medicine });
+        else if (t === 'Reprodução') await registerReproduction({ event: eid, ...this.reproduction });
+        else if (t === 'Abate') await registerSlaughter({ event: eid, ...this.slaughter });
+        else if (t === 'Ocorrência Especial') await registerSpecialOccurrence({ event: eid, ...this.occurrence });
 
         alert('Evento salvo com sucesso.');
         this.closeModal();
@@ -255,8 +270,9 @@ export default {
       this.occurrence = { occurrence_type: '', description: '', date: '', actions_taken: '' };
     }
   },
-  mounted() {
-    this.loadEventTypes();
+  async mounted() {
+    await this.loadUserAndAnimals();
+    await this.loadEventTypes();
   }
 };
 </script>
@@ -297,9 +313,8 @@ export default {
   border-radius: var(--sp-sm);
   width: 100%; max-width: 600px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-  /*  ← Novas linhas: */
-  max-height: 80vh;    /* limita altura total do painel */
-  overflow-y: auto;    /* habilita scroll quando ultrapassar */
+  max-height: 80vh;
+  overflow-y: auto;
 }
 .modal-title {
   text-align: center;
@@ -327,7 +342,6 @@ export default {
   border-radius: var(--sp-sm);
   border: 1px solid var(--color-border);
 }
-/* Empilha label+campo em .dynamic-form */
 .dynamic-form label {
   display: block;
   margin-bottom: var(--sp-xs);
@@ -343,10 +357,8 @@ export default {
   margin-bottom: var(--sp-md);
   border: 1px solid var(--color-border);
   border-radius: var(--sp-sm);
-  font-size: var(--font-size-base);
   box-sizing: border-box;
 }
-/* Título do subform */
 .dynamic-form h4 {
   margin-bottom: var(--sp-md);
   font-family: var(--font-heading);
@@ -358,7 +370,6 @@ export default {
   gap: var(--sp-sm);
   margin-top: var(--sp-md);
 }
-/* Botões */
 .button-primary {
   background-color: var(--color-bg);
   color: var(--color-accent);
