@@ -191,8 +191,7 @@ export default {
       this.$router.push({ name: 'NewEvent' })
     },
     onSearch() {
-      // Aqui você pode propagar a busca para o conteúdo ativo,
-      // por exemplo emitindo um evento ou chamando um método do child via ref.
+      // Propague a busca para o conteúdo ativo, se precisar
       console.log('Buscando com:', this.searchQuery, this.filterOption)
     },
     onFilter() {
@@ -212,6 +211,7 @@ export default {
   display: flex;
   flex: 1;
   background: var(--color-light-gray);
+  align-items: center; /* centraliza verticalmente sidebar e conteúdo */
 }
 /* Sidebar */
 .sidebar {
@@ -219,6 +219,9 @@ export default {
   background: var(--color-white);
   border-right: 1px solid var(--color-border);
   padding: var(--sp-lg) 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* centraliza verticalmente os links */
 }
 .sidebar nav ul {
   list-style: none;
@@ -248,6 +251,9 @@ export default {
   flex: 1;
   padding: var(--sp-lg);
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* centraliza verticalmente o conteúdo principal */
 }
 .search-filter-group {
   width: 100%;
@@ -273,7 +279,6 @@ export default {
 .filter-select {
   max-width: 200px;
 }
-
 /* Botão de Buscar */
 .button-primary {
   padding: var(--sp-sm) var(--sp-lg);
@@ -290,7 +295,6 @@ export default {
   color: var(--color-bg);
   outline: none;
 }
-
 /* Home Overview */
 .home-overview {
   background: var(--color-white);
@@ -362,11 +366,13 @@ export default {
 @media (max-width: 768px) {
   .dashboard-body {
     flex-direction: column;
+    align-items: stretch; /* volta ao comportamento padrão em mobile */
   }
   .sidebar {
     width: 100%;
     border-right: none;
     border-bottom: 1px solid var(--color-border);
+    justify-content: flex-start;
   }
   .search-filter-group {
     flex-direction: column;

@@ -1,20 +1,34 @@
 <template>
-  <div class="admin-action">
-    <h3 class="section-subtitle">Remover Carteira</h3>
-    <form @submit.prevent="handleRemove" class="form-section">
-      <div class="form-group">
-        <label for="del-registrar">Endereço da Carteira:</label>
-        <input
-          id="del-registrar"
-          v-model="registrar"
-          type="text"
-          placeholder="0x..."
-          required
-        />
+  <div>
+    <div class="admin-action">
+      <div class="card">
+        <h3 class="section-subtitle">
+          Remover Carteira
+        </h3>
+        <form @submit.prevent="handleRemove" class="form-section">
+          <div class="form-group">
+            <label for="del-registrar">Endereço da Carteira:</label>
+            <input
+              id="del-registrar"
+              v-model="registrar"
+              type="text"
+              placeholder="0x..."
+              required
+            />
+          </div>
+          <button type="submit" class="button-danger">Remover</button>
+        </form>
       </div>
-      <button type="submit" class="button-danger">Remover</button>
-    </form>
-    <p v-if="message" class="action-message">{{ message }}</p>
+    </div>
+
+    <div v-if="showModal" class="modal-overlay">
+      <div
+        class="modal-content"
+        :class="message.startsWith('Erro') ? 'error' : 'success'"
+      >
+        {{ message }}
+      </div>
+    </div>
   </div>
 </template>
 
@@ -25,22 +39,31 @@ export default {
   data() {
     return {
       registrar: '',
-      message: ''
+      message: '',
+      showModal: false
     };
   },
   methods: {
     async handleRemove() {
       if (!this.registrar.trim()) {
-        this.message = 'Informe o endereço da carteira.';
+        this.showFeedback('Informe o endereço da carteira.', true);
         return;
       }
       try {
         const res = await removeRegistrar(this.registrar.trim());
-        this.message = `Registrador removido: ${res.tx_hash}`;
         this.registrar = '';
+        this.showFeedback(`✔️ Registrador removido: ${res.tx_hash}`, false);
       } catch (e) {
-        this.message = `Erro ao remover: ${e.error || e}`;
+        this.showFeedback(`Erro ao remover: ${e.error || e}`, true);
       }
+    },
+    showFeedback(msg, isError) {
+      this.message = msg;
+      this.showModal = true;
+      setTimeout(() => {
+        this.showModal = false;
+        this.message = '';
+      }, 3000);
     }
   }
 };
@@ -48,27 +71,41 @@ export default {
 
 <style scoped>
 .admin-action {
-  max-width: 400px;
-  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  padding: var(--sp-lg) 0;
+}
+.card {
+  width: 100%;
+  max-width: 500px;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--sp-sm);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  padding: var(--sp-lg);
 }
 .section-subtitle {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-family: var(--font-heading);
   color: var(--color-primary);
   margin-bottom: var(--sp-md);
 }
+.section-subtitle .icon {
+  margin-right: var(--sp-sm);
+  font-size: 1.2rem;
+}
 .form-section {
-  background: var(--color-white);
-  padding: var(--sp-lg);
-  border-radius: var(--sp-sm);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
 }
 .form-group {
   margin-bottom: var(--sp-md);
 }
 .form-group label {
   display: block;
-  margin-bottom: var(--sp-sm);
+  margin-bottom: var(--sp-xs);
   color: var(--color-dark-gray);
 }
 .form-group input {
@@ -76,23 +113,57 @@ export default {
   padding: var(--sp-sm);
   border: 1px solid var(--color-border);
   border-radius: var(--sp-sm);
+  transition: border-color 0.2s;
 }
-.action-message {
-  margin-top: var(--sp-sm);
-  text-align: center;
-  color: var(--color-secondary);
+.form-group input:focus {
+  border-color: var(--color-primary);
+  outline: none;
 }
 .button-danger {
-  display: inline-block;
-  padding: var(--sp-md) var(--sp-lg);
   background: #e74c3c;
   color: #fff;
-  border: none;
+  border: 2px solid #e74c3c;
+  padding: var(--sp-sm) var(--sp-md);
   border-radius: var(--sp-sm);
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.3s, transform 0.2s;
 }
-.button-danger:hover {
-  background: var(--color-primary);
+.button-danger:hover,
+.button-danger:focus {
+  background-color: var(--color-bg);
+  color: #e74c3c;
+  outline: none;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-content {
+  background-color: #ffffff !important;
+  padding: var(--sp-lg);
+  border-radius: var(--sp-sm);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  font-family: var(--font-heading);
+  font-size: var(--font-size-base);
+  text-align: center;
+  max-width: 80%;
+}
+.modal-content.success {
+  border: 2px solid #27ae60;
+  color: #27ae60;
+}
+.modal-content.error {
+  border: 2px solid #e74c3c;
+  color: #e74c3c;
 }
 </style>

@@ -1,68 +1,66 @@
 <template>
-  <div>
-    <div class="admin-action">
-      <div class="card">
-        <h3 class="section-subtitle">
-          Registrar Nova Carteira
-        </h3>
-        <form @submit.prevent="handleAdd" class="form-section">
-          <div class="form-group">
-            <label for="new-registrar">Endereço da Carteira:</label>
-            <input
-              id="new-registrar"
-              v-model="registrar"
-              type="text"
-              placeholder="0x..."
-              required
-            />
-          </div>
-          <button type="submit" class="button-primary">Adicionar</button>
-        </form>
-      </div>
+  <div class="admin-action">
+    <div class="card">
+      <h3 class="section-subtitle">
+        <span class="icon">⏸️</span>
+        {{ isActive ? 'Pausar Contrato' : 'Ativar Contrato' }}
+      </h3>
+      <button
+        class="button-primary"
+        @click="toggle"
+      >
+        {{ isActive ? 'Pausar' : 'Ativar' }}
+      </button>
     </div>
 
     <div v-if="showModal" class="modal-overlay">
       <div
         class="modal-content"
-        :class="message.startsWith('Erro') ? 'error' : 'success'"
+        :class="modalError ? 'error' : 'success'"
       >
-        {{ message }}
+        {{ modalMessage }}
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { addRegistrar } from '@/services/contractService';
+import { pauseContract, unpauseContract } from '@/services/contractService';
+
 export default {
-  name: 'AddWallet',
+  name: 'PauseContract',
+  props: {
+    isActive: { type: Boolean, required: true }
+  },
   data() {
     return {
-      registrar: '',
-      message: '',
-      showModal: false
+      showModal: false,
+      modalMessage: '',
+      modalError: false
     };
   },
   methods: {
-    async handleAdd() {
-      if (!this.registrar.trim()) {
-        this.showFeedback('Informe o endereço da carteira.', true);
-        return;
-      }
+    async toggle() {
       try {
-        const res = await addRegistrar(this.registrar.trim());
-        this.registrar = '';
-        this.showFeedback(`✔️ Registrador adicionado: ${res.tx_hash}`, false);
+        if (this.isActive) {
+          await pauseContract();
+          this.$emit('update:active', false);
+          this.showFeedback('✔️ Contrato pausado com sucesso.', false);
+        } else {
+          await unpauseContract();
+          this.$emit('update:active', true);
+          this.showFeedback('✔️ Contrato ativado com sucesso.', false);
+        }
       } catch (e) {
-        this.showFeedback(`Erro ao adicionar: ${e.error || e}`, true);
+        this.showFeedback(`Erro: ${e.error || e}`, true);
       }
     },
     showFeedback(msg, isError) {
-      this.message = msg;
+      this.modalMessage = msg;
+      this.modalError = isError;
       this.showModal = true;
       setTimeout(() => {
         this.showModal = false;
-        this.message = '';
       }, 3000);
     }
   }
@@ -77,12 +75,13 @@ export default {
 }
 .card {
   width: 100%;
-  max-width: 500px;
+  max-width: 400px;
   background: var(--color-white);
   border: 1px solid var(--color-border);
   border-radius: var(--sp-sm);
   box-shadow: 0 4px 16px rgba(0,0,0,0.1);
   padding: var(--sp-lg);
+  text-align: center;
 }
 .section-subtitle {
   display: flex;
@@ -95,29 +94,6 @@ export default {
 .section-subtitle .icon {
   margin-right: var(--sp-sm);
   font-size: 1.2rem;
-}
-.form-section {
-  display: flex;
-  flex-direction: column;
-}
-.form-group {
-  margin-bottom: var(--sp-md);
-}
-.form-group label {
-  display: block;
-  margin-bottom: var(--sp-xs);
-  color: var(--color-dark-gray);
-}
-.form-group input {
-  width: 100%;
-  padding: var(--sp-sm);
-  border: 1px solid var(--color-border);
-  border-radius: var(--sp-sm);
-  transition: border-color 0.2s;
-}
-.form-group input:focus {
-  border-color: var(--color-primary);
-  outline: none;
 }
 .button-primary {
   padding: var(--sp-sm) var(--sp-lg);
@@ -134,14 +110,10 @@ export default {
   color: var(--color-bg);
   outline: none;
 }
-
 /* Modal */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0,0,0,0.4);
   display: flex;
   align-items: center;
@@ -154,7 +126,6 @@ export default {
   border-radius: var(--sp-sm);
   box-shadow: 0 4px 16px rgba(0,0,0,0.1);
   font-family: var(--font-heading);
-  font-size: var(--font-size-base);
   text-align: center;
   max-width: 80%;
 }
