@@ -259,7 +259,9 @@ export default {
   transition:background 0.2s, color 0.2s;
 }
 .user-menu li:hover {
-  background:var(--color-primary); color:#fff;
+  transition: background 0.3s, transform 0.2s;
+  background-color: var(--color-accent);
+  color: var(--color-bg);
 }
 
 /* Modal */

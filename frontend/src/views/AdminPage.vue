@@ -9,7 +9,7 @@
         <nav aria-label="Admin Navigation">
           <ul>
             <li :class="{ 'active-link': activeSection === 'overview' }">
-              <a href="#" @click.prevent="selectSection('overview')">Visão Geral</a>
+              <a href="#" @click.prevent="selectSection('overview')">Home</a>
             </li>
             <li :class="{ 'active-link': activeSection === 'carteira' }">
               <a href="#" @click.prevent="selectSection('carteira')">Carteira</a>
@@ -21,6 +21,9 @@
             </li>
             <li :class="{ 'active-link': activeSection === 'events' }">
               <a href="#" @click.prevent="selectSection('events')">Visualizar Eventos</a>
+            </li>
+            <li :class="{ 'active-link': activeSection === 'users' }">
+              <a href="#" @click.prevent="selectSection('users')">Usuários</a>
             </li>
           </ul>
         </nav>
@@ -68,6 +71,11 @@
         <section v-else-if="activeSection === 'events'" class="card">
           <VisualizacaoContent />
         </section>
+
+        <!-- Gerenciar Usuários -->
+        <section v-else-if="activeSection === 'users'" class="card">
+          <RoleManager />
+        </section>
       </main>
     </div>
 
@@ -83,6 +91,7 @@ import AddWallet from '@/components/AddWallet.vue'
 import RemoveWallet from '@/components/RemoveWallet.vue'
 import VisualizacaoContent from '@/components/VisualizacaoContent.vue'
 import PauseContract from '@/components/PauseContract.vue'
+import RoleManager from '@/components/RoleManager.vue'
 
 import { getAnimals } from '@/services/animalService'
 import { getNumberOfEvents, checkContractStatus } from '@/services/contractService'
@@ -95,7 +104,8 @@ export default {
     AddWallet,
     RemoveWallet,
     VisualizacaoContent,
-    PauseContract
+    PauseContract,
+    RoleManager
   },
   data() {
     return {
@@ -190,6 +200,13 @@ export default {
   justify-content: center;         /* centraliza verticalmente */
 }
 
+/* Sobrescreve o efeito de hover para os cards dentro do AdminPage */
+.admin-content .card:hover,
+.admin-content .card:focus-within {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06); /* Mantém a sombra padrão ou 'none' */
+  transform: none; /* Remove o efeito de levantar */
+}
+
 /* Cartões e seções */
 .card {
   background: var(--color-white);
@@ -227,8 +244,8 @@ export default {
 
 .form-section .wallet-controls {
   display: flex;
-  flex-direction: column;
-  gap: var(--sp-lg);
+  flex-direction: row;
   align-items: center;
+  justify-content: center; /* Centraliza horizontalmente */
 }
 </style>

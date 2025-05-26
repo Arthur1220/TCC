@@ -2,7 +2,6 @@
   <div class="admin-action">
     <div class="card">
       <h3 class="section-subtitle">
-        <span class="icon">⏸️</span>
         {{ isActive ? 'Pausar Contrato' : 'Ativar Contrato' }}
       </h3>
       <button
@@ -77,11 +76,16 @@ export default {
   width: 100%;
   max-width: 400px;
   background: var(--color-white);
-  border: 1px solid var(--color-border);
   border-radius: var(--sp-sm);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  border: none;
   padding: var(--sp-lg);
   text-align: center;
+  transform: none;
+  transition: none; /* Opcional: remove a transição para esse card específico */
+}
+.card:hover, .card:focus-within {
+  box-shadow: none; /* Use o box-shadow padrão ou none */
+  transform: none; /* Remove o efeito de levantar */
 }
 .section-subtitle {
   display: flex;
@@ -95,6 +99,7 @@ export default {
   margin-right: var(--sp-sm);
   font-size: 1.2rem;
 }
+/* Botão primário */
 .button-primary {
   padding: var(--sp-sm) var(--sp-lg);
   background-color: var(--color-bg);

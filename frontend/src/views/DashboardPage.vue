@@ -6,7 +6,7 @@
     <div class="dashboard-body">
       <!-- Sidebar Navigation -->
       <aside class="sidebar">
-        <nav aria-label="Main Navigation">
+        <nav aria-label="Main navigation">
           <ul>
             <li :class="{ 'active-link': activeContent === 'home' }">
               <a href="#" @click.prevent="selectContent('home')">Home</a>
@@ -20,9 +20,6 @@
             <li :class="{ 'active-link': activeContent === 'events' }">
               <a href="#" @click.prevent="selectContent('events')">Eventos</a>
             </li>
-            <li :class="{ 'active-link': activeContent === 'blockchain' }">
-              <a href="#" @click.prevent="selectContent('blockchain')">Blockchain</a>
-            </li>
           </ul>
         </nav>
       </aside>
@@ -30,33 +27,15 @@
       <!-- Main Content -->
       <main class="dashboard-content">
         <!-- Search & Filter (Home only) -->
-        <div class="search-filter-group" v-if="activeContent === 'home'">
+        <div v-if="activeContent === 'home'" class="search-filter-group">
           <input
-            type="text"
-            class="search-input"
-            placeholder="Buscar animais, lotes ou propriedades..."
             v-model="searchQuery"
             @keyup.enter="onSearch"
-            aria-label="Busca"
+            type="text"
+            class="search-input"
+            placeholder="Buscar animais..."
           />
-          <select
-            class="filter-select"
-            v-model="filterOption"
-            @change="onFilter"
-            aria-label="Filtro"
-          >
-            <option value="all">Todos</option>
-            <option value="animals">Animais</option>
-            <option value="lots">Lotes</option>
-            <option value="properties">Propriedades</option>
-          </select>
-          <button
-            class="button-primary"
-            @click="onSearch"
-            aria-label="Executar busca"
-          >
-            Buscar
-          </button>
+          <button class="button-primary" @click="onSearch">Buscar</button>
         </div>
 
         <!-- Home Overview -->
@@ -87,23 +66,16 @@
         <!-- Dynamic Content -->
         <AnimalContent
           v-if="activeContent === 'animals'"
-          :search-query="searchQuery"
-          :filter-option="filterOption"
+          :ref="'animalComp'"
+          :search-query="selectedAnimalId"
         />
         <PropertyContent
           v-if="activeContent === 'properties'"
           :search-query="searchQuery"
-          :filter-option="filterOption"
         />
         <EventContent
           v-if="activeContent === 'events'"
-          :search-query="searchQuery"
-          :filter-option="filterOption"
-        />
-        <BlockchainContent
-          v-if="activeContent === 'blockchain'"
-          :search-query="searchQuery"
-          :filter-option="filterOption"
+          ref="eventComp"
         />
       </main>
     </div>
@@ -118,6 +90,24 @@
     >
       + Novo Evento
     </button>
+
+    <!-- Search Results Modal -->
+    <div v-if="showSearchModal" class="modal-overlay" @click.self="showSearchModal = false">
+      <div class="modal-content">
+        <h3 class="modal-title">Resultados para "{{ searchQuery }}"</h3>
+        <ul class="modal-list">
+          <li
+            v-for="a in searchResults"
+            :key="a.id"
+            class="modal-list-item"
+            @click="selectSearchResult(a)"
+          >
+            {{ a.identification }}
+          </li>
+        </ul>
+        <button class="button-primary" @click="showSearchModal = false">Fechar</button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -127,7 +117,6 @@ import AppFooter from '@/components/AppFooter.vue'
 import AnimalContent from '@/components/AnimalContent.vue'
 import PropertyContent from '@/components/PropertyContent.vue'
 import EventContent from '@/components/EventContent.vue'
-import BlockchainContent from '@/components/BlockchainContent.vue'
 
 import { getUserProfile } from '@/services/userService'
 import { getAnimals } from '@/services/animalService'
@@ -142,7 +131,6 @@ export default {
     AnimalContent,
     PropertyContent,
     EventContent,
-    BlockchainContent
   },
   data() {
     return {
@@ -150,7 +138,9 @@ export default {
       stats: { animals: 0, lots: 0, properties: 0 },
       lastEvent: { description: '', date: '' },
       searchQuery: '',
-      filterOption: 'all',
+      searchResults: [],
+      showSearchModal: false,
+      selectedAnimalId: null,
       activeContent: 'home'
     }
   },
@@ -174,8 +164,6 @@ export default {
           description: `Evento em Animal ${last.identification}`,
           date: new Date().toLocaleDateString()
         }
-      } else {
-        this.lastEvent = { description: 'Nenhum evento encontrado', date: '' }
       }
     } catch (err) {
       console.error('Erro ao carregar dados do dashboard:', err)
@@ -185,17 +173,34 @@ export default {
     selectContent(tab) {
       this.activeContent = tab
       this.searchQuery = ''
-      this.filterOption = 'all'
+      this.selectedAnimalId = null
     },
     goToNewEvent() {
-      this.$router.push({ name: 'NewEvent' })
+      this.selectContent('events')
+      this.$nextTick(() => {
+        if (this.$refs.eventComp && this.$refs.eventComp.openModal) {
+          this.$refs.eventComp.openModal()
+        }
+      })
     },
-    onSearch() {
-      // Propague a busca para o conteúdo ativo, se precisar
-      console.log('Buscando com:', this.searchQuery, this.filterOption)
+    async onSearch() {
+      if (!this.searchQuery.trim()) return
+      // só pesquisa animais por enquanto
+      const list = await getAnimals({ owner: this.user.id })
+      this.searchResults = list.filter(a =>
+        a.identification.toLowerCase().includes(this.searchQuery.toLowerCase())
+      )
+      this.showSearchModal = true
     },
-    onFilter() {
-      console.log('Filtrando por:', this.filterOption)
+    selectSearchResult(animal) {
+      this.showSearchModal = false
+      this.selectedAnimalId = animal.id
+      this.selectContent('animals')
+      // opcional: rolar até o item na lista
+      this.$nextTick(() => {
+        const el = document.querySelector(`[data-animal-id="${animal.id}"]`)
+        if (el) el.scrollIntoView({ behavior: 'smooth' })
+      })
     }
   }
 }
@@ -362,6 +367,43 @@ export default {
   transform: scale(1.1);
   box-shadow: 0 4px 16px rgba(0,0,0,0.1);
   outline: none;
+}
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+}
+.modal-content {
+  background-color: #ffffff !important;
+  padding: var(--sp-lg);
+  border-radius: var(--sp-sm);
+  width: 90%; max-width: 400px;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+}
+.modal-title {
+  font-family: var(--font-heading);
+  color: var(--color-primary);
+  margin-bottom: var(--sp-md);
+}
+.modal-list {
+  list-style: none;
+  padding: 0;
+  margin-bottom: var(--sp-md);
+  max-height: 200px;
+  overflow-y: auto;
+}
+.modal-list-item {
+  padding: var(--sp-sm) 0;
+  border-bottom: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.modal-list-item:hover {
+  background: var(--color-light-gray);
 }
 @media (max-width: 768px) {
   .dashboard-body {

@@ -3,7 +3,7 @@
     <div class="admin-action">
       <div class="card">
         <h3 class="section-subtitle">
-          Registrar Nova Carteira
+          Registrar Carteira
         </h3>
         <form @submit.prevent="handleAdd" class="form-section">
           <div class="form-group">
@@ -79,10 +79,15 @@ export default {
   width: 100%;
   max-width: 500px;
   background: var(--color-white);
-  border: 1px solid var(--color-border);
+  border: none;
   border-radius: var(--sp-sm);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
   padding: var(--sp-lg);
+  transform: none;
+  transition: none; /* Opcional: remove a transição para esse card específico */
+}
+.card:hover, .card:focus-within {
+  box-shadow: none; /* Use o box-shadow padrão ou none */
+  transform: none; /* Remove o efeito de levantar */
 }
 .section-subtitle {
   display: flex;

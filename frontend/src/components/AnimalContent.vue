@@ -1,7 +1,6 @@
 <!-- File: src/components/AnimalContent.vue -->
 <template>
   <div>
-    <!-- Tela de Animais -->
     <section v-if="!showGroupManager" class="content-panel">
       <h2 class="panel-title">Gerenciar Animais</h2>
       <p class="panel-description">
@@ -19,10 +18,17 @@
 
       <div v-if="animals.length" class="list-group">
         <ul>
-          <li v-for="animal in animals" :key="animal.id" class="list-item">
+          <li
+            v-for="animal in animals"
+            :key="animal.id"
+            class="list-item"
+          >
             <div class="item-info">
               <strong>{{ animal.identification }}</strong><br />
-              Espécie: {{ animal.specie_name }} • Raça: {{ animal.breed_name }} • Grupo: {{ animal.group_name }}
+              Espécie: {{ animal.specie_name }} •
+              Raça: {{ animal.breed_name }} •
+              Grupo: {{ animal.group_name }} •
+              Nascimento: {{ animal.birth_date }}<br />
             </div>
             <div class="item-actions">
               <button class="button-secondary" @click="openModalForEdit(animal)">
@@ -50,15 +56,24 @@
             <input id="identification" v-model="form.identification" type="text" required />
 
             <label for="specie">Espécie</label>
-            <select id="specie" v-model="form.specie" required>
+            <select
+              id="specie"
+              v-model="form.specie"
+              @change="onSpecieChange"
+              required
+            >
               <option disabled value="">Selecione</option>
-              <option v-for="o in species" :key="o.id" :value="o.id">{{ o.name }}</option>
+              <option v-for="s in species" :key="s.id" :value="s.id">{{ s.name }}</option>
             </select>
 
             <label for="breed">Raça</label>
             <select id="breed" v-model="form.breed" required>
               <option disabled value="">Selecione</option>
-              <option v-for="o in breeds" :key="o.id" :value="o.id">{{ o.name }}</option>
+              <option
+                v-for="b in filteredBreeds"
+                :key="b.id"
+                :value="b.id"
+              >{{ b.name }}</option>
             </select>
 
             <label for="group">Grupo / Lote</label>
@@ -75,15 +90,25 @@
             </select>
 
             <label for="status">Status</label>
-            <select id="status" v-model="form.status" required>
-              <option disabled value="">Selecione</option>
-              <option v-for="o in statuses" :key="o.id" :value="o.id">{{ o.name }}</option>
-            </select>
+            <div v-if="editing">
+              <select id="status" v-model="form.status" required>
+                <option disabled value="">Selecione</option>
+                <option v-for="o in statuses" :key="o.id" :value="o.id">{{ o.name }}</option>
+              </select>
+            </div>
+            <div v-else>
+              <input type="hidden" v-model="form.status" />
+              <p class="status-default">Ativo</p>
+            </div>
 
             <label for="identification_type">Tipo de Identificação</label>
             <select id="identification_type" v-model="form.identification_type" required>
               <option disabled value="">Selecione</option>
-              <option v-for="o in identificationTypes" :key="o.id" :value="o.id">{{ o.name }}</option>
+              <option
+                v-for="o in identificationTypes"
+                :key="o.id"
+                :value="o.id"
+              >{{ o.name }}</option>
             </select>
 
             <label for="birth_date">Data de Nascimento</label>
@@ -162,7 +187,7 @@ export default {
         breed: '',
         group: '',
         gender: '',
-        status: '',
+        status: 1,
         identification_type: '',
         birth_date: '',
         observations: ''
@@ -181,8 +206,15 @@ export default {
     }
   },
   async created() {
-    await this.loadAnimals()
     await this.loadLookups()
+    await this.loadAnimals()
+  },
+  computed: {
+    filteredBreeds() {
+      return this.breeds.filter(b =>
+        b.specie === this.form.specie || b.specie_id === this.form.specie
+      )
+    }
   },
   methods: {
     openGroupManager() {
@@ -191,24 +223,22 @@ export default {
     closeGroupManager() {
       this.showGroupManager = false
     },
-    async loadAnimals() {
-      try {
-        this.animals = await getAnimals()
-      } catch (e) {
-        console.error(e)
-      }
-    },
     async loadLookups() {
-      try {
-        this.species = await getSpecies()
-        this.breeds = await getBreeds()
-        this.animalGroups = await getAnimalGroups()
-        this.genders = await getGenders()
-        this.statuses = await getStatuses()
-        this.identificationTypes = await getIdentificationTypes()
-      } catch (e) {
-        console.error(e)
-      }
+      this.species = await getSpecies()
+      this.breeds = await getBreeds()
+      this.animalGroups = await getAnimalGroups()
+      this.genders = await getGenders()
+      this.statuses = await getStatuses()
+      this.identificationTypes = await getIdentificationTypes()
+    },
+    async loadAnimals() {
+      const list = await getAnimals()
+      this.animals = list.map(a => ({
+        ...a,
+        specie_name: a.specie_name || (this.species.find(s => s.id === a.specie)?.name || ''),
+        breed_name: a.breed_name || (this.breeds.find(b => b.id === a.breed)?.name || ''),
+        group_name: a.group_name || (this.animalGroups.find(g => g.id === a.group)?.name || '')
+      }))
     },
     openModalForAdd() {
       this.editing = false
@@ -219,42 +249,53 @@ export default {
     openModalForEdit(animal) {
       this.editing = true
       this.editingId = animal.id
-      this.form = { ...animal }
+      this.form = {
+        identification: animal.identification,
+        specie: animal.specie,
+        breed: animal.breed,
+        group: animal.group,
+        gender: animal.gender,
+        status: animal.status,
+        identification_type: animal.identification_type,
+        birth_date: animal.birth_date,
+        observations: animal.observations
+      }
       this.showModal = true
     },
     closeModal() {
       this.showModal = false
     },
-    async handleSubmit() {
-      try {
-        if (this.editing) {
-          const updated = await updateAnimal(this.editingId, this.form)
-          const idx = this.animals.findIndex(a => a.id === this.editingId)
-          this.animals.splice(idx, 1, updated)
-          alert('Animal atualizado com sucesso.')
-        } else {
-          const created = await registerAnimal(this.form)
-          this.animals.push(created)
-          alert('Animal cadastrado com sucesso.')
-        }
-        this.closeModal()
-      } catch (e) {
-        console.error(e)
-        alert('Erro ao salvar animal.')
-      }
+    onSpecieChange() {
+      this.form.breed = ''
     },
-    handleDelete(id) {
-      if (confirm('Deseja realmente deletar este animal?')) {
-        deleteAnimal(id)
-          .then(() => {
-            this.animals = this.animals.filter(a => a.id !== id)
-            alert('Animal deletado com sucesso.')
-          })
-          .catch(e => {
-            console.error(e)
-            alert('Erro ao deletar animal.')
-          })
+    async handleSubmit() {
+      if (this.editing) {
+        const updated = await updateAnimal(this.editingId, this.form)
+        const idx = this.animals.findIndex(a => a.id === this.editingId)
+        this.animals.splice(idx, 1, {
+          ...updated,
+          specie_name: this.species.find(s => s.id === updated.specie)?.name || '',
+          breed_name: this.breeds.find(b => b.id === updated.breed)?.name || '',
+          group_name: this.animalGroups.find(g => g.id === updated.group)?.name || ''
+        })
+        alert('Animal atualizado com sucesso.')
+      } else {
+        const created = await registerAnimal(this.form)
+        this.animals.push({
+          ...created,
+          specie_name: this.species.find(s => s.id === created.specie)?.name || '',
+          breed_name: this.breeds.find(b => b.id === created.breed)?.name || '',
+          group_name: this.animalGroups.find(g => g.id === created.group)?.name || ''
+        })
+        alert('Animal cadastrado com sucesso.')
       }
+      this.closeModal()
+    },
+    async handleDelete(id) {
+      if (!confirm('Deseja realmente deletar este animal?')) return
+      await deleteAnimal(id)
+      this.animals = this.animals.filter(a => a.id !== id)
+      alert('Animal deletado com sucesso.')
     },
     handleGroupChange(e) {
       if (e.target.value === 'new') {
@@ -263,16 +304,11 @@ export default {
       }
     },
     async saveNewGroup() {
-      try {
-        const created = await registerAnimalGroup(this.newGroup)
-        this.animalGroups.push(created)
-        this.form.group = created.id
-        this.closeGroupModal()
-        alert('Grupo cadastrado com sucesso.')
-      } catch (e) {
-        console.error(e)
-        alert('Erro ao cadastrar grupo.')
-      }
+      const created = await registerAnimalGroup(this.newGroup)
+      this.animalGroups.push(created)
+      this.form.group = created.id
+      this.closeGroupModal()
+      alert('Grupo cadastrado com sucesso.')
     },
     closeGroupModal() {
       this.showGroupModal = false
@@ -285,7 +321,7 @@ export default {
         breed: '',
         group: '',
         gender: '',
-        status: '',
+        status: 1,
         identification_type: '',
         birth_date: '',
         observations: ''
@@ -358,6 +394,8 @@ export default {
   width: 100%;
   max-width: 700px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  max-height: 90vh;           /* habilita scroll interno se for maior */
+  overflow-y: auto;
 }
 .modal-title {
   text-align: center;
