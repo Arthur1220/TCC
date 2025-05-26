@@ -60,4 +60,6 @@ urlpatterns = [
     path('event-update/<int:id>/', EventViewSet.update),
     path('event-delete/<int:id>/', EventViewSet.delete),
     path('event-filter/', EventViewSet.filter_get),
+
+    path('event-register-batch/', EventViewSet.register_batch_event),
 ]

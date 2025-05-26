@@ -116,3 +116,17 @@ export async function getEventTypes() {
     throw error;
   }
 }
+
+/**
+ * Obtém a lista de propriedades.
+ * @returns {Promise<Array>}
+ */
+export async function getProperties() {
+  try {
+    const response = await axiosInstance.get('property/get/'); // Confirme se este é o endpoint correto
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao buscar propriedades:', error.response ? error.response.data : error);
+    throw error;
+  }
+}

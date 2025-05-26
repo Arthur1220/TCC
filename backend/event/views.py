@@ -5,7 +5,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Movement, Weighing, Vacine, Medicine, Reproduction, Slaughter, SpecialOccurrences, EventType, Event
 from django.core.exceptions import ObjectDoesNotExist
-from .serializers import MovementSerializer, WeighingSerializer, VacineSerializer, MedicineSerializer, ReproductionSerializer, SlaughterSerializer, SpecialOccurrencesSerializer, EventTypeSerializer, EventSerializer
+from .serializers import BatchEventRegisterSerializer, MovementSerializer, WeighingSerializer, VacineSerializer, MedicineSerializer, ReproductionSerializer, SlaughterSerializer, SpecialOccurrencesSerializer, EventTypeSerializer, EventSerializer
+from django.db import transaction # Importe transaction para garantir atomicidade
 
 class MovementViewSet(ModelViewSet):
     queryset = Movement.objects.all()
@@ -558,6 +559,25 @@ class EventViewSet(ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+    @api_view(['POST'])
+    @permission_classes([IsAuthenticated])
+    @transaction.atomic # Garante que todas as operações sejam bem-sucedidas ou nenhuma seja
+    def register_batch_event(request):
+        serializer = BatchEventRegisterSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            try:
+                # O método create do serializer irá criar os eventos e seus detalhes
+                events_created = serializer.save()
+                return Response({
+                    "message": f"{len(events_created)} eventos registrados com sucesso para o lote.",
+                    "events": [EventSerializer(e).data for e in events_created]
+                }, status=status.HTTP_201_CREATED)
+            except Exception as e:
+                # Se algo der errado dentro do transaction.atomic, ele fará um rollback
+                return Response({"error": f"Erro ao registrar eventos em lote: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
     @api_view(['GET'])
     @permission_classes([AllowAny])
     def get(request, id=None):
