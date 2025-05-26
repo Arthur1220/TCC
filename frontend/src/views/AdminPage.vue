@@ -1,10 +1,8 @@
-<!-- File: src/views/AdminPage.vue -->
 <template>
   <div class="admin-page">
     <AppHeader />
 
     <div class="admin-body">
-      <!-- Sidebar de Admin -->
       <aside class="sidebar">
         <nav aria-label="Admin Navigation">
           <ul>
@@ -22,6 +20,8 @@
             <li :class="{ 'active-link': activeSection === 'events' }">
               <a href="#" @click.prevent="selectSection('events')">Visualizar Eventos</a>
             </li>
+            <li :class="{ 'active-link': activeSection === 'blockchain' }"> <a href="#" @click.prevent="selectSection('blockchain')">Blockchain</a>
+            </li>
             <li :class="{ 'active-link': activeSection === 'users' }">
               <a href="#" @click.prevent="selectSection('users')">Usuários</a>
             </li>
@@ -29,9 +29,7 @@
         </nav>
       </aside>
 
-      <!-- Conteúdo Principal -->
       <main class="admin-content">
-        <!-- Visão Geral -->
         <section v-if="activeSection === 'overview'" class="card stats-overview">
           <h2 class="section-title">Visão Geral do Sistema</h2>
           <div class="stats-grid">
@@ -50,7 +48,6 @@
           </div>
         </section>
 
-        <!-- Carteira: AddWallet + RemoveWallet -->
         <section v-else-if="activeSection === 'carteira'" class="card form-section">
           <h2 class="section-title">Gerenciar Carteiras</h2>
           <div class="wallet-controls">
@@ -59,7 +56,6 @@
           </div>
         </section>
 
-        <!-- Pausar/Ativar Contrato -->
         <section v-else-if="activeSection === 'pause'" class="card form-section">
           <PauseContract
             :isActive="contractActive"
@@ -67,12 +63,14 @@
           />
         </section>
 
-        <!-- Visualização de Eventos -->
         <section v-else-if="activeSection === 'events'" class="card">
           <VisualizacaoContent />
         </section>
 
-        <!-- Gerenciar Usuários -->
+        <section v-else-if="activeSection === 'blockchain'" class="card">
+          <BlockchainViewer />
+        </section>
+
         <section v-else-if="activeSection === 'users'" class="card">
           <RoleManager />
         </section>
@@ -92,6 +90,7 @@ import RemoveWallet from '@/components/RemoveWallet.vue'
 import VisualizacaoContent from '@/components/VisualizacaoContent.vue'
 import PauseContract from '@/components/PauseContract.vue'
 import RoleManager from '@/components/RoleManager.vue'
+import BlockchainViewer from '@/components/BlockchainViewer.vue' // IMPORTAR O NOVO COMPONENTE
 
 import { getAnimals } from '@/services/animalService'
 import { getNumberOfEvents, checkContractStatus } from '@/services/contractService'
@@ -105,7 +104,8 @@ export default {
     RemoveWallet,
     VisualizacaoContent,
     PauseContract,
-    RoleManager
+    RoleManager,
+    BlockchainViewer // ADICIONAR AQUI
   },
   data() {
     return {
@@ -137,6 +137,10 @@ export default {
 </script>
 
 <style scoped>
+/* Seus estilos CSS atuais permanecem aqui. Nenhuma alteração é estritamente necessária,
+   a não ser que você queira ajustar o espaçamento ou alinhamento para o novo componente.
+   Assegure-se de que as variáveis CSS (:root) estejam definidas ou importadas corretamente.
+*/
 .admin-page {
   display: flex;
   flex-direction: column;
@@ -147,7 +151,7 @@ export default {
   display: flex;
   flex: 1;
   background: var(--color-light-gray);
-  align-items: center;             /* centraliza verticalmente */
+  align-items: center;              /* centraliza verticalmente */
 }
 
 /* Sidebar */
@@ -158,7 +162,7 @@ export default {
   padding: var(--sp-lg) 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;         /* centraliza verticalmente */
+  justify-content: center;          /* centraliza verticalmente */
 }
 
 .sidebar nav ul {
@@ -197,7 +201,7 @@ export default {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  justify-content: center;         /* centraliza verticalmente */
+  justify-content: center;          /* centraliza verticalmente */
 }
 
 /* Sobrescreve o efeito de hover para os cards dentro do AdminPage */
