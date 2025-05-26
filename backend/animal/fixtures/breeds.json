@@ -318,5 +318,13 @@
             "name": "Maine Coon",
             "specie": 11
         }
+    },
+    {
+        "model": "animal.breed",
+        "pk": 41,
+        "fields": {
+            "name": "Outros",
+            "specie": 12
+        }
     }
 ]

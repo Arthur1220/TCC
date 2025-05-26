@@ -30,5 +30,13 @@
             "name": "Nenhum",
             "description": "Nenhum tipo de identificação utilizado."
         }
+    },
+    {
+        "model": "animal.identificationtype",
+        "pk": 5,
+        "fields": {
+            "name": "Outros",
+            "description": "Outros tipos de identificação não especificados."
+        }
     }
 ]
