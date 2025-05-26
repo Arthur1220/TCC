@@ -57,3 +57,17 @@ export async function deleteUserAccount() {
     throw error;
   }
 }
+
+/**
+ * Obtém a lista de todos os usuários.
+ * @returns {Promise<Array>} - Lista de usuários.
+ */
+export async function getAllUsers() { // Função adicionada
+  try {
+    const response = await axiosInstance.get('user/all_users/');
+    return response.data;
+  } catch (error) {
+    console.error("Erro ao obter todos os usuários:", error);
+    throw error.response ? error.response.data : error;
+  }
+}
