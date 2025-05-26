@@ -1,14 +1,17 @@
+// src/services/contractService.js
 import axiosInstance from './axiosSetup';
 
 /**
  * Verifica o status do contrato.
  */
 export async function checkContractStatus() {
+  //console.log("DEBUG - checkContractStatus: Chamando /contract/status/");
   try {
     const response = await axiosInstance.get('contract/status/');
+    //console.log("DEBUG - checkContractStatus: Resposta recebida:", response.data);
     return response.data;
   } catch (error) {
-    console.error('Erro ao verificar status do contrato:', error);
+    console.error('ERRO - checkContractStatus: Erro ao verificar status do contrato:', error.response ? error.response.data : error);
     throw error;
   }
 }
@@ -18,13 +21,13 @@ export async function checkContractStatus() {
  * @param {Object} data - Dados do evento (event_id, animal_id, event_type, data_hash, user_hash)
  */
 export async function registerContractEvent(data) {
+  //console.log("DEBUG - registerContractEvent: Payload enviado:", data);
   try {
-    console.log("DEBUG - registerContractEvent payload:", data);
     const response = await axiosInstance.post('contract/register-event/', data);
-    console.log("DEBUG - Response from registerContractEvent:", response.data);
+    //console.log("DEBUG - registerContractEvent: Resposta recebida:", response.data);
     return response.data;
   } catch (error) {
-    console.error('Erro ao registrar evento crítico:', error.response ? error.response.data : error);
+    console.error('ERRO - registerContractEvent: Erro ao registrar evento crítico:', error.response ? error.response.data : error);
     throw error;
   }
 }
@@ -34,12 +37,14 @@ export async function registerContractEvent(data) {
  * @param {string} address - Endereço da carteira.
  */
 export async function addRegistrar(address) {
+  //console.log("DEBUG - addRegistrar: Chamando /contract/add-registrar/ com endereço:", address);
   try {
     // Envia o objeto com a chave "registrar_address"
     const response = await axiosInstance.post('contract/add-registrar/', { registrar_address: address });
+    //console.log("DEBUG - addRegistrar: Resposta recebida:", response.data);
     return response.data;
   } catch (error) {
-    console.error('Erro ao adicionar registrador:', error.response ? error.response.data : error);
+    console.error('ERRO - addRegistrar: Erro ao adicionar registrador:', error.response ? error.response.data : error);
     throw error;
   }
 }
@@ -49,11 +54,13 @@ export async function addRegistrar(address) {
  * @param {string} address - Endereço da carteira.
  */
 export async function removeRegistrar(address) {
+  //console.log("DEBUG - removeRegistrar: Chamando /contract/remove-registrar/ com endereço:", address);
   try {
     const response = await axiosInstance.post('contract/remove-registrar/', { address });
+    //console.log("DEBUG - removeRegistrar: Resposta recebida:", response.data);
     return response.data;
   } catch (error) {
-    console.error('Erro ao remover registrador:', error);
+    console.error('ERRO - removeRegistrar: Erro ao remover registrador:', error.response ? error.response.data : error);
     throw error;
   }
 }
@@ -64,14 +71,16 @@ export async function removeRegistrar(address) {
  * @param {number} index - Índice do evento (default: 0).
  */
 export async function getContractEvent(animalId, index = 0) {
+  //console.log(`DEBUG - getContractEvent: Chamando /contract/get-event/${animalId}/ com index: ${index}`);
   try {
     const response = await axiosInstance.get(
       `contract/get-event/${animalId}/`,
       { params: { index } }
     );
+    //console.log("DEBUG - getContractEvent: Resposta recebida:", response.data);
     return response.data;
   } catch (error) {
-    console.error('Erro ao obter evento por animal:', error);
+    console.error('ERRO - getContractEvent: Erro ao obter evento por animal:', error.response ? error.response.data : error);
     throw error;
   }
 }
@@ -81,13 +90,15 @@ export async function getContractEvent(animalId, index = 0) {
  * @param {number} animalId - ID do animal.
  */
 export async function listContractEvents(animalId) {
+  //console.log(`DEBUG - listContractEvents: Chamando /contract/list-events/${animalId}/`);
   try {
     const response = await axiosInstance.get(
       `contract/list-events/${animalId}/`
     );
+    //console.log("DEBUG - listContractEvents: Resposta recebida:", response.data);
     return response.data.events;
   } catch (error) {
-    console.error('Erro ao listar eventos do contrato:', error);
+    console.error('ERRO - listContractEvents: Erro ao listar eventos do contrato:', error.response ? error.response.data : error);
     throw error;
   }
 }
@@ -97,14 +108,16 @@ export async function listContractEvents(animalId) {
  * @param {number} animalId - ID do animal.
  */
 export async function getNumberOfEvents(animalId) {
+  //console.log(`DEBUG - getNumberOfEvents: Chamando /contract/get-number-events/ com animal_id: ${animalId}`);
   try {
     const response = await axiosInstance.get(
       'contract/get-number-events/',
       { params: { animal_id: animalId } }
     );
+    //console.log("DEBUG - getNumberOfEvents: Resposta recebida:", response.data);
     return response.data.count;
   } catch (error) {
-    console.error('Erro ao obter número de eventos:', error);
+    console.error('ERRO - getNumberOfEvents: Erro ao obter número de eventos:', error.response ? error.response.data : error);
     throw error;
   }
 }
@@ -113,11 +126,13 @@ export async function getNumberOfEvents(animalId) {
  * Pausa o contrato.
  */
 export async function pauseContract() {
+  //console.log("DEBUG - pauseContract: Chamando /contract/pause/");
   try {
     const response = await axiosInstance.post('contract/pause/');
+    //console.log("DEBUG - pauseContract: Resposta recebida:", response.data);
     return response.data;
   } catch (error) {
-    console.error('Erro ao pausar contrato:', error);
+    console.error('ERRO - pauseContract: Erro ao pausar contrato:', error.response ? error.response.data : error);
     throw error;
   }
 }
@@ -126,11 +141,13 @@ export async function pauseContract() {
  * Despausa o contrato.
  */
 export async function unpauseContract() {
+  //console.log("DEBUG - unpauseContract: Chamando /contract/unpause/");
   try {
     const response = await axiosInstance.post('contract/unpause/');
+    //console.log("DEBUG - unpauseContract: Resposta recebida:", response.data);
     return response.data;
   } catch (error) {
-    console.error('Erro ao despausar contrato:', error);
+    console.error('ERRO - unpauseContract: Erro ao despausar contrato:', error.response ? error.response.data : error);
     throw error;
   }
 }
