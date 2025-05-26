@@ -96,7 +96,7 @@
             <textarea id="observations" v-model="form.observations" class="textarea"></textarea>
           </div>
 
-          <div v-if="selectedEventTypeName === 'movimento'" class="dynamic-form full-width">
+          <div v-if="selectedEventTypeName === 'movimentação'" class="dynamic-form full-width">
             <h4 class="sub-title">Detalhes do Movimento</h4>
             <div class="form-group">
               <label for="origin-property">Propriedade Origem:</label>
@@ -201,12 +201,16 @@
               </select>
             </div>
             <div class="form-group">
-              <label for="rep-male">Macho (ID):</label>
-              <input id="rep-male" v-model.number="reproduction.male_id" type="number" class="input" required />
+              <label for="rep-male">Macho (ID Animal):</label> <select id="rep-male" v-model.number="reproduction.male_id" class="select" required>
+                  <option disabled :value="null">Selecione o macho</option>
+                  <option v-for="a in animals" :key="`male-${a.id}`" :value="a.id">{{ a.identification }}</option>
+              </select>
             </div>
             <div class="form-group">
-              <label for="rep-female">Fêmea (ID):</label>
-              <input id="rep-female" v-model.number="reproduction.female_id" type="number" class="input" required />
+              <label for="rep-female">Fêmea (ID Animal):</label> <select id="rep-female" v-model.number="reproduction.female_id" class="select" required>
+                  <option disabled :value="null">Selecione a fêmea</option>
+                  <option v-for="a in animals" :key="`female-${a.id}`" :value="a.id">{{ a.identification }}</option>
+              </select>
             </div>
             <div class="form-group">
               <label for="rep-result">Resultado:</label>
@@ -290,7 +294,7 @@
             <label for="batch-event-type">Tipo de Evento:</label>
             <select id="batch-event-type" v-model.number="batchEventForm.event_type" @change="handleBatchEventTypeChange" class="select" required>
               <option disabled :value="null">Selecione um tipo de evento</option>
-              <option v-for="type in eventTypes" :key="type.id" :value="type.id">
+              <option v-for="type in batchAllowedEventTypes" :key="type.id" :value="type.id">
                 {{ type.name }}
               </option>
             </select>
@@ -311,7 +315,7 @@
             <textarea id="batch-event-observations" v-model="batchEventForm.observations" class="textarea"></textarea>
           </div>
 
-          <div v-if="batchEventForm.event_type_name === 'movimento'" class="dynamic-form full-width">
+          <div v-if="batchEventForm.event_type_name === 'movimentação'" class="dynamic-form full-width">
             <h4 class="sub-title">Detalhes do Movimento</h4>
             <div class="form-group">
               <label for="batch-origin-property">Propriedade Origem:</label>
@@ -415,13 +419,19 @@
                 <option value="artificial">Artificial</option>
               </select>
             </div>
-            <div class="form-group">
-              <label for="batch-rep-male">Macho (ID):</label>
-              <input id="batch-rep-male" v-model.number="batchEventForm.reproduction_details.male_id" type="number" class="input" required />
+             <div class="form-group">
+              <label for="batch-rep-male">Macho (ID Animal):</label>
+              <select id="batch-rep-male" v-model.number="batchEventForm.reproduction_details.male_id" class="select" required>
+                  <option disabled :value="null">Selecione o macho</option>
+                  <option v-for="a in animals" :key="`batch-male-${a.id}`" :value="a.id">{{ a.identification }}</option>
+              </select>
             </div>
             <div class="form-group">
-              <label for="batch-rep-female">Fêmea (ID):</label>
-              <input id="batch-rep-female" v-model.number="batchEventForm.reproduction_details.female_id" type="number" class="input" required />
+              <label for="batch-rep-female">Fêmea (ID Animal):</label>
+               <select id="batch-rep-female" v-model.number="batchEventForm.reproduction_details.female_id" class="select" required>
+                  <option disabled :value="null">Selecione a fêmea</option>
+                  <option v-for="a in animals" :key="`batch-female-${a.id}`" :value="a.id">{{ a.identification }}</option>
+              </select>
             </div>
             <div class="form-group">
               <label for="batch-rep-result">Resultado:</label>
@@ -453,7 +463,7 @@
             </div>
           </div>
 
-          <div v-else-if="batchEventForm.event_type_name === 'ocorrencia especial'" class="dynamic-form full-width">
+          <div v-else-if="batchEventForm.event_type_name === 'ocorrência especial'" class="dynamic-form full-width">
             <h4 class="sub-title">Detalhes da Ocorrência Especial</h4>
             <div class="form-group">
               <label for="batch-occ-type">Tipo:</label>
@@ -496,22 +506,29 @@ import {
   updateEvent,
   getEvents,
   deleteEvent,
-  getEventDetails,
+  getEventDetails, // Este serviço agora busca detalhes específicos corretamente
   registerMovement,
+  updateMovement, // Adicionado para consistência se for usar no futuro
   registerWeighing,
+  updateWeighing, // Adicionado
   registerVacine,
+  updateVacine, // Adicionado
   registerMedicine,
+  updateMedicine, // Adicionado
   registerReproduction,
+  updateReproduction, // Adicionado
   registerSlaughter,
+  updateSlaughter, // Adicionado
   registerSpecialOccurrence,
-  getMovements,
-  getWeighings,
-  getVacines,
-  getMedicines,
-  getReproductions,
-  getSlaughters,
-  getSpecialOccurrences,
-  registerBatchEvent // Importa a função de registro em lote
+  updateSpecialOccurrence, // Adicionado
+//  getMovements, // Já importado implicitamente via getEventDetails
+//  getWeighings,
+//  getVacines,
+//  getMedicines,
+//  getReproductions,
+//  getSlaughters,
+//  getSpecialOccurrences,
+  registerBatchEvent
 } from '@/services/eventService';
 import { getEventTypes, getProperties } from '@/services/lookupService';
 import { getUserProfile } from '@/services/userService';
@@ -525,53 +542,48 @@ export default {
   },
   data() {
     return {
-      showModal: false, // Modal para registro/edição individual
-      showBatchEventModal: false, // NOVO: Modal para registro em lote
+      showModal: false,
+      showBatchEventModal: false,
       editing: false,
       editingId: null,
       user: null,
       animals: [],
-      properties: [], // Propriedades para eventos de Movimentação
-      events: [], // Lista de eventos para a tabela
+      properties: [], 
+      events: [], 
 
-      // Formulário para registro/edição INDIVIDUAL
       form: {
         animal: null,
         date: '',
         location: '',
         observations: '',
-        event_type: null // ID do tipo de evento
+        event_type: null
       },
-      // Detalhes específicos dos eventos INDIVIDUAIS
-      movement: { event: null, origin_property: null, destination_property: null, reason: '' },
-      weighing: { event: null, weight: null },
-      vaccine: { event: null, name: '', manufacturer: '', batch: '', validity: '', dose: null, next_dose_date: '' },
-      medicine: { event: null, name: '', manufacturer: '', batch: '', validity: '', dose: null, next_dose_date: '', reason: '', withdrawal_time: null },
-      reproduction: { event: null, reproduction_type: '', male_id: null, female_id: null, result: null },
-      slaughter: { event: null, location: '', final_weight: null, inspection_result: null },
-      occurrence: { event: null, occurrence_type: '', description: '', actions_taken: '' },
+      movement: { event: null, origin_property: null, destination_property: null, reason: '', date: '' }, // Adicionado date
+      weighing: { event: null, weight: null, date: '' }, // Adicionado date
+      vaccine: { event: null, name: '', manufacturer: '', batch: '', validity: '', dose: null, next_dose_date: '', date: '' }, // Adicionado date
+      medicine: { event: null, name: '', manufacturer: '', batch: '', validity: '', dose: null, next_dose_date: '', reason: '', withdrawal_time: null, date: '' }, // Adicionado date
+      reproduction: { event: null, reproduction_type: '', male_id: null, female_id: null, result: null, date: '' }, // Adicionado date (data do evento de reprodução em si)
+      slaughter: { event: null, location: '', final_weight: null, inspection_result: null, date: '' }, // Adicionado date
+      occurrence: { event: null, occurrence_type: '', description: '', actions_taken: '', date: '' }, // Adicionado date
       
-      eventTypes: [], // Lista de tipos de evento
+      eventTypes: [], 
 
-      // NOVO: Formulário para registro em LOTE
       batchEventForm: {
-        animal_ids: [], // IDs dos animais selecionados
+        animal_ids: [], 
         event_type: null,
-        event_type_name: '', // Nome do tipo para controle condicional
+        event_type_name: '', 
         date: '',
         location: '',
         observations: '',
-        // Detalhes específicos para cada tipo de evento (lote)
-        movement_details: { origin_property: null, destination_property: null, reason: '' },
-        weighing_details: { weight: null },
-        vacine_details: { name: '', manufacturer: '', batch: '', validity: '', dose: null, next_dose_date: '' },
-        medicine_details: { name: '', manufacturer: '', batch: '', validity: '', dose: null, next_dose_date: '', reason: '', withdrawal_time: null },
-        reproduction_details: { reproduction_type: '', male_id: null, female_id: null, result: null },
-        slaughter_details: { location: '', final_weight: null, inspection_result: null },
-        special_occurrences_details: { occurrence_type: '', description: '', actions_taken: '' },
+        movement_details: { origin_property: null, destination_property: null, reason: '', date: '' }, // Adicionado date
+        weighing_details: { weight: null, date: '' }, // Adicionado date
+        vacine_details: { name: '', manufacturer: '', batch: '', validity: '', dose: null, next_dose_date: '', date: '' }, // Adicionado date
+        medicine_details: { name: '', manufacturer: '', batch: '', validity: '', dose: null, next_dose_date: '', reason: '', withdrawal_time: null, date: '' }, // Adicionado date
+        reproduction_details: { reproduction_type: '', male_id: null, female_id: null, result: null, date: '' }, // Adicionado date
+        slaughter_details: { location: '', final_weight: null, inspection_result: null, date: '' }, // Adicionado date
+        special_occurrences_details: { occurrence_type: '', description: '', actions_taken: '', date: '' }, // Adicionado date
       },
 
-      // Para o modal de notificação
       notification: {
         show: false,
         message: '',
@@ -581,20 +593,33 @@ export default {
   },
   computed: {
     selectedEventTypeName() {
-      // Retorna o nome do tipo de evento selecionado no formulário INDIVIDUAL
       const selectedType = this.eventTypes.find(type => type.id === this.form.event_type);
       return selectedType ? selectedType.name.toLowerCase() : '';
     },
-    // Mapeia IDs de animais para suas identificações para exibição na tabela
     animalIdToIdentificationMap() {
         return this.animals.reduce((acc, animal) => {
             acc[animal.id] = animal.identification;
             return acc;
         }, {});
+    },
+    // NOVO: Propriedade computada para filtrar tipos de evento para o formulário de lote
+    batchAllowedEventTypes() {
+      if (!this.eventTypes || this.eventTypes.length === 0) {
+        return [];
+      }
+      // Estes nomes DEVEM CORRESPONDER a type.name.toLowerCase() dos seus EventType
+      // Conforme sua solicitação: medicacao, movimentacao, ocorrencias especiais, vacinacao
+      // Adaptado para os nomes com acentos/cedilha usados nos v-if do template:
+      const allowedNames = ['medicação', 'movimentação', 'ocorrência especial', 'vacinação'];
+      return this.eventTypes.filter(type => {
+        if (type && type.name) {
+          return allowedNames.includes(type.name.toLowerCase());
+        }
+        return false;
+      });
     }
   },
   watch: {
-    // Monitora a mudança do tipo de evento no formulário de LOTE para atualizar o nome
     'batchEventForm.event_type'(newVal) {
       if (newVal) {
         const selectedType = this.eventTypes.find(type => type.id === newVal);
@@ -602,12 +627,11 @@ export default {
       } else {
         this.batchEventForm.event_type_name = '';
       }
-      this.resetBatchEventSpecificDetails(); // Limpa detalhes específicos ao mudar o tipo
+      this.resetBatchEventSpecificDetails(); 
     }
   },
   methods: {
-    // Exibe a notificação
-    showNotification(message, type) {
+    showNotification(message, type = 'success') { // Default type to success
       this.notification.message = message;
       this.notification.type = type;
       this.notification.show = true;
@@ -618,8 +642,7 @@ export default {
     async loadUserAndAnimals() {
       try {
         this.user = await getUserProfile();
-        // Carrega animais do usuário com status "ativo" (ID 1)
-        const list = await getAnimals({ owner: this.user.id, status: 1 });
+        const list = await getAnimals({ owner: this.user.id, status: 1 }); // Supondo status 1 = ativo
         this.animals = list;
       } catch (e) {
         console.error('Erro ao carregar usuário ou animais:', e);
@@ -628,11 +651,12 @@ export default {
     },
     async loadEventData() {
         try {
-            // Carrega todos os eventos para o usuário logado
             if (this.user && this.user.id) {
-                // Assume que getEvents() já filtra por usuário logado ou que o backend fará isso.
-                // Se precisar filtrar explicitamente: await filterEvents({ recorded_by: this.user.id });
-                this.events = await getEvents();
+                // O backend DEVE filtrar os eventos pelo usuário logado.
+                // Se getEvents() não fizer isso, você precisaria de um
+                // this.events = await filterEvents({ recorded_by: this.user.id });
+                // ou garantir que getEvents() use o token para filtrar no backend.
+                this.events = await getEvents(); 
             }
         } catch (e) {
             console.error('Erro ao carregar eventos:', e);
@@ -641,210 +665,227 @@ export default {
     },
     async loadEventTypesAndProperties() {
       try {
-        this.eventTypes = await getEventTypes();
-        this.properties = await getProperties(); // Carrega as propriedades
+        this.eventTypes = await getEventTypes(); // Já ordenado pelo serviço
+        this.properties = await getProperties(); 
       } catch (e) {
         console.error('Erro ao carregar tipos de evento ou propriedades:', e);
         this.showNotification('Erro ao carregar tipos de evento ou propriedades.', 'error');
       }
     },
 
-    // Métodos para Modal de Registro/Edição Individual
     openModal() {
       this.resetIndividualForm();
       this.editing = false;
+      this.editingId = null;
+      this.form.date = new Date().toISOString().slice(0, 16); // Default to current date-time
       this.showModal = true;
     },
     closeModal() {
       this.showModal = false;
-      this.resetIndividualForm(); // Garante que o form individual está limpo
+      this.resetIndividualForm(); 
     },
     async editEvent(eventItem) {
-        this.resetIndividualForm(); // Limpa o formulário e detalhes antes de preencher
+        this.resetIndividualForm(); 
         this.editing = true;
         this.editingId = eventItem.id;
 
         try {
-            // Primeiro preenche os dados gerais do evento
-            this.form.animal = eventItem.animal;
-            this.form.date = eventItem.date ? new Date(eventItem.date).toISOString().slice(0, 16) : ''; // Formato datetime-local
-            this.form.location = eventItem.location;
-            this.form.observations = eventItem.observations;
-            this.form.event_type = eventItem.event_type; // Este é o ID do event_type
-
-            // Agora busca os detalhes específicos
-            // A função getEventDetails já lida com qual service chamar
+            // Busca os detalhes completos, incluindo os específicos do tipo de evento
+            // eventService.getEventDetails agora deve buscar e aninhar os detalhes específicos
             const fullEventDetails = await getEventDetails(eventItem.id, eventItem.event_type);
-            const details = fullEventDetails.details; // Os detalhes específicos estarão aqui
 
+            if (!fullEventDetails) {
+                this.showNotification('Erro: Detalhes do evento não encontrados.', 'error');
+                this.closeModal();
+                return;
+            }
+            
+            // Preenche o formulário principal
+            this.form.animal = fullEventDetails.animal; // Assumindo que getEventDetails retorna o animal ID
+            this.form.date = fullEventDetails.date ? new Date(fullEventDetails.date).toISOString().slice(0, 16) : '';
+            this.form.location = fullEventDetails.location;
+            this.form.observations = fullEventDetails.observations;
+            this.form.event_type = fullEventDetails.event_type; // ID do tipo de evento
+
+            const details = fullEventDetails.details; // Detalhes específicos (ex: movement, weighing)
+            
             if (details) {
-                const eventTypeName = this.selectedEventTypeName; // Usa o computed para obter o nome em minúsculas
-                
+                const eventTypeName = this.selectedEventTypeName; // Usa computed property que depende de this.form.event_type
+
                 // Preenche os objetos de detalhes específicos
-                if (eventTypeName === 'movimento') {
-                    this.movement = { ...details };
+                // Certifique-se que as datas nos detalhes também estão no formato datetime-local ou date onde aplicável
+                if (eventTypeName === 'movimentação') {
+                    this.movement = { ...details, date: details.date ? new Date(details.date).toISOString().slice(0,16) : this.form.date };
                 } else if (eventTypeName === 'pesagem') {
-                    this.weighing = { ...details };
+                    this.weighing = { ...details, date: details.date ? new Date(details.date).toISOString().slice(0,16) : this.form.date };
                 } else if (eventTypeName === 'vacinação') {
                     this.vaccine = { 
                         ...details,
                         validity: details.validity ? new Date(details.validity).toISOString().slice(0, 10) : '',
                         next_dose_date: details.next_dose_date ? new Date(details.next_dose_date).toISOString().slice(0, 16) : '',
+                        date: details.date ? new Date(details.date).toISOString().slice(0,16) : this.form.date
                     };
                 } else if (eventTypeName === 'medicação') {
                     this.medicine = { 
                         ...details,
                         validity: details.validity ? new Date(details.validity).toISOString().slice(0, 10) : '',
                         next_dose_date: details.next_dose_date ? new Date(details.next_dose_date).toISOString().slice(0, 16) : '',
+                        date: details.date ? new Date(details.date).toISOString().slice(0,16) : this.form.date
                     };
                 } else if (eventTypeName === 'reprodução') {
                     this.reproduction = {
                         ...details,
-                        date: details.date ? new Date(details.date).toISOString().slice(0, 10) : '', // Data da reprodução, não do evento principal
+                        // O campo 'date' em reproduction_details refere-se à data da reprodução em si.
+                        // O evento principal Event.date é a data de registro do evento.
+                         date: details.date ? new Date(details.date).toISOString().slice(0, 16) : this.form.date
                     };
                 } else if (eventTypeName === 'abate') {
                     this.slaughter = { 
                         ...details,
-                        date: details.date ? new Date(details.date).toISOString().slice(0, 10) : '', // Data do abate, não do evento principal
+                        date: details.date ? new Date(details.date).toISOString().slice(0, 16) : this.form.date
                     };
                 } else if (eventTypeName === 'ocorrência especial') {
                     this.occurrence = { 
                         ...details,
-                        date: details.date ? new Date(details.date).toISOString().slice(0, 10) : '', // Data da ocorrência, não do evento principal
+                        date: details.date ? new Date(details.date).toISOString().slice(0, 16) : this.form.date
                     };
                 }
             }
             this.showModal = true;
         } catch (e) {
             console.error('Erro ao carregar evento para edição:', e);
-            this.showNotification('Erro ao carregar evento para edição.', 'error');
+            this.showNotification('Erro ao carregar evento para edição. Verifique o console.', 'error');
         }
     },
     handleEventTypeChange() {
-      // Reseta os detalhes específicos do formulário individual
       this.resetIndividualSpecificDetails();
     },
     async handleSubmit() {
-      // Validação básica
       if (this.form.animal === null || !this.form.date || this.form.event_type === null) {
-        this.showNotification('Por favor, preencha todos os campos obrigatórios do evento principal.', 'error');
+        this.showNotification('Por favor, preencha animal, tipo de evento e data.', 'error');
         return;
       }
 
-      let eventData = { ...this.form };
+      let eventData = { ...this.form, recorded_by: this.user.id }; // Adiciona recorded_by
       
       const eventTypeId = this.form.event_type;
-      const eventTypeName = this.eventTypes.find(type => type.id === eventTypeId)?.name.toLowerCase();
+      // const eventTypeName = this.eventTypes.find(type => type.id === eventTypeId)?.name.toLowerCase();
+      const eventTypeName = this.selectedEventTypeName; // Use a computed property
 
       let specificEventPayload = null;
+      let specificServiceRegister = null;
+      let specificServiceUpdate = null;
+      let detailIdToUpdate = null;
 
-      // Constrói o payload para o evento específico com base no tipo
-      if (eventTypeName === 'movimento') {
+      // Prepara payload e serviços específicos
+      // A data do evento específico deve ser a data principal do formulário this.form.date
+      // ou uma data específica do sub-formulário, se aplicável (ex: data da reprodução).
+      // Por padrão, vamos usar this.form.date para os detalhes.
+      const detailDate = this.form.date;
+
+      if (eventTypeName === 'movimentação') {
         if (this.movement.origin_property === null || this.movement.destination_property === null) {
-          this.showNotification('Preencha as propriedades de origem e destino para o movimento.', 'error');
-          return;
+          this.showNotification('Preencha as propriedades de origem e destino para o movimento.', 'error'); return;
         }
-        specificEventPayload = { ...this.movement, date: this.form.date }; // Associa data do evento principal
+        specificEventPayload = { ...this.movement, date: detailDate };
+        specificServiceRegister = registerMovement;
+        specificServiceUpdate = updateMovement;
       } else if (eventTypeName === 'pesagem') {
-        if (this.weighing.weight === null) {
-          this.showNotification('Preencha o peso para a pesagem.', 'error');
-          return;
+        if (this.weighing.weight === null || this.weighing.weight === '') {
+          this.showNotification('Preencha o peso para a pesagem.', 'error'); return;
         }
-        specificEventPayload = { ...this.weighing, date: this.form.date };
+        specificEventPayload = { ...this.weighing, date: detailDate };
+        specificServiceRegister = registerWeighing;
+        specificServiceUpdate = updateWeighing;
       } else if (eventTypeName === 'vacinação') {
-        if (!this.vaccine.name || !this.vaccine.validity || this.vaccine.dose === null) {
-          this.showNotification('Preencha nome, validade e dose da vacina.', 'error');
-          return;
+        if (!this.vaccine.name || !this.vaccine.validity || this.vaccine.dose === null || this.vaccine.dose === '') {
+          this.showNotification('Preencha nome, validade e dose da vacina.', 'error'); return;
         }
-        specificEventPayload = { ...this.vaccine, date: this.form.date };
+        specificEventPayload = { ...this.vaccine, date: detailDate };
+        specificServiceRegister = registerVacine;
+        specificServiceUpdate = updateVacine;
       } else if (eventTypeName === 'medicação') {
-        if (!this.medicine.name || !this.medicine.validity || this.medicine.dose === null) {
-          this.showNotification('Preencha nome, validade e dose do medicamento.', 'error');
-          return;
+        if (!this.medicine.name || !this.medicine.validity || this.medicine.dose === null || this.medicine.dose === '') {
+          this.showNotification('Preencha nome, validade e dose do medicamento.', 'error'); return;
         }
-        specificEventPayload = { ...this.medicine, date: this.form.date };
+        specificEventPayload = { ...this.medicine, date: detailDate };
+        specificServiceRegister = registerMedicine;
+        specificServiceUpdate = updateMedicine;
       } else if (eventTypeName === 'reprodução') {
         if (!this.reproduction.reproduction_type || this.reproduction.male_id === null || this.reproduction.female_id === null) {
-          this.showNotification('Preencha tipo, ID do macho e ID da fêmea para reprodução.', 'error');
-          return;
+          this.showNotification('Preencha tipo, macho e fêmea para reprodução.', 'error'); return;
         }
-        specificEventPayload = { ...this.reproduction, date: this.form.date }; // Reprodução usa a data do evento principal
+         // Para reprodução, a data no sub-formulário é a data da reprodução
+        specificEventPayload = { ...this.reproduction, date: this.reproduction.date || detailDate };
+        specificServiceRegister = registerReproduction;
+        specificServiceUpdate = updateReproduction;
       } else if (eventTypeName === 'abate') {
-        if (this.slaughter.final_weight === null) {
-          this.showNotification('Preencha o peso final do abate.', 'error');
-          return;
+        if (this.slaughter.final_weight === null || this.slaughter.final_weight === '') {
+          this.showNotification('Preencha o peso final do abate.', 'error'); return;
         }
-        specificEventPayload = { ...this.slaughter, date: this.form.date }; // Abate usa a data do evento principal
+        specificEventPayload = { ...this.slaughter, date: detailDate };
+        specificServiceRegister = registerSlaughter;
+        specificServiceUpdate = updateSlaughter;
       } else if (eventTypeName === 'ocorrência especial') {
         if (!this.occurrence.occurrence_type) {
-          this.showNotification('Preencha o tipo de ocorrência especial.', 'error');
-          return;
+          this.showNotification('Preencha o tipo de ocorrência especial.', 'error'); return;
         }
-        specificEventPayload = { ...this.occurrence, date: this.form.date }; // Ocorrência usa a data do evento principal
+        specificEventPayload = { ...this.occurrence, date: detailDate };
+        specificServiceRegister = registerSpecialOccurrence;
+        specificServiceUpdate = updateSpecialOccurrence;
       }
 
       try {
         let resEvent;
         if (this.editing) {
           resEvent = await updateEvent(this.editingId, eventData);
-          if (specificEventPayload) {
-            specificEventPayload.event = resEvent.id;
-            const existingDetails = await getEventDetails(resEvent.id, resEvent.event_type);
-            const detailId = existingDetails.details ? existingDetails.details.id : null;
-            
-            if (detailId) {
-                // Atualiza o detalhe existente
-                if (eventTypeName === 'movimento') await updateMovement(detailId, specificEventPayload);
-                else if (eventTypeName === 'pesagem') await updateWeighing(detailId, specificEventPayload);
-                else if (eventTypeName === 'vacinação') await updateVacine(detailId, specificEventPayload);
-                else if (eventTypeName === 'medicação') await updateMedicine(detailId, specificEventPayload);
-                else if (eventTypeName === 'reprodução') await updateReproduction(detailId, specificEventPayload);
-                else if (eventTypeName === 'abate') await updateSlaughter(detailId, specificEventPayload);
-                else if (eventTypeName === 'ocorrência especial') await updateSpecialOccurrence(detailId, specificEventPayload);
-            } else {
-                // Caso não exista um detalhe (improvável na edição, mas para robustez)
-                if (eventTypeName === 'movimento') await registerMovement(specificEventPayload);
-                else if (eventTypeName === 'pesagem') await registerWeighing(specificEventPayload);
-                else if (eventTypeName === 'vacinação') await registerVacine(specificEventPayload);
-                else if (eventTypeName === 'medicação') await registerMedicine(specificEventPayload);
-                else if (eventTypeName === 'reprodução') await registerReproduction(specificEventPayload);
-                else if (eventTypeName === 'abate') await registerSlaughter(specificEventPayload);
-                else if (eventTypeName === 'ocorrência especial') await registerSpecialOccurrence(specificEventPayload);
+          if (specificEventPayload && specificServiceUpdate) {
+            // Para edição, precisamos do ID do *detalhe* específico
+            const fullEventDetails = await getEventDetails(resEvent.id, resEvent.event_type); // Rebusca para pegar o ID do detalhe
+            detailIdToUpdate = fullEventDetails.details ? fullEventDetails.details.id : null;
+
+            if (detailIdToUpdate) {
+              specificEventPayload.event = resEvent.id; // Garante que o event FK está no payload
+              await specificServiceUpdate(detailIdToUpdate, specificEventPayload);
+            } else if (specificServiceRegister) { // Se não havia detalhe, cria um (caso raro em edição)
+              specificEventPayload.event = resEvent.id;
+              await specificServiceRegister(specificEventPayload);
             }
           }
           this.showNotification('Evento atualizado com sucesso!', 'success');
-        } else {
+        } else { // Criando novo evento
           resEvent = await registerEvent(eventData);
-          if (specificEventPayload) {
+          if (specificEventPayload && specificServiceRegister) {
             specificEventPayload.event = resEvent.id; // Vincula ao evento principal
-            if (eventTypeName === 'movimento') await registerMovement(specificEventPayload);
-            else if (eventTypeName === 'pesagem') await registerWeighing(specificEventPayload);
-            else if (eventTypeName === 'vacinação') await registerVacine(specificEventPayload);
-            else if (eventTypeName === 'medicação') await registerMedicine(specificEventPayload);
-            else if (eventTypeName === 'reprodução') await registerReproduction(specificEventPayload);
-            else if (eventTypeName === 'abate') await registerSlaughter(specificEventPayload);
-            else if (eventTypeName === 'ocorrência especial') await registerSpecialOccurrence(specificEventPayload);
+            await specificServiceRegister(specificEventPayload);
           }
           this.showNotification('Evento registrado com sucesso!', 'success');
         }
         
         this.closeModal();
-        await this.loadEventData(); // Recarrega a tabela de eventos
+        await this.loadEventData(); 
       } catch (e) {
         console.error('Erro ao salvar evento:', e);
         let errorMessage = 'Erro ao salvar evento.';
         if (e.response && e.response.data) {
-            errorMessage += ' Detalhes: ' + Object.values(e.response.data).map(err => (Array.isArray(err) ? err.join(', ') : err)).join('; ');
+            const errors = e.response.data;
+            if (typeof errors === 'object' && errors !== null) {
+                 errorMessage += ' Detalhes: ' + Object.entries(errors)
+                    .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
+                    .join('; ');
+            } else if (typeof errors === 'string') {
+                errorMessage += ' Detalhes: ' + errors;
+            }
         }
         this.showNotification(errorMessage, 'error');
       }
     },
     async confirmDelete(id) {
-        if (confirm('Tem certeza que deseja deletar este evento?')) {
+        if (confirm('Tem certeza que deseja deletar este evento? Esta ação não pode ser desfeita.')) { // Mensagem mais forte
             try {
-                await deleteEvent(id);
+                await deleteEvent(id); // O backend deve lidar com a deleção em cascata dos detalhes
                 this.showNotification('Evento deletado com sucesso!', 'success');
-                await this.loadEventData(); // Recarrega a lista
+                await this.loadEventData(); 
             } catch (e) {
                 console.error('Erro ao deletar evento:', e);
                 this.showNotification('Erro ao deletar evento.', 'error');
@@ -852,9 +893,9 @@ export default {
         }
     },
 
-    // NOVO: Métodos para o Modal de Registro de Evento em Lote
     openBatchEventRegistrationModal() {
-        this.resetBatchForm(); // Limpa o formulário de lote
+        this.resetBatchForm();
+        this.batchEventForm.date = new Date().toISOString().slice(0, 16); // Default to current date-time
         this.showBatchEventModal = true;
     },
     closeBatchEventRegistrationModal() {
@@ -862,12 +903,11 @@ export default {
         this.resetBatchForm();
     },
     handleBatchEventTypeChange() {
-        // Redefine os detalhes específicos do formulário de lote quando o tipo muda
         this.resetBatchEventSpecificDetails();
     },
     async handleBatchEventSubmit() {
         if (this.batchEventForm.animal_ids.length === 0) {
-            this.showNotification('Por favor, selecione pelo menos um animal para registrar o evento.', 'error');
+            this.showNotification('Por favor, selecione pelo menos um animal.', 'error');
             return;
         }
         if (this.batchEventForm.event_type === null || !this.batchEventForm.date) {
@@ -875,164 +915,128 @@ export default {
             return;
         }
 
+        // Use batchEventForm.event_type_name que já está em minúsculas
+        const eventTypeName = this.batchEventForm.event_type_name; 
+        
         const payload = {
             animal_ids: this.batchEventForm.animal_ids,
-            event_type: this.batchEventForm.event_type,
+            event_type: this.batchEventForm.event_type, // ID do tipo de evento
             date: this.batchEventForm.date,
             location: this.batchEventForm.location || null,
             observations: this.batchEventForm.observations || null,
+            recorded_by: this.user.id // Adiciona recorded_by
         };
 
-        const eventTypeName = this.eventTypes.find(type => type.id === this.batchEventForm.event_type)?.name.toLowerCase();
-
         // Adiciona detalhes específicos do evento ao payload de lote
-        if (eventTypeName === 'movimento') {
+        // A data para os detalhes específicos será a data principal do lote
+        const detailDate = this.batchEventForm.date;
+
+        if (eventTypeName === 'movimentação') {
             if (this.batchEventForm.movement_details.origin_property === null || this.batchEventForm.movement_details.destination_property === null) {
-                this.showNotification('Preencha as propriedades de origem e destino para o movimento.', 'error');
-                return;
+                this.showNotification('Preencha as propriedades de origem e destino para o movimento em lote.', 'error'); return;
             }
-            payload.movement_details = {
-                origin_property: this.batchEventForm.movement_details.origin_property,
-                destination_property: this.batchEventForm.movement_details.destination_property,
-                reason: this.batchEventForm.movement_details.reason || null,
-                date: this.batchEventForm.date, // Data do evento principal
-            };
+            payload.movement_details = { ...this.batchEventForm.movement_details, date: detailDate };
         } else if (eventTypeName === 'pesagem') {
-            if (this.batchEventForm.weighing_details.weight === null) {
-                this.showNotification('Preencha o peso para a pesagem.', 'error');
-                return;
+            if (this.batchEventForm.weighing_details.weight === null || this.batchEventForm.weighing_details.weight === '') {
+                this.showNotification('Preencha o peso para a pesagem em lote.', 'error'); return;
             }
-            payload.weighing_details = {
-                weight: this.batchEventForm.weighing_details.weight,
-                date: this.batchEventForm.date,
-            };
+            payload.weighing_details = { ...this.batchEventForm.weighing_details, date: detailDate };
         } else if (eventTypeName === 'vacinação') {
-            if (!this.batchEventForm.vacine_details.name || !this.batchEventForm.vacine_details.validity || this.batchEventForm.vacine_details.dose === null) {
-                this.showNotification('Preencha nome, validade e dose da vacina.', 'error');
-                return;
+            if (!this.batchEventForm.vacine_details.name || !this.batchEventForm.vacine_details.validity || this.batchEventForm.vacine_details.dose === null || this.batchEventForm.vacine_details.dose === '') {
+                this.showNotification('Preencha nome, validade e dose da vacina para o lote.', 'error'); return;
             }
-            payload.vacine_details = {
-                name: this.batchEventForm.vacine_details.name,
-                manufacturer: this.batchEventForm.vacine_details.manufacturer || null,
-                batch: this.batchEventForm.vacine_details.batch || null,
-                validity: this.batchEventForm.vacine_details.validity,
-                dose: this.batchEventForm.vacine_details.dose,
-                next_dose_date: this.batchEventForm.vacine_details.next_dose_date || null,
-                date: this.batchEventForm.date,
-            };
+            payload.vacine_details = { ...this.batchEventForm.vacine_details, date: detailDate };
         } else if (eventTypeName === 'medicação') {
-            if (!this.batchEventForm.medicine_details.name || !this.batchEventForm.medicine_details.validity || this.batchEventForm.medicine_details.dose === null) {
-                this.showNotification('Preencha nome, validade e dose do medicamento.', 'error');
-                return;
+            if (!this.batchEventForm.medicine_details.name || !this.batchEventForm.medicine_details.validity || this.batchEventForm.medicine_details.dose === null || this.batchEventForm.medicine_details.dose === '') {
+                this.showNotification('Preencha nome, validade e dose do medicamento para o lote.', 'error'); return;
             }
-            payload.medicine_details = {
-                name: this.batchEventForm.medicine_details.name,
-                manufacturer: this.batchEventForm.medicine_details.manufacturer || null,
-                batch: this.batchEventForm.medicine_details.batch || null,
-                validity: this.batchEventForm.medicine_details.validity,
-                dose: this.batchEventForm.medicine_details.dose,
-                next_dose_date: this.batchEventForm.medicine_details.next_dose_date || null,
-                reason: this.batchEventForm.medicine_details.reason || null,
-                withdrawal_time: this.batchEventForm.medicine_details.withdrawal_time || null,
-                date: this.batchEventForm.date,
-            };
+            payload.medicine_details = { ...this.batchEventForm.medicine_details, date: detailDate };
         } else if (eventTypeName === 'reprodução') {
-            if (!this.batchEventForm.reproduction_details.reproduction_type || this.batchEventForm.reproduction_details.male_id === null || this.batchEventForm.reproduction_details.female_id === null) {
-                this.showNotification('Preencha tipo, ID do macho e ID da fêmea para reprodução.', 'error');
-                return;
+             if (!this.batchEventForm.reproduction_details.reproduction_type || this.batchEventForm.reproduction_details.male_id === null || this.batchEventForm.reproduction_details.female_id === null) {
+                this.showNotification('Preencha tipo, macho e fêmea para reprodução em lote.', 'error'); return;
             }
-            payload.reproduction_details = {
-                reproduction_type: this.batchEventForm.reproduction_details.reproduction_type,
-                male_id: this.batchEventForm.reproduction_details.male_id,
-                female_id: this.batchEventForm.reproduction_details.female_id,
-                result: this.batchEventForm.reproduction_details.result || null,
-                date: this.batchEventForm.date,
-            };
+            // Para reprodução, a data no sub-formulário é a data da reprodução
+            payload.reproduction_details = { ...this.batchEventForm.reproduction_details, date: this.batchEventForm.reproduction_details.date || detailDate };
         } else if (eventTypeName === 'abate') {
-            if (this.batchEventForm.slaughter_details.final_weight === null) {
-                this.showNotification('Preencha o peso final do abate.', 'error');
-                return;
+             if (this.batchEventForm.slaughter_details.final_weight === null || this.batchEventForm.slaughter_details.final_weight === '') {
+                this.showNotification('Preencha o peso final do abate para o lote.', 'error'); return;
             }
-            payload.slaughter_details = {
-                location: this.batchEventForm.slaughter_details.location || null,
-                final_weight: this.batchEventForm.slaughter_details.final_weight,
-                inspection_result: this.batchEventForm.slaughter_details.inspection_result || null,
-                date: this.batchEventForm.date,
-            };
+            payload.slaughter_details = { ...this.batchEventForm.slaughter_details, date: detailDate };
         } else if (eventTypeName === 'ocorrência especial') {
             if (!this.batchEventForm.special_occurrences_details.occurrence_type) {
-                this.showNotification('Preencha o tipo de ocorrência especial.', 'error');
-                return;
+                this.showNotification('Preencha o tipo de ocorrência especial para o lote.', 'error'); return;
             }
-            payload.special_occurrences_details = {
-                occurrence_type: this.batchEventForm.special_occurrences_details.occurrence_type,
-                description: this.batchEventForm.special_occurrences_details.description || null,
-                actions_taken: this.batchEventForm.special_occurrences_details.actions_taken || null,
-                date: this.batchEventForm.date,
-            };
+            payload.special_occurrences_details = { ...this.batchEventForm.special_occurrences_details, date: detailDate };
         }
+        // Adicione outros 'else if' para outros tipos de evento em lote, se necessário
 
         try {
-            const response = await registerBatchEvent(payload);
-            this.showNotification(response.message, 'success');
+            const response = await registerBatchEvent(payload); // registerBatchEvent está em eventService
+            this.showNotification(response.message || `${payload.animal_ids.length} eventos registrados com sucesso!`, 'success');
             this.closeBatchEventRegistrationModal();
-            await this.loadEventData(); // Recarrega a tabela de eventos
+            await this.loadEventData(); 
         } catch (error) {
             console.error('Erro ao registrar evento em lote:', error);
             let errorMessage = 'Erro ao registrar evento em lote.';
             if (error.response && error.response.data) {
-                if (error.response.data.error) {
-                    errorMessage += ` ${error.response.data.error}`;
-                } else {
-                    errorMessage += ' Detalhes: ' + Object.values(error.response.data).map(e => (Array.isArray(e) ? e.join(', ') : e)).join('; ');
+                const errData = error.response.data;
+                if (errData.error) { // Se o backend envia uma chave 'error' específica
+                    errorMessage += ` ${errData.error}`;
+                } else if (typeof errData === 'object') {
+                    errorMessage += ' Detalhes: ' + Object.entries(errData)
+                        .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
+                        .join('; ');
+                } else if (typeof errData === 'string') {
+                     errorMessage += ' Detalhes: ' + errData;
                 }
             }
             this.showNotification(errorMessage, 'error');
         }
     },
 
-    // Funções de reset
     resetIndividualForm() {
       this.form = { animal: null, date: '', location: '', observations: '', event_type: null };
       this.resetIndividualSpecificDetails();
     },
     resetIndividualSpecificDetails() {
-        this.movement = { event: null, origin_property: null, destination_property: null, reason: '' };
-        this.weighing = { event: null, weight: null };
-        this.vaccine = { event: null, name: '', manufacturer: '', batch: '', validity: '', dose: null, next_dose_date: '' };
-        this.medicine = { event: null, name: '', manufacturer: '', batch: '', validity: '', dose: null, next_dose_date: '', reason: '', withdrawal_time: null };
-        this.reproduction = { event: null, reproduction_type: '', male_id: null, female_id: null, result: null };
-        this.slaughter = { event: null, location: '', final_weight: null, inspection_result: null };
-        this.occurrence = { event: null, occurrence_type: '', description: '', actions_taken: '' };
+        const currentDate = new Date().toISOString().slice(0, 16);
+        this.movement = { event: null, origin_property: null, destination_property: null, reason: '', date: currentDate };
+        this.weighing = { event: null, weight: null, date: currentDate };
+        this.vaccine = { event: null, name: '', manufacturer: '', batch: '', validity: '', dose: null, next_dose_date: '', date: currentDate };
+        this.medicine = { event: null, name: '', manufacturer: '', batch: '', validity: '', dose: null, next_dose_date: '', reason: '', withdrawal_time: null, date: currentDate };
+        this.reproduction = { event: null, reproduction_type: '', male_id: null, female_id: null, result: null, date: currentDate };
+        this.slaughter = { event: null, location: '', final_weight: null, inspection_result: null, date: currentDate };
+        this.occurrence = { event: null, occurrence_type: '', description: '', actions_taken: '', date: currentDate };
     },
     resetBatchForm() {
+        const currentDate = new Date().toISOString().slice(0, 16);
         this.batchEventForm = {
             animal_ids: [],
             event_type: null,
             event_type_name: '',
-            date: '',
+            date: currentDate,
             location: '',
             observations: '',
-            movement_details: { origin_property: null, destination_property: null, reason: '' },
-            weighing_details: { weight: null },
-            vacine_details: { name: '', manufacturer: '', batch: '', validity: '', dose: null, next_dose_date: '' },
-            medicine_details: { name: '', manufacturer: '', batch: '', validity: '', dose: null, next_dose_date: '', reason: '', withdrawal_time: null },
-            reproduction_details: { reproduction_type: '', male_id: null, female_id: null, result: null },
-            slaughter_details: { location: '', final_weight: null, inspection_result: null },
-            special_occurrences_details: { occurrence_type: '', description: '', actions_taken: '' },
+            movement_details: { origin_property: null, destination_property: null, reason: '', date: currentDate },
+            weighing_details: { weight: null, date: currentDate },
+            vacine_details: { name: '', manufacturer: '', batch: '', validity: '', dose: null, next_dose_date: '', date: currentDate },
+            medicine_details: { name: '', manufacturer: '', batch: '', validity: '', dose: null, next_dose_date: '', reason: '', withdrawal_time: null, date: currentDate },
+            reproduction_details: { reproduction_type: '', male_id: null, female_id: null, result: null, date: currentDate },
+            slaughter_details: { location: '', final_weight: null, inspection_result: null, date: currentDate },
+            special_occurrences_details: { occurrence_type: '', description: '', actions_taken: '', date: currentDate },
         };
     },
     resetBatchEventSpecificDetails() {
-        this.batchEventForm.movement_details = { origin_property: null, destination_property: null, reason: '' };
-        this.batchEventForm.weighing_details = { weight: null };
-        this.batchEventForm.vacine_details = { name: '', manufacturer: '', batch: '', validity: '', dose: null, next_dose_date: '' };
-        this.batchEventForm.medicine_details = { name: '', manufacturer: '', batch: '', validity: '', dose: null, next_dose_date: '' };
-        this.batchEventForm.reproduction_details = { reproduction_type: '', male_id: null, female_id: null, result: null };
-        this.batchEventForm.slaughter_details = { location: '', final_weight: null, inspection_result: null };
-        this.batchEventForm.special_occurrences_details = { occurrence_type: '', description: '', actions_taken: '' };
+        const currentDate = this.batchEventForm.date || new Date().toISOString().slice(0, 16); // Usa a data do form de lote se já definida
+        this.batchEventForm.movement_details = { origin_property: null, destination_property: null, reason: '', date: currentDate };
+        this.batchEventForm.weighing_details = { weight: null, date: currentDate };
+        this.batchEventForm.vacine_details = { name: '', manufacturer: '', batch: '', validity: '', dose: null, next_dose_date: '', date: currentDate };
+        this.batchEventForm.medicine_details = { name: '', manufacturer: '', batch: '', validity: '', dose: null, next_dose_date: '', reason: '', withdrawal_time: null, date: currentDate };
+        this.batchEventForm.reproduction_details = { reproduction_type: '', male_id: null, female_id: null, result: null, date: currentDate };
+        this.batchEventForm.slaughter_details = { location: '', final_weight: null, inspection_result: null, date: currentDate };
+        this.batchEventForm.special_occurrences_details = { occurrence_type: '', description: '', actions_taken: '', date: currentDate };
     },
 
-    // Funções auxiliares para exibição
     getAnimalIdentification(animalId) {
         return this.animalIdToIdentificationMap[animalId] || 'Desconhecido';
     },
@@ -1042,20 +1046,29 @@ export default {
     },
     formatDateTime(dateTimeString) {
         if (!dateTimeString) return 'N/A';
-        const date = new Date(dateTimeString);
-        // Formata para 'dd/mm/yyyy hh:mm'
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear();
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        return `${day}/${month}/${year} ${hours}:${minutes}`;
+        try {
+            const date = new Date(dateTimeString);
+            if (isNaN(date.getTime())) return 'Data Inválida'; // Verifica se a data é válida
+
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0'); // Mês é 0-indexado
+            const year = date.getFullYear();
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${day}/${month}/${year} ${hours}:${minutes}`;
+        } catch (e) {
+            console.error("Erro ao formatar data:", dateTimeString, e);
+            return "Data Inválida";
+        }
     }
   },
   async mounted() {
-    await this.loadUserAndAnimals();
+    await this.loadUserAndAnimals(); // Carrega usuário primeiro, depois animais
     await this.loadEventTypesAndProperties();
-    await this.loadEventData(); // Carrega os eventos ao montar o componente
+    // Somente carrega eventos se o usuário estiver carregado (para filtragem implícita no backend)
+    if (this.user && this.user.id) {
+        await this.loadEventData(); 
+    }
   }
 };
 </script>
@@ -1064,12 +1077,12 @@ export default {
 /* ============================
     Estilos Específicos para EventContent
     (Baseados no style.css global para consistência)
-   ============================ */
+    ============================ */
 
 /* Importa as variáveis e estilos base do seu arquivo global */
 /* Para garantir que as variáveis CSS sejam carregadas, você pode precisar importá-las
-   no seu arquivo main.js ou App.vue, ou certificar-se de que elas são acessíveis globalmente.
-   Assumindo que :root {...} do style.css já está no escopo global. */
+    no seu arquivo main.js ou App.vue, ou certificar-se de que elas são acessíveis globalmente.
+    Assumindo que :root {...} do style.css já está no escopo global. */
 
 .content-panel {
   background-color: var(--color-bg);
@@ -1403,8 +1416,12 @@ export default {
         flex-direction: column; /* Botões um abaixo do outro */
         align-items: stretch;
     }
-    .button {
-        width: 100%; /* Botões ocupam largura total */
+    .button { /* Se os botões globais não tiverem width 100% por padrão em mobile */
+        width: 100%; 
+        box-sizing: border-box; /* Garante padding não estoura */
+    }
+    .actions-cell .button-action { /* Garante que botões de ação na tabela não fiquem muito grandes */
+        width: auto;
     }
 }
 </style>

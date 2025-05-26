@@ -1,40 +1,91 @@
+# animal/serializers.py
 from rest_framework import serializers
 from .models import Animal, IdentificationType, Specie, Breed, AnimalGroup, Gender, Status
 
 class SpecieSerializer(serializers.ModelSerializer):
     class Meta:
         model = Specie
-        fields = '__all__'
+        fields = ['id', 'name'] # Recomendado: listar campos explicitamente
 
 class BreedSerializer(serializers.ModelSerializer):
+    # specie_name = serializers.CharField(source='specie.name', read_only=True) # Opcional, se precisar do nome da espécie ao serializar Breed
+    specie = SpecieSerializer(read_only=True) # Para mostrar o objeto espécie aninhado
+    specie_id = serializers.PrimaryKeyRelatedField(queryset=Specie.objects.all(), source='specie', write_only=True) # Para escrita
+
     class Meta:
         model = Breed
-        fields = '__all__'
+        fields = ['id', 'name', 'description', 'specie', 'specie_id'] # specie_id é para escrita, specie é para leitura
 
 class AnimalGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = AnimalGroup
-        fields = '__all__'
+        fields = ['id', 'name', 'description', 'owner']
 
 class GenderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Gender
-        fields = '__all__'
+        fields = ['id', 'name', 'description']
 
 class StatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = Status
-        fields = '__all__'
+        fields = ['id', 'name', 'description']
 
 class IdentificationTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = IdentificationType
-        fields = '__all__'
+        fields = ['id', 'name', 'description']
 
 class AnimalSerializer(serializers.ModelSerializer):
+    # Campos para exibir nomes de FKs (read-only)
+    specie_id = serializers.SerializerMethodField(read_only=True) # MUDANÇA: Renomeado para clareza
+    specie_name = serializers.SerializerMethodField(read_only=True)
+    breed_name = serializers.CharField(source='breed.name', read_only=True, allow_null=True)
+    group_name = serializers.CharField(source='group.name', read_only=True, allow_null=True)
+    gender_name = serializers.CharField(source='gender.name', read_only=True, allow_null=True) # Adicionado
+    status_name = serializers.CharField(source='status.name', read_only=True, allow_null=True) # Adicionado
+    identification_type_name = serializers.CharField(source='identification_type.name', read_only=True, allow_null=True) # Adicionado
+    owner_username = serializers.CharField(source='owner.username', read_only=True, allow_null=True) # Adicionado
+
+    # Campos de FK para escrita (recebem IDs do frontend)
+    # O campo 'breed' já é um PrimaryKeyRelatedField por padrão se não especificado de outra forma
+    # e receberá o ID da raça.
+
     class Meta:
         model = Animal
-        fields = '__all__'
+        fields = [
+            'id', 'identification', 'owner', 'owner_username',
+            'breed', # Este será o ID da raça para escrita/leitura
+            'breed_name',
+            'specie_id',   # MUDANÇA: Populado por get_specie_id
+            'specie_name', # Populado por get_specie_name
+            'group', 'group_name',
+            'gender', 'gender_name',
+            'status', 'status_name',
+            'identification_type', 'identification_type_name',
+            'birth_date', 'observations',
+            'created_at', 'updated_at'
+        ]
+
+    def get_specie_id(self, obj): # MUDANÇA: Nome do método
+        if obj.breed and obj.breed.specie:
+            return obj.breed.specie.id
+        return None
+
+    def get_specie_name(self, obj):
+        if obj.breed and obj.breed.specie:
+            return obj.breed.specie.name
+        return None
+
+    # Ao criar/atualizar um Animal, o frontend deve enviar 'breed' (o ID da raça).
+    # O 'specie_id' e 'specie_name' são apenas para leitura (derivados da raça).
+    # O formulário no frontend usa um select de Espécie para filtrar o select de Raça.
+    # O valor enviado para o backend é o ID da Raça selecionada.
+
+# ... (AnimalBatchUpdateSerializer permanece o mesmo por enquanto, mas a validação de new_specie_id e new_breed_id deve ser cuidadosa)
+# Na AnimalBatchUpdateSerializer, a lógica para new_specie_id e new_breed_id:
+# Se new_breed_id é fornecido, new_specie_id deve ser ignorado ou validado para consistência.
+# Se apenas new_specie_id é fornecido, a raça (new_breed_id) provavelmente deveria ser definida como nula.
 
 class AnimalBatchUpdateSerializer(serializers.Serializer):
     animal_ids = serializers.ListField(
@@ -42,67 +93,42 @@ class AnimalBatchUpdateSerializer(serializers.Serializer):
         min_length=1,
         help_text="Lista de IDs dos animais a serem atualizados."
     )
-    # Campos opcionais para atualização em lote
-    new_status_id = serializers.IntegerField(
-        required=False,
-        help_text="ID do novo status a ser aplicado aos animais."
-    )
-    new_group_id = serializers.IntegerField(
-        required=False,
-        allow_null=True, # Permitir que o grupo seja nulo (sem lote)
-        help_text="ID do novo grupo/lote a ser aplicado aos animais. Pode ser nulo para remover do lote."
-    )
-    new_identification_type_id = serializers.IntegerField(
-        required=False,
-        help_text="ID do novo tipo de identificação a ser aplicado aos animais."
-    )
-    new_breed_id = serializers.IntegerField(
-        required=False,
-        allow_null=True, # Permitir que a raça seja nula
-        help_text="ID da nova raça a ser aplicada aos animais."
-    )
-    new_specie_id = serializers.IntegerField( # Adicionando specie para consistência, embora a mudança de raça já implique espécie
-        required=False,
-        allow_null=True,
-        help_text="ID da nova espécie a ser aplicada aos animais. (A raça deve ser compatível)."
-    )
+    new_status_id = serializers.IntegerField(required=False, allow_null=True)
+    new_group_id = serializers.IntegerField(required=False, allow_null=True)
+    new_identification_type_id = serializers.IntegerField(required=False, allow_null=True)
+    new_breed_id = serializers.IntegerField(required=False, allow_null=True)
+    # new_specie_id não é mais necessário aqui se a espécie é sempre derivada da raça.
+    # Se for preciso mudar a espécie e anular a raça, a lógica no viewset.update_batch precisaria tratar isso.
+
+    def validate_new_status_id(self, value):
+        if value is not None and not Status.objects.filter(id=value).exists():
+            raise serializers.ValidationError("O ID do status fornecido não é válido.")
+        return value
+
+    def validate_new_group_id(self, value):
+        if value is not None and not AnimalGroup.objects.filter(id=value).exists():
+            raise serializers.ValidationError("O ID do grupo/lote fornecido não é válido.")
+        return value
+    
+    def validate_new_identification_type_id(self, value):
+        if value is not None and not IdentificationType.objects.filter(id=value).exists():
+            raise serializers.ValidationError("O ID do tipo de identificação fornecido não é válido.")
+        return value
+
+    def validate_new_breed_id(self, value):
+        if value is not None and not Breed.objects.filter(id=value).exists():
+            raise serializers.ValidationError("O ID da raça fornecido não é válido.")
+        return value
 
     def validate(self, data):
-        # Garante que pelo menos um campo de atualização foi fornecido
-        update_fields = [
-            'new_status_id', 
-            'new_group_id', 
-            'new_identification_type_id', 
-            'new_breed_id',
-            'new_specie_id'
-        ]
-        if not any(field in data for field in update_fields):
-            raise serializers.ValidationError("Pelo menos um campo de atualização (status, grupo, tipo de identificação, raça, espécie) deve ser fornecido.")
-
-        # Validações individuais para IDs estrangeiros
-        if 'new_status_id' in data and not Status.objects.filter(id=data['new_status_id']).exists():
-            raise serializers.ValidationError({"new_status_id": "O ID do status fornecido não é válido."})
+        update_fields = ['new_status_id', 'new_group_id', 'new_identification_type_id', 'new_breed_id']
+        if not any(field in data for field in update_fields if data.get(field) is not None):
+            raise serializers.ValidationError("Pelo menos um campo de atualização válido deve ser fornecido.")
         
-        if 'new_group_id' in data and data['new_group_id'] is not None and not AnimalGroup.objects.filter(id=data['new_group_id']).exists():
-            raise serializers.ValidationError({"new_group_id": "O ID do grupo/lote fornecido não é válido."})
-
-        if 'new_identification_type_id' in data and not IdentificationType.objects.filter(id=data['new_identification_type_id']).exists():
-            raise serializers.ValidationError({"new_identification_type_id": "O ID do tipo de identificação fornecido não é válido."})
-
-        if 'new_breed_id' in data:
-            if data['new_breed_id'] is not None:
-                breed_instance = Breed.objects.filter(id=data['new_breed_id']).first()
-                if not breed_instance:
-                    raise serializers.ValidationError({"new_breed_id": "O ID da raça fornecido não é válido."})
-                # Se uma nova espécie também foi fornecida, valida a compatibilidade
-                if 'new_specie_id' in data and data['new_specie_id'] is not None and breed_instance.specie_id != data['new_specie_id']:
-                    raise serializers.ValidationError({"new_breed_id": "A raça selecionada não pertence à espécie fornecida."})
-            elif 'new_specie_id' in data and data['new_specie_id'] is not None:
-                 raise serializers.ValidationError({"new_breed_id": "Se a espécie é fornecida, a raça não pode ser nula (ou você pode deixar ambos nulos se não quiser alterar a raça/espécie)."
-                                                    + " Considere deixar 'new_specie_id' nulo se 'new_breed_id' for nulo."})
-
-
-        if 'new_specie_id' in data and data['new_specie_id'] is not None and not Specie.objects.filter(id=data['new_specie_id']).exists():
-            raise serializers.ValidationError({"new_specie_id": "O ID da espécie fornecido não é válido."})
+        # Se new_breed_id está presente e não é nulo, new_specie_id não é necessário no payload,
+        # pois a espécie será derivada da raça.
+        if data.get('new_breed_id') is not None:
+            # Valida se a raça existe (já feito por validate_new_breed_id)
+            pass # A espécie será automaticamente definida pela raça na view
 
         return data

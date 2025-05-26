@@ -232,13 +232,29 @@ export default {
       this.identificationTypes = await getIdentificationTypes()
     },
     async loadAnimals() {
-      const list = await getAnimals()
-      this.animals = list.map(a => ({
-        ...a,
-        specie_name: a.specie_name || (this.species.find(s => s.id === a.specie)?.name || ''),
-        breed_name: a.breed_name || (this.breeds.find(b => b.id === a.breed)?.name || ''),
-        group_name: a.group_name || (this.animalGroups.find(g => g.id === a.group)?.name || '')
-      }))
+      try {
+        // A chamada getAnimals() agora será filtrada por owner no backend (se você aplicou as mudanças no AnimalViewSet)
+        // Se EventContent precisa de animais com status específico, animalService.getAnimals({ status: 1 }) ainda é válido
+        // e o backend AnimalViewSet.get (list) precisa tratar esse parâmetro 'status'.
+        const list = await getAnimals(); // Se AnimalContent só precisa dos animais do usuário, não são necessários filtros aqui.
+                                        // Se EventContent chama getAnimals({ status: 1}), o backend (AnimalViewSet.get) precisa lidar com isso.
+
+        this.animals = list.map(a => ({
+          ...a,
+          // Se o serializer já fornece _name, os fallbacks com .find são menos críticos
+          // mas podem ser mantidos para robustez ou se o _name for opcional no serializer
+          specie_name: a.specie_name || 'N/D', // Agora a.specie_name deve vir da API
+          breed_name: a.breed_name || 'N/D',   // Agora a.breed_name deve vir da API
+          group_name: a.group_name || 'N/D',   // Agora a.group_name deve vir da API
+          gender_name: a.gender_name || 'N/D',
+          status_name: a.status_name || 'N/D',
+          identification_type_name: a.identification_type_name || 'N/D'
+          // o a.specie (ID) agora será chamado de a.specie_id no payload da API
+        }));
+      } catch (error) {
+          this.showAppNotification('Erro ao carregar lista de animais.', 'error');
+          console.error("Erro em loadAnimals:", error);
+      }
     },
     openModalForAdd() {
       this.editing = false
@@ -251,15 +267,16 @@ export default {
       this.editingId = animal.id
       this.form = {
         identification: animal.identification,
-        specie: animal.specie,
-        breed: animal.breed,
-        group: animal.group,
-        gender: animal.gender,
-        status: animal.status,
-        identification_type: animal.identification_type,
+        // IMPORTANTE: o serializer agora envia 'specie_id' em vez de 'specie' para o ID da espécie
+        specie: animal.specie_id || this.null_placeholder_specie,
+        breed: animal.breed || this.null_placeholder_breed, // 'breed' é o ID da raça
+        group: animal.group || this.null_placeholder_group,
+        gender: animal.gender || this.null_placeholder_gender,
+        status: animal.status || this.null_placeholder_status,
+        identification_type: animal.identification_type || this.null_placeholder_id_type,
         birth_date: animal.birth_date,
         observations: animal.observations
-      }
+      };
       this.showModal = true
     },
     closeModal() {
