@@ -33,4 +33,6 @@ urlpatterns = [
     path('animal-update/<int:id>/', AnimalViewSet.update),
     path('animal-delete/<int:id>/', AnimalViewSet.delete),
     path('animal-filter/', AnimalViewSet.filter_get),
+
+    path('update-batch/', AnimalViewSet.as_view({'patch': 'update_batch'}), name='animal-update-batch'),
 ]

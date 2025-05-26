@@ -75,3 +75,22 @@ export async function deleteAnimal(id) {
     throw error;
   }
 }
+
+/**
+ * Atualiza múltiplos campos (status, grupo, tipo de identificação, raça, espécie) de animais em lote.
+ * @param {Array<number>} animal_ids - Lista de IDs dos animais a serem atualizados.
+ * @param {Object} updateData - Objeto contendo os campos e novos IDs (ex: { new_status_id: 1, new_group_id: 5 }).
+ * @returns {Promise<Object>} - Resposta da API, incluindo a contagem de animais atualizados.
+*/
+export async function updateAnimalsBatch(animal_ids, updateData) {
+  try {
+    const response = await axiosInstance.patch('animal/update-batch/', {
+      animal_ids,
+      ...updateData // Espalha os campos de atualização diretamente
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao atualizar animais em lote:', error.response ? error.response.data : error);
+    throw error;
+  }
+}

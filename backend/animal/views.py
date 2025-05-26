@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Specie, Breed, AnimalGroup, Gender, Status, IdentificationType, Animal
 from django.core.exceptions import ObjectDoesNotExist
-from .serializers import SpecieSerializer, BreedSerializer, AnimalGroupSerializer, GenderSerializer, StatusSerializer, IdentificationTypeSerializer, AnimalSerializer
+from .serializers import AnimalBatchUpdateSerializer , SpecieSerializer, BreedSerializer, AnimalGroupSerializer, GenderSerializer, StatusSerializer, IdentificationTypeSerializer, AnimalSerializer
 
 class SpecieViewSet(ModelViewSet):
     queryset = Specie.objects.all()
@@ -17,7 +17,6 @@ class BreedViewSet(ModelViewSet):
     serializer_class = BreedSerializer
     permission_classes = [AllowAny]
 
-# animal/views.py
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action  # se precisar de ações customizadas
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -182,3 +181,98 @@ class AnimalViewSet(ModelViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
         except ObjectDoesNotExist:
             return Response({'error': 'Animal not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+    @action(detail=False, methods=['patch'], url_path='update-batch') # Renomeei para 'update-batch' para ser mais genérico
+    @permission_classes([IsAuthenticated])
+    def update_batch(self, request):
+        """
+        Permite a atualização de múltiplos campos (status, grupo, tipo de identificação, raça, espécie)
+        para um lote de animais.
+        """
+        serializer = AnimalBatchUpdateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        animal_ids = serializer.validated_data['animal_ids']
+        
+        # Filtra os animais que pertencem ao usuário logado e que estão na lista de IDs
+        animals_to_update = Animal.objects.filter(id__in=animal_ids, owner=request.user)
+        
+        if animals_to_update.count() != len(animal_ids):
+            # Se algum ID não existir ou não pertencer ao usuário
+            # Você pode detalhar isso se quiser, mas por enquanto, um erro genérico serve.
+            return Response({"error": "Um ou mais IDs de animais não foram encontrados ou você não tem permissão para editá-los."}, 
+                            status=status.HTTP_403_FORBIDDEN)
+
+        update_data = {}
+        
+        # Processa a atualização do Status
+        if 'new_status_id' in serializer.validated_data:
+            try:
+                status_instance = Status.objects.get(pk=serializer.validated_data['new_status_id'])
+                update_data['status'] = status_instance
+            except ObjectDoesNotExist:
+                return Response({"error": "O ID do status fornecido não é válido."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Processa a atualização do Grupo/Lote
+        if 'new_group_id' in serializer.validated_data:
+            new_group_id = serializer.validated_data['new_group_id']
+            if new_group_id is None:
+                update_data['group'] = None # Remove o animal do lote
+            else:
+                try:
+                    group_instance = AnimalGroup.objects.get(pk=new_group_id)
+                    update_data['group'] = group_instance
+                except ObjectDoesNotExist:
+                    return Response({"error": "O ID do grupo/lote fornecido não é válido."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Processa a atualização do Tipo de Identificação
+        if 'new_identification_type_id' in serializer.validated_data:
+            try:
+                identification_type_instance = IdentificationType.objects.get(pk=serializer.validated_data['new_identification_type_id'])
+                update_data['identification_type'] = identification_type_instance
+            except ObjectDoesNotExist:
+                return Response({"error": "O ID do tipo de identificação fornecido não é válido."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Processa a atualização da Raça
+        if 'new_breed_id' in serializer.validated_data:
+            new_breed_id = serializer.validated_data['new_breed_id']
+            if new_breed_id is None:
+                update_data['breed'] = None # Permite remover a raça (se o campo no model permitir null)
+                # Se a raça é nula, a espécie também deve ser considerada nula ou deixada como está
+                # Dependendo da sua lógica de negócio, você pode forçar a especie a ser nula aqui também.
+                if 'new_specie_id' not in serializer.validated_data: # Se espécie não foi explicitamente setada
+                    update_data['specie'] = None # Ou deixar o Animal.specie como está
+            else:
+                try:
+                    breed_instance = Breed.objects.get(pk=new_breed_id)
+                    update_data['breed'] = breed_instance
+                    # Ao definir a raça, também atualiza a espécie automaticamente para a espécie da raça
+                    update_data['specie'] = breed_instance.specie
+                except ObjectDoesNotExist:
+                    return Response({"error": "O ID da raça fornecido não é válido."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Processa a atualização da Espécie (somente se não foi atualizada pela raça)
+        # Se 'new_breed_id' foi fornecido, ele já define a espécie.
+        if 'new_specie_id' in serializer.validated_data and 'new_breed_id' not in serializer.validated_data:
+            new_specie_id = serializer.validated_data['new_specie_id']
+            if new_specie_id is None:
+                update_data['specie'] = None # Permite remover a espécie
+                update_data['breed'] = None # Se a espécie é nula, a raça também deve ser.
+            else:
+                try:
+                    specie_instance = Specie.objects.get(pk=new_specie_id)
+                    update_data['specie'] = specie_instance
+                except ObjectDoesNotExist:
+                    return Response({"error": "O ID da espécie fornecido não é válido."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+        if not update_data:
+            return Response({"error": "Nenhum campo válido para atualização foi fornecido."}, status=status.HTTP_400_BAD_REQUEST)
+
+        updated_count = animals_to_update.update(**update_data)
+
+        return Response(
+            {"message": f"{updated_count} animais foram atualizados com sucesso.", "updated_animals_count": updated_count},
+            status=status.HTTP_200_OK
+        )
