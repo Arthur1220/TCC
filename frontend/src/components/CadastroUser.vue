@@ -1,132 +1,148 @@
 <template>
-  <div class="cadastro-form auth-form">
-    <h2>Cadastro</h2>
-    <form @submit.prevent="handleRegister">
-      <!-- Usuário -->
-      <div class="form-group">
-        <label for="username">Usuário</label>
-        <input
-          type="text"
-          id="username"
-          v-model="form.username"
-          placeholder="Escolha um nome de usuário"
-          required
-        />
-      </div>
+  <div class="auth-form card"> <h2 class="auth-title">Crie sua Conta</h2>
 
-      <!-- Nome -->
-      <div class="form-group">
-        <label for="first_name">Nome</label>
-        <input
-          type="text"
-          id="first_name"
-          v-model="form.first_name"
-          placeholder="Digite seu nome"
-          required
-        />
-      </div>
+    <form @submit.prevent="handleRegister" class="form">
+      <div class="form-grid"> <div class="form-group full-width"> <label for="username" class="form-label">Usuário*</label>
+          <input
+            type="text"
+            id="username"
+            v-model="form.username"
+            placeholder="Escolha um nome de usuário"
+            class="input"
+            required
+            aria-required="true"
+          />
+        </div>
 
-      <!-- Sobrenome -->
-      <div class="form-group">
-        <label for="last_name">Sobrenome</label>
-        <input
-          type="text"
-          id="last_name"
-          v-model="form.last_name"
-          placeholder="Digite seu sobrenome"
-          required
-        />
-      </div>
+        <div class="form-group"> <label for="first_name" class="form-label">Nome*</label>
+          <input
+            type="text"
+            id="first_name"
+            v-model="form.first_name"
+            placeholder="Digite seu nome"
+            class="input"
+            required
+            aria-required="true"
+          />
+        </div>
 
-      <!-- E-mail -->
-      <div class="form-group">
-        <label for="email">E-mail</label>
+        <div class="form-group">
+          <label for="last_name" class="form-label">Sobrenome*</label>
+          <input
+            type="text"
+            id="last_name"
+            v-model="form.last_name"
+            placeholder="Digite seu sobrenome"
+            class="input"
+            required
+            aria-required="true"
+          />
+        </div>
+      </div> <div class="form-group">
+        <label for="email" class="form-label">E-mail*</label>
         <input
           type="email"
           id="email"
           v-model="form.email"
           placeholder="Digite seu e-mail"
+          class="input"
           required
+          aria-required="true"
         />
       </div>
 
-      <!-- Senha -->
-      <div class="form-group password-group">
-        <label for="password">Senha</label>
-        <div class="password-wrapper">
+      <div class="form-group">
+        <label for="password" class="form-label">Senha*</label>
+        <div class="password-input-wrapper">
           <input
             :type="showPassword ? 'text' : 'password'"
             id="password"
             v-model="form.password"
-            placeholder="Crie uma senha"
+            placeholder="Crie uma senha (mín. 8 caracteres)"
+            class="input"
             required
+            aria-required="true"
+            minlength="8"
           />
           <button
             type="button"
-            class="toggle-password"
+            class="password-toggle-button"
             @click="showPassword = !showPassword"
             :aria-label="showPassword ? 'Ocultar senha' : 'Mostrar senha'"
+            :title="showPassword ? 'Ocultar senha' : 'Mostrar senha'"
           >
-            {{ showPassword ? '🙈' : '👁️' }}
+            <svg v-if="showPassword" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+            <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.44-4.75C21.27 7.61 17 4.5 12 4.5c-1.6 0-3.14.35-4.54.98l2.28 2.28C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/></svg>
           </button>
         </div>
       </div>
 
-      <!-- Repita a senha -->
-      <div class="form-group password-group">
-        <label for="confirm_password">Repita a senha</label>
-        <div class="password-wrapper">
+      <div class="form-group">
+        <label for="confirm_password" class="form-label">Repita a senha*</label>
+        <div class="password-input-wrapper">
           <input
             :type="showConfirm ? 'text' : 'password'"
             id="confirm_password"
             v-model="form.confirm_password"
             placeholder="Repita sua senha"
+            class="input"
             required
+            aria-required="true"
+            minlength="8"
           />
           <button
             type="button"
-            class="toggle-password"
+            class="password-toggle-button"
             @click="showConfirm = !showConfirm"
             :aria-label="showConfirm ? 'Ocultar senha' : 'Mostrar senha'"
+            :title="showConfirm ? 'Ocultar senha' : 'Mostrar senha'"
           >
-            {{ showConfirm ? '🙈' : '👁️' }}
+            <svg v-if="showConfirm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+            <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.44-4.75C21.27 7.61 17 4.5 12 4.5c-1.6 0-3.14.35-4.54.98l2.28 2.28C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/></svg>
           </button>
         </div>
       </div>
 
-      <!-- Telefone -->
       <div class="form-group">
-        <label for="phone">Telefone</label>
+        <label for="phone" class="form-label">Telefone*</label>
         <input
-          type="text"
-          id="phone"
+          type="tel" id="phone"
           v-model="form.phone"
-          placeholder="(xx) xxxx-xxxx"
+          placeholder="(xx) xxxxx-xxxx"
+          class="input"
           required
+          aria-required="true"
         />
       </div>
 
-      <!-- Botão -->
-      <button type="submit" class="button-primary">Cadastrar</button>
+      <button type="submit" class="button button-primary button-block">Criar Conta</button>
     </form>
 
-    <!-- Mensagens -->
-    <div v-if="success" class="success-message">
-      Cadastro realizado com sucesso! Você será redirecionado em {{ countdown }}s...
-    </div>
-    <div v-if="error" class="error-message">{{ error }}</div>
-
-    <!-- Link para login -->
     <p class="switch-text">
-      Já tem conta? <a @click.prevent="$emit('navigate','login')" href="#">Faça login</a>
+      Já tem conta? <a @click.prevent="$emit('navigate','login')" href="#" class="link">Faça login</a>
     </p>
+
+    <NotificationModal
+      :show="showNotification"
+      :title="notification.title"
+      :message="notification.message"
+      :type="notification.type"
+      :auto-close-delay="notification.autoCloseDelay"
+      @close="showNotification = false"
+    />
   </div>
 </template>
 
 <script>
 import { registerUser } from '@/services/userService';
+import NotificationModal from '@/components/NotificationModal.vue'; // Importar
+
 export default {
-  name: 'CadastroContent',
+  name: 'CadastroUser', // Renomeado para corresponder à importação
+  components: {
+    NotificationModal // Registrar
+  },
+  emits: ['navigate'],
   data() {
     return {
       form: {
@@ -135,151 +151,212 @@ export default {
         last_name: '',
         email: '',
         password: '',
-        confirm_password: '',
+        confirm_password: '', // Mantido para validação no frontend
         phone: ''
       },
       showPassword: false,
       showConfirm: false,
-      error: null,
-      success: false,
+      // Para NotificationModal
+      showNotification: false,
+      notification: {
+        title: '',
+        message: '',
+        type: 'success', // 'success' ou 'error'
+        autoCloseDelay: null, // null para não fechar automaticamente, ou um número em ms
+      },
       countdown: 3,
       timer: null
     };
   },
   methods: {
+    displayNotification(title, message, type = 'error', autoCloseDelay = 3000) {
+        this.notification.title = title;
+        this.notification.message = message;
+        this.notification.type = type;
+        this.notification.autoCloseDelay = autoCloseDelay;
+        this.showNotification = true;
+    },
     async handleRegister() {
-      this.error = null;
+      this.showNotification = false; // Esconde notificações anteriores
 
       if (this.form.password !== this.form.confirm_password) {
-        this.error = 'As senhas não coincidem.';
+        this.displayNotification('Erro de Validação', 'As senhas não coincidem.', 'error');
+        return;
+      }
+      if (this.form.password.length < 8) {
+        this.displayNotification('Erro de Validação', 'A senha deve ter no mínimo 8 caracteres.', 'error');
         return;
       }
 
+      // Não envie confirm_password para o backend
       const { confirm_password, ...payload } = this.form;
 
       try {
-        await registerUser(payload);
-        this.success = true;
-        this.countdown = 3;
+        await registerUser(payload); // userService.registerUser deve enviar os dados corretos
+
+        this.displayNotification(
+            'Cadastro Realizado!',
+            `Sua conta foi criada com sucesso! Você será redirecionado para o login em ${this.countdown}s...`,
+            'success',
+            null // Não fecha automaticamente, o timer fará isso
+        );
+        
         this.timer = setInterval(() => {
           this.countdown--;
-          if (this.countdown === 0) {
+          this.notification.message = `Sua conta foi criada com sucesso! Você será redirecionado para o login em ${this.countdown}s...`; // Atualiza mensagem do modal
+          if (this.countdown <= 0) {
             clearInterval(this.timer);
-            this.$emit('navigate', 'login');
+            this.timer = null;
+            this.showNotification = false; // Fecha o modal antes de navegar
+            this.$emit('navigate', 'login'); // Navega para a página de login
           }
         }, 1000);
+
       } catch (err) {
-        this.error = err.message || 'Erro no cadastro';
+        console.error("Erro no cadastro:", err.response?.data || err);
+        let errorMessage = 'Não foi possível concluir o cadastro.';
+        if (err.response && err.response.data) {
+            const errors = err.response.data;
+            if (typeof errors === 'object') {
+                // Concatena todas as mensagens de erro do objeto
+                errorMessage += ' Detalhes: ' + Object.entries(errors).map(([key, value]) => {
+                    let fieldName = key;
+                    if (key === 'username') fieldName = 'Usuário';
+                    if (key === 'email') fieldName = 'E-mail';
+                    // Adicione mais traduções de campos se necessário
+                    return `${fieldName}: ${Array.isArray(value) ? value.join(', ') : value}`;
+                }).join('; ');
+            } else if (typeof errors === 'string') {
+                errorMessage += ` Detalhes: ${errors}`;
+            }
+        } else if (err.message) {
+            errorMessage += ` Detalhes: ${err.message}`;
+        }
+        this.displayNotification('Erro no Cadastro', errorMessage, 'error');
       }
     }
   },
   beforeUnmount() {
-    if (this.timer) clearInterval(this.timer);
+    if (this.timer) {
+      clearInterval(this.timer);
+    }
   }
 };
 </script>
 
 <style scoped>
+/* .auth-form já usa a classe .card global. */
 .auth-form {
   width: 100%;
-  max-width: 400px;
-  padding: var(--sp-lg);
-  background: var(--color-white);
-  border: 1px solid var(--color-border);
-  border-radius: var(--sp-sm);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  max-width: 480px; /* Um pouco mais largo para acomodar mais campos */
   margin: var(--sp-xl) auto;
+  padding: var(--sp-xl);
 }
-.cadastro-form h2 {
+
+.auth-title { /* Reutilizando .auth-title do Login.vue */
   font-family: var(--font-heading);
-  font-size: 2rem;
-  color: var(--color-primary);
+  font-size: var(--fs-h2);
+  color: var(--color-text-primary);
   text-align: center;
   margin-bottom: var(--sp-lg);
 }
+
+/* .form-group, .form-label, .input usam classes globais. */
 .form-group {
-  margin-bottom: var(--sp-md);
-}
-.form-group label {
-  display: block;
-  margin-bottom: var(--sp-sm);
-  color: var(--color-dark-gray);
-  font-size: var(--font-size-base);
-}
-.form-group input {
-  width: 100%;
-  padding: var(--sp-sm);
-  border: 1px solid var(--color-border);
-  border-radius: var(--sp-sm);
-  font-family: var(--font-body);
-  font-size: var(--font-size-base);
+  margin-bottom: var(--sp-md); /* Espaçamento padrão entre grupos */
 }
 
-/* wrapper e botão de toggle */
-.password-wrapper {
+/* Layout em grid para Nome e Sobrenome (opcional, mas melhora o visual) */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr; /* Padrão uma coluna */
+    gap: var(--sp-md);
+}
+
+@media (min-width: 576px) { /* Em telas maiores, duas colunas para certos campos */
+    .form-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .form-group.full-width { /* Para campos como username ocuparem a largura toda */
+        grid-column: 1 / -1;
+    }
+}
+
+
+.password-input-wrapper {
   position: relative;
+  display: flex;
+  align-items: center;
 }
-.password-wrapper input {
-  padding-right: calc(var(--sp-lg) + var(--sp-sm));
+.password-input-wrapper .input {
+   padding-right: calc(var(--sp-lg) + var(--sp-md));
 }
-.toggle-password {
+
+.password-toggle-button {
   position: absolute;
   top: 50%;
   right: var(--sp-sm);
   transform: translateY(-50%);
   background: none;
   border: none;
-  font-size: var(--font-size-large);
+  padding: var(--sp-xs);
+  color: var(--color-text-muted);
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.password-toggle-button:hover, .password-toggle-button:focus {
+  color: var(--color-primary);
+}
+.password-toggle-button svg {
+    width: 20px;
+    height: 20px;
 }
 
-/* botão primário */
-.button-primary {
-  width: 100%;
-  padding: var(--sp-md);
-  background-color: var(--color-primary);
-  color: var(--color-white);
-  border: none;
-  border-radius: var(--sp-sm);
-  font-size: var(--font-size-large);
-  cursor: pointer;
-  transition: background 0.3s, transform 0.2s;
-  margin-top: var(--sp-md);
+.button-block { /* Classe utilitária */
+    display: block;
+    width: 100%;
 }
-.button-primary:hover,
-.button-primary:focus {
-  background-color: var(--color-primary-dark);
-  outline: none;
-}
-
-/* mensagens */
-.success-message {
-  margin-top: var(--sp-md);
-  padding: var(--sp-sm);
-  background: var(--color-secondary-light);
-  color: var(--color-white);
-  text-align: center;
-  border-radius: var(--sp-sm);
-  font-weight: 500;
-}
-.error-message {
-  margin-top: var(--sp-sm);
-  color: var(--color-secondary);
-  text-align: center;
-  font-size: var(--font-size-small);
+.auth-form .button-primary {
+  margin-top: var(--sp-lg); /* Mais espaço antes do botão de cadastro */
+  padding-top: var(--sp-md);
+  padding-bottom: var(--sp-md);
 }
 
 .switch-text {
   text-align: center;
   margin-top: var(--sp-lg);
-  font-size: var(--font-size-small);
+  font-size: var(--fs-base);
+  color: var(--color-text-secondary);
 }
-.switch-text a {
-  color: var(--color-accent);
-  text-decoration: none;
-  font-weight: 500;
+.switch-text .link { /* Usa .link global */
+  font-weight: var(--fw-medium);
 }
-.switch-text a:hover {
-  text-decoration: underline;
+
+/* Mensagens de sucesso/erro serão tratadas pelo NotificationModal */
+/* Os estilos .success-message e .error-message podem ser removidos */
+/* ou mantidos como fallback se NotificationModal não for usado. */
+/* Se mantidos, devem usar classes de alerta globais: */
+.success-message {
+  /* Exemplo: use .alert .alert-success do global style.css */
+  margin-top: var(--sp-md);
+  padding: var(--sp-sm) var(--sp-md);
+  color: var(--color-success); /* Usar cor de sucesso para texto */
+  background-color: var(--color-primary-light); /* Fundo suave de sucesso */
+  border: 1px solid var(--color-success);
+  text-align: center;
+  border-radius: var(--border-radius);
+  font-weight: var(--fw-medium);
+}
+.error-message {
+  /* Exemplo: use .alert .alert-danger do global style.css */
+  margin-top: var(--sp-md);
+  padding: var(--sp-sm) var(--sp-md);
+  color: var(--color-danger); /* Usar cor de perigo para texto */
+  background-color: #f8d7da; /* Fundo suave de perigo (exemplo, defina no global) */
+  border: 1px solid var(--color-danger);
+  text-align: center;
+  border-radius: var(--border-radius);
 }
 </style>

@@ -1,7 +1,7 @@
 <template>
   <div>
     <header class="header" role="banner">
-      <div class="header-container">
+      <div class="header-container container">
         <h1 class="logo" tabindex="0" @click="goHome" @keydown.enter="goHome">AnimalTracking</h1>
         <nav class="nav" aria-label="Main navigation">
           <ul class="nav-list">
@@ -13,11 +13,11 @@
               </a>
             </li>
             <template v-if="isAuthenticated">
-              <li v-if="showUserDashboardLink" class="dashboard-link">
-                <a @click.prevent="navigateTo('/dashboard')" tabindex="0">Dashboard</a>
+              <li v-if="showUserDashboardLink">
+                <a @click.prevent="navigateTo('/dashboard')" class="button button-outline-primary button-sm nav-dashboard-link" tabindex="0">Dashboard</a>
               </li>
-              <li v-if="showAdminPageLink" class="dashboard-link admin-page-link">
-                <a @click.prevent="navigateTo('/admin')" tabindex="0">Admin Page</a>
+              <li v-if="showAdminPageLink">
+                <a @click.prevent="navigateTo('/admin')" class="button button-outline-primary button-sm nav-dashboard-link admin-page-link" tabindex="0">Admin Page</a>
               </li>
             </template>
           </ul>
@@ -28,24 +28,27 @@
             src="https://img.icons8.com/ios-glyphs/30/000000/user--v1.png"
             alt="Menu de usuário"
             tabindex="0"
-            @click.stop="onUserIconClick"
-            @keydown.enter.prevent="onUserIconClick"
+            @click.stop="onUserIconClick" @keydown.enter.prevent="onUserIconClick"
+            class="user-avatar-icon"
           />
-          <ul v-if="showMenu" class="user-menu" @click.stop>
-            <li v-if="isAuthenticated && userProfile.username">
-                <span class="user-menu-greeting">Olá, {{ userProfile.username }}</span>
+          <ul v-if="showMenu" class="user-menu card" @click.stop>
+            <li v-if="isAuthenticated && userProfile.username" class="user-menu-greeting">
+                Olá, {{ userProfile.username }}
             </li>
-            <li v-if="isAuthenticated" tabindex="0" @click="openUserModal('profile')">Perfil</li>
-            <li v-if="isAuthenticated" tabindex="0" @click="openUserModal('settings')">Configurações</li>
-            <li v-if="isAuthenticated" tabindex="0" @click="onLogout">Sair</li>
-            <li v-if="!isAuthenticated" tabindex="0" @click="navigateTo('/login')">Login</li>
-          </ul>
+            <li v-if="isAuthenticated" tabindex="0" @click="triggerOpenUserModal('profile')">Perfil</li>
+            <li v-if="isAuthenticated" tabindex="0" @click="triggerOpenUserModal('settings')">Configurações</li>
+            <li v-if="isAuthenticated" tabindex="0" @click="triggerLogout">Sair</li>
+            </ul>
         </div>
       </div>
     </header>
 
     <div v-if="showUserModal" class="modal-overlay" @click.self="closeUserModal">
-      <div class="modal-content">
+      <div class="modal-content card">
+        <div class="modal-header">
+            <h3 class="modal-title-text">Minha Conta</h3>
+            <button @click="closeUserModal" class="button-close" aria-label="Fechar modal">&times;</button>
+        </div>
         <div class="modal-tabs">
           <button
             class="modal-tab"
@@ -60,53 +63,50 @@
         </div>
 
         <div v-if="activeModalTab === 'profile'" class="modal-body">
-          <h3 class="modal-title">Meu Perfil</h3>
           <div v-if="!editMode" class="profile-view">
             <p><strong>Usuário:</strong> {{ userProfile.username }}</p>
             <p><strong>Nome:</strong> {{ userProfile.first_name }} {{ userProfile.last_name }}</p>
             <p><strong>E-mail:</strong> {{ userProfile.email }}</p>
-            <p><strong>Telefone:</strong> {{ userProfile.phone || '–' }}</p>
-            <p v-if="currentUserRoleNames.length"> <strong>Função(ões):</strong> {{ currentUserRoleNames.join(', ') }}
-            </p>
-            <div class="modal-actions">
-              <button class="button-primary" @click="editMode = true">Editar</button>
-              <button class="button-secondary" @click="closeUserModal">Fechar</button>
+            <p><strong>Telefone:</strong> {{ userProfile.phone || 'Não informado' }}</p>
+            <p v-if="currentUserRoleNames.length"> <strong>Função(ões):</strong> {{ currentUserRoleNames.join(', ') }}</p>
+            <div class="modal-actions form-actions">
+              <button class="button button-primary" @click="editMode = true">Editar Perfil</button>
+              <button class="button button-secondary" @click="closeUserModal" style="margin-left: auto;">Fechar</button>
             </div>
           </div>
           <form v-else @submit.prevent="submitProfile" class="modal-form">
             <div class="form-group">
-              <label for="username">Usuário</label>
-              <input id="username" v-model="profileForm.username" type="text" required />
+              <label for="username" class="form-label">Usuário</label>
+              <input id="username" v-model="profileForm.username" type="text" class="input" required />
             </div>
             <div class="form-group">
-              <label for="first_name">Nome</label>
-              <input id="first_name" v-model="profileForm.first_name" type="text" required />
+              <label for="first_name" class="form-label">Nome</label>
+              <input id="first_name" v-model="profileForm.first_name" type="text" class="input" required />
             </div>
             <div class="form-group">
-              <label for="last_name">Sobrenome</label>
-              <input id="last_name" v-model="profileForm.last_name" type="text" required />
+              <label for="last_name" class="form-label">Sobrenome</label>
+              <input id="last_name" v-model="profileForm.last_name" type="text" class="input" required />
             </div>
             <div class="form-group">
-              <label for="email">E-mail</label>
-              <input id="email" v-model="profileForm.email" type="email" required />
+              <label for="email" class="form-label">E-mail</label>
+              <input id="email" v-model="profileForm.email" type="email" class="input" required />
             </div>
             <div class="form-group">
-              <label for="phone">Telefone</label>
-              <input id="phone" v-model="profileForm.phone" type="text" />
+              <label for="phone" class="form-label">Telefone</label>
+              <input id="phone" v-model="profileForm.phone" type="text" class="input" />
             </div>
-            <div class="modal-actions">
-              <button type="submit" class="button-primary">Salvar</button>
-              <button type="button" class="button-secondary" @click="cancelEdit">Cancelar</button>
+            <div class="modal-actions form-actions">
+              <button type="submit" class="button button-primary">Salvar Alterações</button>
+              <button type="button" class="button button-secondary" @click="cancelEdit">Cancelar Edição</button>
             </div>
           </form>
         </div>
 
         <div v-if="activeModalTab === 'settings'" class="modal-body">
-          <h3 class="modal-title">Configurações</h3>
-          <p>Aqui você pode ajustar suas preferências do sistema.</p>
-          <div class="modal-actions">
-            <button class="button-secondary" @click="closeUserModal">Fechar</button>
-          </div>
+          <p>Preferências do sistema e outras configurações estarão disponíveis aqui.</p>
+           <div class="modal-actions form-actions">
+              <button class="button button-secondary" @click="closeUserModal" style="margin-left: auto;">Fechar</button>
+            </div>
         </div>
       </div>
     </div>
@@ -124,12 +124,11 @@ import { getUserProfile, updateUserProfile } from '@/services/userService';
 import { logout as userLogout } from '@/services/authService';
 import NotificationModal from '@/components/NotificationModal.vue';
 
-// !!! IMPORTANTE: Confirme estes IDs e nomes com seu backend !!!
+// Ajuste este mapa conforme os IDs e nomes exatos do seu backend
 const ROLE_ID_MAP = {
   1: 'administrador',
   2: 'gerente',
   3: 'usuario',
-  // Adicione outros mappings se necessário
 };
 
 export default {
@@ -147,9 +146,9 @@ export default {
         { id: 'auditoria', label: 'Auditoria', href: '/search-blockchain' }
       ],
       activeSection: '',
-      showMenu: false,
+      showMenu: false, // RESTAURADO: Controla a visibilidade do menu dropdown
       isAuthenticated: false,
-      userProfile: {}, // `roles` será um array aqui
+      userProfile: {},
       showUserModal: false,
       activeModalTab: 'profile',
       editMode: false,
@@ -160,7 +159,6 @@ export default {
         message: '',
         type: 'success'
       }
-      // allRoles: [], // Descomente e popule se for buscar roles dinamicamente
     };
   },
   computed: {
@@ -169,19 +167,16 @@ export default {
         return [];
       }
       return this.userProfile.roles.map(userRoleObject => {
-        // userRoleObject é como {id: 1, user: 3, role: 3, ...}
-        // userRoleObject.role é o ID da função
         const roleName = ROLE_ID_MAP[userRoleObject.role];
-        return roleName ? roleName.charAt(0).toUpperCase() + roleName.slice(1) : null; // Capitaliza
+        return roleName ? roleName.charAt(0).toUpperCase() + roleName.slice(1) : `Role ID ${userRoleObject.role}`;
       }).filter(name => name !== null);
     },
-    // As computed properties abaixo usam os nomes das roles em minúsculas para a lógica interna
     _currentUserRoleNamesLower() {
         if (!this.isAuthenticated || !this.userProfile.roles || !Array.isArray(this.userProfile.roles)) {
             return [];
         }
         return this.userProfile.roles.map(userRoleObject => ROLE_ID_MAP[userRoleObject.role])
-                                  .filter(name => name !== undefined); // Retorna array de nomes em minúsculo
+                                  .filter(name => name !== undefined);
     },
     showUserDashboardLink() {
       if (!this.isAuthenticated) return false;
@@ -204,12 +199,12 @@ export default {
     goHome() {
       this.$router.push('/');
       this.activeSection = '';
-      this.showMenu = false;
+      this.showMenu = false; // Fecha o menu ao ir para home
     },
     navigateTo(path) {
-      this.showMenu = false;
+      this.showMenu = false; // Fecha o menu ao navegar
       this.closeUserModal();
-      if (this.$route.path !== path) { // Evita navegação para a mesma rota
+      if (this.$route.path !== path) {
         this.$router.push(path).catch(err => {
             if (err.name !== 'NavigationDuplicated' && err.name !== ' selben Navigations-Guard mehrmals') {
                 console.error('Erro de navegação:', err);
@@ -218,7 +213,7 @@ export default {
       }
     },
     handleLink(link) {
-      this.showMenu = false;
+      this.showMenu = false; // Fecha o menu
       if (link.href.startsWith('#')) {
         if (this.$route.path === '/') {
             this.scrollToSection(link.id);
@@ -230,14 +225,14 @@ export default {
         this.navigateTo(link.href);
       }
     },
-    onUserIconClick() {
+    onUserIconClick() { // RESTAURADO: Alterna o menu dropdown
       if (!this.isAuthenticated) {
         this.navigateTo('/login');
       } else {
-        this.showMenu = !this.showMenu;
+        this.showMenu = !this.showMenu; // Alterna a visibilidade do menu dropdown
       }
     },
-    handleDocumentClick(e) {
+    handleDocumentClick(e) { // RESTAURADO: Fecha o menu se clicar fora
       if (this.showMenu && this.$refs.userMenuWrapper && !this.$refs.userMenuWrapper.contains(e.target)) {
         this.showMenu = false;
       }
@@ -245,11 +240,16 @@ export default {
     async fetchUserProfile() {
         try {
             const profile = await getUserProfile();
-            this.userProfile = profile; // Agora userProfile contém o array 'roles'
-
+            this.userProfile = profile;
             this.isAuthenticated = true;
             if (!this.editMode) {
-                this.profileForm = { ...this.userProfile };
+                this.profileForm = { 
+                    username: profile.username || '',
+                    first_name: profile.first_name || '',
+                    last_name: profile.last_name || '',
+                    email: profile.email || '',
+                    phone: profile.phone || ''
+                };
             }
         } catch (error) {
             console.warn('Usuário não autenticado ou erro ao buscar perfil:', error.response?.data || error);
@@ -257,10 +257,17 @@ export default {
             this.userProfile = {};
         }
     },
-    openUserModal(tab) {
+    triggerOpenUserModal(tab = 'profile') { // NOVO: Chamado pelos itens do menu
+        this.showMenu = false; // Fecha o menu dropdown
+        this.openUserModal(tab);
+    },
+    triggerLogout() { // NOVO: Chamado pelo item "Sair" do menu
+        this.showMenu = false; // Fecha o menu dropdown
+        this.onLogout();
+    },
+    openUserModal(tab = 'profile') {
       if (!this.isAuthenticated) return;
-      this.showMenu = false;
-      this.showUserModal = true;
+      // this.showMenu = false; // Já tratado em triggerOpenUserModal
       this.activeModalTab = tab;
       this.editMode = false;
       this.profileForm = { 
@@ -270,6 +277,7 @@ export default {
         email: this.userProfile.email || '',
         phone: this.userProfile.phone || ''
       };
+      this.showUserModal = true;
     },
     closeUserModal() {
       this.showUserModal = false;
@@ -277,17 +285,26 @@ export default {
     },
     switchTab(tab) {
       this.activeModalTab = tab;
-      this.editMode = false;
+      this.editMode = false; 
     },
     cancelEdit() {
       this.editMode = false;
-      this.profileForm = { ...this.userProfile };
+      this.profileForm = { 
+        username: this.userProfile.username || '',
+        first_name: this.userProfile.first_name || '',
+        last_name: this.userProfile.last_name || '',
+        email: this.userProfile.email || '',
+        phone: this.userProfile.phone || ''
+      };
     },
     async submitProfile() {
       try {
         const updatedProfileData = { ...this.profileForm };
-        const updated = await updateUserProfile(updatedProfileData);
-        this.userProfile = { ...this.userProfile, ...updated };
+        if (this.userProfile.username === updatedProfileData.username) {
+            delete updatedProfileData.username;
+        }
+        const updated = await updateUserProfile(this.userProfile.id, updatedProfileData);
+        this.userProfile = { ...this.userProfile, ...updated }; 
         this.profileForm = { ...this.userProfile };
         this.editMode = false;
         this.showAppNotification('Perfil atualizado com sucesso!', 'success');
@@ -298,7 +315,7 @@ export default {
             const errors = error.response.data;
              if (typeof errors === 'object' && errors !== null) {
                  errorMessage += ' Detalhes: ' + Object.entries(errors)
-                    .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
+                    .map(([key, value]) => `${key}: ${typeof value === 'object' ? JSON.stringify(value) : (Array.isArray(value) ? value.join(', ') : value)}`)
                     .join('; ');
             } else if (typeof errors === 'string') {
                 errorMessage += ' ' + errors;
@@ -307,7 +324,7 @@ export default {
         this.showAppNotification(errorMessage, 'error');
       }
     },
-    async onLogout() {
+    async onLogout() { // Este método agora é chamado por triggerLogout
       try {
         await userLogout();
       } catch (error) {
@@ -317,7 +334,7 @@ export default {
         localStorage.removeItem('userProfile');
         this.isAuthenticated = false;
         this.userProfile = {};
-        this.showMenu = false;
+        // this.showMenu = false; // Já tratado
         this.closeUserModal();
         if (this.$route.path !== '/') {
             this.navigateTo('/');
@@ -363,26 +380,24 @@ export default {
   watch: {
     '$route'() {
       this.initObserver();
-      this.showMenu = false;
+      this.showMenu = false; // RESTAURADO: Fecha o menu ao mudar de rota
       this.closeUserModal();
     },
-    isAuthenticated(newVal, oldVal) { // Modificado para reagir à mudança de autenticação
+    isAuthenticated(newVal, oldVal) {
         if (newVal && (!this.userProfile || Object.keys(this.userProfile).length === 0)) {
             this.fetchUserProfile();
-        } else if (!newVal && oldVal) { // Se desautenticado
-            this.userProfile = {}; // Limpa perfil
+        } else if (!newVal && oldVal) {
+            this.userProfile = {};
         }
     }
   },
   mounted() {
-    // Tenta buscar o perfil. Se o token não existir ou for inválido,
-    // o catch em fetchUserProfile e o estado de isAuthenticated cuidarão disso.
     this.fetchUserProfile();
-    document.addEventListener('click', this.handleDocumentClick);
+    document.addEventListener('click', this.handleDocumentClick); // RESTAURADO
     this.initObserver();
   },
   beforeUnmount() {
-    document.removeEventListener('click', this.handleDocumentClick);
+    document.removeEventListener('click', this.handleDocumentClick); // RESTAURADO
     if (this.observer) {
       this.observer.disconnect();
     }
@@ -391,194 +406,190 @@ export default {
 </script>
 
 <style scoped>
-/* Seus estilos CSS (.header, .nav-list, .user-menu, .modal-overlay, etc.) permanecem os mesmos */
+/* ... (Estilos anteriores, incluindo os do header, logo, nav-list, user-avatar-icon, modal, etc.) ... */
+/* Certifique-se que os estilos para .user-menu (o dropdown) e o cursor dos links de navegação estejam corretos. */
+
 .header {
-  position: sticky; top: 0;
-  background: rgba(255,255,255,0.8); backdrop-filter: blur(10px);
-  border-bottom:1px solid var(--color-border, #E0E0E0); z-index:1000;
+  background: var(--color-bg-component);
+  backdrop-filter: blur(10px);
+  border-bottom: var(--border-width) solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: var(--zindex-sticky);
 }
+
 .header-container {
-  max-width:1200px; margin:0 auto;
-  display:flex; align-items:center; justify-content:space-between;
-  padding:var(--sp-sm, 0.5rem) var(--sp-md, 1rem);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--sp-sm);
+  padding-bottom: var(--sp-sm);
 }
+
 .logo {
-  font-family:var(--font-heading, serif); font-size:1.75rem;
-  color:var(--color-text, #000); cursor:pointer;
-  transition: color 0.2s;
+  font-family: var(--font-heading);
+  font-size: var(--fs-h2); /* Destaque do logo */
+  color: var(--color-primary); /* Destaque do logo */
+  font-weight: var(--fw-bold); /* Destaque do logo */
+  cursor: pointer;
+  transition: var(--transition-fast);
+  text-decoration: none;
 }
-.logo:hover { color:var(--color-accent, #1A73E8); }
+.logo:hover, .logo:focus {
+  color: var(--color-primary-dark);
+  text-decoration: none;
+}
 
-.nav-list { display:flex; list-style:none; gap:var(--sp-lg, 1.5rem); align-items: center;}
-.nav-list li { margin: 0; padding: 0; }
+.nav-list {
+  display: flex;
+  list-style: none;
+  gap: var(--sp-md);
+  align-items: center;
+}
 .nav-list a {
-    color:var(--color-text, #000);
-    text-decoration:none;
-    transition: color 0.2s;
-    padding: var(--sp-xs, 0.25rem) var(--sp-sm, 0.5rem);
-    border-radius: var(--sp-xs, 0.25rem);
-    cursor: pointer;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: var(--transition-fast);
+  padding: var(--sp-xs) var(--sp-sm);
+  border-radius: var(--border-radius-sm);
+  font-weight: var(--fw-medium);
+  cursor: pointer; /* CORREÇÃO: Cursor pointer para os links de navegação */
 }
-.nav-list a:hover, .nav-list a.active {
-    color:var(--color-accent, #1A73E8);
-    background-color: rgba(0,0,0,0.05);
-}
-.dashboard-link a, .admin-page-link a { /* Estilo específico para links de dashboard */
-  color:var(--color-accent, #1A73E8)!important;
-  font-weight:bold;
-  border: 1px solid var(--color-accent, #1A73E8);
-}
-.dashboard-link a:hover, .admin-page-link a:hover {
-    background-color: var(--color-accent, #1A73E8) !important;
-    color: var(--color-bg, #FFFFFF) !important;
+.nav-list a:hover,
+.nav-list a:focus,
+.nav-list a.active {
+  color: var(--color-primary);
+  background-color: var(--color-primary-light);
 }
 
+.nav-dashboard-link {
+  padding-top: calc(var(--sp-xs) * 0.8);
+  padding-bottom: calc(var(--sp-xs) * 0.8);
+  font-size: var(--fs-small);
+  margin-left: var(--sp-sm);
+}
 
-/* dropdown */
-.user-icon-wrapper { position:relative; }
-.user-icon-wrapper img {
-    width:calc(var(--sp-lg, 1.5rem) + 4px); /* Aumentado um pouco */
-    height:calc(var(--sp-lg, 1.5rem) + 4px);
-    cursor:pointer;
-    border-radius: 50%;
-    padding: 2px;
-    transition: box-shadow 0.2s;
+.user-icon-wrapper {
+  position: relative;
 }
-.user-icon-wrapper img:hover {
-    box-shadow: 0 0 5px rgba(0,0,0,0.2);
+.user-avatar-icon {
+  width: calc(var(--sp-lg) + var(--sp-xs));
+  height: calc(var(--sp-lg) + var(--sp-xs));
+  cursor: pointer;
+  border-radius: var(--border-radius-pill);
+  padding: var(--sp-xxs);
+  transition: var(--transition-fast);
+  background-color: var(--color-bg-muted);
 }
+.user-avatar-icon:hover, .user-avatar-icon:focus {
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+/* Estilos para .user-menu (o dropdown) RESTAURADOS e usando variáveis globais */
 .user-menu {
-  position:absolute; top:calc(100% + var(--sp-sm, 0.5rem) + 5px); right:0; /* Mais espaço */
-  background:var(--color-bg, #fff); border:1px solid var(--color-border, #E0E0E0);
-  border-radius:var(--sp-sm, 0.5rem); box-shadow:0 4px 16px rgba(0,0,0,0.1);
-  list-style:none; padding:var(--sp-sm, 0.5rem) 0; margin:0; min-width:180px; /* Aumentado min-width */
-  z-index:1001;
+  /* A classe .card global já define background, border, border-radius, box-shadow */
+  position: absolute;
+  top: calc(100% + var(--sp-xs)); 
+  right: 0;
+  list-style: none;
+  padding: var(--sp-xs) 0; 
+  margin: 0;
+  min-width: 200px; 
+  z-index: var(--zindex-dropdown);
+  /* Os estilos de .card do style.css global serão aplicados aqui se .card estiver no elemento <ul> */
 }
 .user-menu-greeting {
-    padding: var(--sp-sm, 0.5rem) var(--sp-md, 1rem);
-    font-weight: bold;
-    color: var(--color-text-muted, #555); /* Cor mais suave */
-    display: block; /* Para ocupar a largura total */
-    border-bottom: 1px solid var(--color-border, #eee); /* Separador */
-    margin-bottom: var(--sp-xs, 0.25rem); /* Pequeno espaço abaixo */
-    cursor: default;
+  padding: var(--sp-sm) var(--sp-md);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-muted);
+  display: block;
+  border-bottom: var(--border-width) solid var(--color-border-light);
+  margin-bottom: var(--sp-xs);
+  cursor: default;
 }
 .user-menu li {
-  padding:var(--sp-sm, 0.5rem) var(--sp-md, 1rem); cursor:pointer;
-  transition:background 0.2s, color 0.2s;
-  font-size: var(--fs-base, 14px);
+  padding: var(--sp-sm) var(--sp-md);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  font-size: var(--fs-base);
+  color: var(--color-text-secondary);
 }
-.user-menu li:not(.user-menu-greeting):hover { /* Não aplicar hover na saudação */
-  background-color: var(--color-accent, #1A73E8);
-  color: var(--color-bg, #FFFFFF);
+.user-menu li:not(.user-menu-greeting):hover,
+.user-menu li:not(.user-menu-greeting):focus {
+  background-color: var(--color-primary);
+  color: var(--color-text-inverted);
 }
 
-/* Modal Styles (reutilizando e ajustando os existentes) */
-.modal-overlay {
-  position:fixed; top:0; left:0; right:0; bottom:0;
-  background:rgba(0,0,0,0.5); display:flex; /* Aumentada opacidade do overlay */
-  align-items:center; justify-content:center; z-index:2000;
+/* Modal */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: var(--sp-sm);
+    margin-bottom: var(--sp-md);
+    border-bottom: var(--border-width) solid var(--color-border);
 }
-.modal-content {
-  background:var(--color-bg, #fff); border-radius:var(--sp-sm, 0.5rem);
-  padding:var(--sp-lg, 1.5rem); width:90%; max-width:500px;
-  box-shadow:0 8px 24px rgba(0,0,0,0.15); /* Sombra mais pronunciada */
+.modal-title-text {
+    font-family: var(--font-heading);
+    font-size: var(--fs-h4);
+    color: var(--color-text-primary);
+    margin: 0;
 }
+.button-close {
+    background: none;
+    border: none;
+    font-size: var(--fs-large);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    padding: var(--sp-xs);
+    line-height: 1;
+}
+.button-close:hover, .button-close:focus {
+    color: var(--color-text-primary);
+}
+
 .modal-tabs {
-    display:flex;
-    border-bottom:2px solid var(--color-border, #E0E0E0); /* Borda mais grossa */
-    margin-bottom: var(--sp-md, 1rem);
+  display: flex;
+  border-bottom: var(--border-width) solid var(--color-border);
+  margin-bottom: var(--sp-md);
 }
 .modal-tab {
-  flex:1; padding:var(--sp-md, 1rem); /* Mais padding */
-  text-align:center; cursor:pointer; background:none; border:none;
-  font-family:var(--font-body, sans-serif); /* Usar font-body */
-  font-weight: 600; /* Mais peso */
-  color: var(--color-text-muted, #555);
-  border-bottom: 3px solid transparent; /* Para animação da borda */
-  transition:color .2s, border-color .2s;
-  margin-bottom: -2px; /* Para alinhar com a borda principal */
+  flex: 1;
+  padding: var(--sp-sm) var(--sp-xs);
+  text-align: center;
+  cursor: pointer;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-family: var(--font-body);
+  font-weight: var(--fw-medium);
+  color: var(--color-text-muted);
+  transition: var(--transition-fast);
+  margin-bottom: -1px; /* Ajuste para borda ativa */
 }
 .modal-tab.active {
-  border-bottom-color: var(--color-accent, #1A73E8); /* Usar accent color */
-  color:var(--color-accent, #1A73E8);
+  border-bottom-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: var(--fw-semibold);
 }
-.modal-tab:not(.active):hover {
-  color:var(--color-text, #000);
-  border-bottom-color: var(--color-border-hover, #ccc); /* Borda sutil no hover */
-}
-.modal-title {
-  text-align:center; font-family:var(--font-heading, serif);
-  color:var(--color-text, #000); /* Cor de texto padrão */
-  margin-top: 0; /* Removido margin-top se já houver espaço das tabs */
-  margin-bottom:var(--sp-lg, 1.5rem); /* Mais espaço abaixo do título */
-  font-size: var(--fs-large, 1.25rem); /* Tamanho de fonte um pouco maior */
-}
-.modal-body { max-height:65vh; overflow-y:auto; padding-right: var(--sp-sm); } /* Padding para scrollbar */
-
-.modal-form .form-group {
-  margin-bottom:var(--sp-md, 1rem); display:flex; flex-direction:column;
-}
-.modal-form label {
-    margin-bottom:var(--sp-xs, 0.25rem); /* Menor espaço abaixo do label */
-    color:var(--color-text, #333);
-    font-weight: 600;
-}
-.modal-form input, .modal-form textarea {
-  padding:var(--sp-sm, 0.65rem); border:1px solid var(--color-border, #ccc); /* Borda um pouco mais escura */
-  border-radius:var(--sp-xs, 0.25rem); /* Bordas menos arredondadas */
-  font-size: var(--fs-base, 14px);
-}
-.modal-form input:focus, .modal-form textarea:focus {
-    border-color: var(--color-accent, #1A73E8);
-    box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2); /* Sombra no foco */
+.modal-tab:not(.active):hover, .modal-tab:not(.active):focus {
+  color: var(--color-text-primary);
+  border-bottom-color: var(--color-border);
 }
 
-.profile-view p { margin-bottom:var(--sp-sm, 0.5rem); line-height: 1.6; } /* Menor margem e line-height */
-.profile-view p strong { color: var(--color-text, #000); }
-
-.modal-actions {
-  display:flex; justify-content:flex-end; gap: var(--sp-sm, 0.5rem);
-  margin-top:var(--sp-lg, 1.5rem);
-  padding-top: var(--sp-md, 1rem);
-  border-top: 1px solid var(--color-border, #E0E0E0);
+.modal-body {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: var(--sp-xs);
 }
 
-/* Estilos de botões já fornecidos parecem ok, mas vamos garantir consistência */
-.button-primary {
-  background-color: var(--color-accent, #1A73E8); /* Cor de destaque */
-  color: var(--color-bg, #FFFFFF);
-  border: 2px solid var(--color-accent, #1A73E8);
-  padding: var(--sp-sm, 0.65rem) var(--sp-lg, 1.2rem); /* Padding ajustado */
-  border-radius: var(--sp-sm, 0.5rem);
-  cursor: pointer;
-  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
-  /* Removido margin-right, usar gap no container .modal-actions */
+.profile-view p {
+  margin-bottom: var(--sp-sm);
+  line-height: var(--lh-base);
 }
-.button-primary:hover,
-.button-primary:focus {
-  background-color: var(--color-bg, #FFFFFF);
-  color: var(--color-accent, #1A73E8);
-  border-color: var(--color-accent, #1A73E8);
-  outline: none;
+.profile-view p strong {
+  color: var(--color-text-primary);
+  font-weight: var(--fw-medium);
 }
 
-.button-secondary { /* Geralmente usado para ações de cancelamento ou menos importantes */
-  background-color: var(--color-muted, #f5f5f5); /* Fundo mais neutro */
-  color: var(--color-text, #333);
-  border: 2px solid var(--color-border, #ccc);
-  padding: var(--sp-sm, 0.65rem) var(--sp-md, 1rem); /* Padding um pouco menor */
-  border-radius: var(--sp-sm, 0.5rem);
-  cursor: pointer;
-  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
-}
-.button-secondary:hover,
-.button-secondary:focus {
-  background-color: var(--color-dark-gray, #555); /* Escurece no hover */
-  color: var(--color-bg, #FFFFFF);
-  border-color: var(--color-dark-gray, #555);
-  outline: none;
-}
-/* Botão de perigo (Sair, Deletar) - pode herdar do global ou definir aqui se necessário */
-/* .button-danger ... */
 </style>

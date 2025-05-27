@@ -1,174 +1,144 @@
 <template>
-  <div>
-    <div class="admin-action">
-      <div class="card">
-        <h3 class="section-subtitle">
-          Remover Carteira
-        </h3>
-        <form @submit.prevent="handleRemove" class="form-section">
-          <div class="form-group">
-            <label for="del-registrar">Endereço da Carteira:</label>
-            <input
-              id="del-registrar"
-              v-model="registrar"
-              type="text"
-              placeholder="0x..."
-              required
-            />
-          </div>
-          <button type="submit" class="button-danger">Remover</button>
-        </form>
-      </div>
+  <div class="admin-action-card">
+    <div class="card">
+      <h3 class="card-title-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M15 16h4v2h-4v-2zm-8-4h12v2H7v-2zm0-4h12v2H7V8zm14-4H3v2h18V4zM3 20h12v-2H3v2z"/></svg> Remover Carteira (Registrador)
+      </h3>
+      <form @submit.prevent="handleRemove" class="form">
+        <div class="form-group">
+          <label for="del-registrar-address" class="form-label">Endereço da Carteira Ethereum*</label>
+          <input
+            id="del-registrar-address"
+            v-model="registrarAddress"
+            type="text"
+            class="input"
+            placeholder="Cole o endereço da carteira a ser removida (ex: 0x...)"
+            required
+            aria-required="true"
+          />
+          <p class="form-text">Este endereço não poderá mais registrar eventos na blockchain.</p>
+        </div>
+        <button type="submit" class="button button-danger button-block" :disabled="isSubmitting">
+          <span v-if="isSubmitting">Removendo...</span>
+          <span v-else>Remover Carteira</span>
+        </button>
+      </form>
     </div>
 
-    <div v-if="showModal" class="modal-overlay">
-      <div
-        class="modal-content"
-        :class="message.startsWith('Erro') ? 'error' : 'success'"
-      >
-        {{ message }}
-      </div>
-    </div>
+    <NotificationModal
+      :show="notification.show"
+      :title="notification.title"
+      :message="notification.message"
+      :type="notification.type"
+      @close="closeNotification"
+    />
   </div>
 </template>
 
 <script>
 import { removeRegistrar } from '@/services/contractService';
+import NotificationModal from '@/components/NotificationModal.vue';
+
 export default {
   name: 'RemoveWallet',
+  components: {
+    NotificationModal
+  },
   data() {
     return {
-      registrar: '',
-      message: '',
-      showModal: false
+      registrarAddress: '', // Renomeado
+      isSubmitting: false,
+      notification: {
+        show: false,
+        title: '',
+        message: '',
+        type: 'success'
+      }
     };
   },
   methods: {
+    showAppNotification(title, message, type = 'success') {
+      this.notification.title = title;
+      this.notification.message = message;
+      this.notification.type = type;
+      this.notification.show = true;
+    },
+    closeNotification() {
+      this.notification.show = false;
+    },
     async handleRemove() {
-      if (!this.registrar.trim()) {
-        this.showFeedback('Informe o endereço da carteira.', true);
+      if (!this.registrarAddress.trim()) {
+        this.showAppNotification('Erro de Validação', 'Por favor, informe o endereço da carteira.', 'error');
         return;
       }
-      try {
-        const res = await removeRegistrar(this.registrar.trim());
-        this.registrar = '';
-        this.showFeedback(`✔️ Registrador removido: ${res.tx_hash}`, false);
-      } catch (e) {
-        this.showFeedback(`Erro ao remover: ${e.error || e}`, true);
+      if (!/^0x[a-fA-F0-9]{40}$/.test(this.registrarAddress.trim())) {
+          this.showAppNotification('Erro de Validação', 'Formato de endereço de carteira Ethereum inválido.', 'error');
+          return;
       }
-    },
-    showFeedback(msg, isError) {
-      this.message = msg;
-      this.showModal = true;
-      setTimeout(() => {
-        this.showModal = false;
-        this.message = '';
-      }, 3000);
+
+      this.isSubmitting = true;
+      this.closeNotification();
+
+      // Adicionar uma confirmação extra para ações destrutivas
+      if (!confirm(`Tem certeza que deseja remover a carteira ${this.registrarAddress.trim()} da lista de registradores? Esta ação não pode ser desfeita.`)) {
+          this.isSubmitting = false;
+          return;
+      }
+
+      try {
+        const addressToRemove = this.registrarAddress.trim();
+        const res = await removeRegistrar(addressToRemove);
+        this.registrarAddress = '';
+        this.showAppNotification(
+          'Sucesso!',
+          `Carteira ${addressToRemove.substring(0,6)}...${addressToRemove.substring(addressToRemove.length-4)} removida da lista de registradores. Hash da transação: ${res.tx_hash || 'N/A'}`,
+          'success'
+        );
+      } catch (e) {
+        console.error('Erro ao remover carteira registradora:', e);
+        const errorMessage = e?.error || e?.message || e || 'Ocorreu um erro desconhecido.';
+        this.showAppNotification('Erro ao Remover Carteira', `Não foi possível remover a carteira: ${errorMessage}`, 'error');
+      } finally {
+        this.isSubmitting = false;
+      }
     }
   }
 };
 </script>
 
 <style scoped>
-.admin-action {
-  display: flex;
-  justify-content: center;
-  padding: var(--sp-lg) 0;
+/* Estilos são muito similares ao AddWallet.vue, podem ser compartilhados ou herdados. */
+.admin-action-card .card {
+  border: var(--border-width) solid var(--color-border);
 }
-.card {
-  width: 100%;
-  max-width: 500px;
-  background: var(--color-white);
-  border: none;
-  border-radius: var(--sp-sm);
-  padding: var(--sp-lg);
-  transform: none;
-  transition: none; /* Opcional: remove a transição para esse card específico */
-}
-.card:hover, .card:focus-within {
-  box-shadow: none; /* Use o box-shadow padrão ou none */
-  transform: none; /* Remove o efeito de levantar */
-}
-.section-subtitle {
+
+.card-title-icon {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: var(--sp-sm);
   font-family: var(--font-heading);
-  color: var(--color-primary);
-  margin-bottom: var(--sp-md);
+  font-size: var(--fs-h5);
+  color: var(--color-text-primary);
+  margin-bottom: var(--sp-lg);
+  padding-bottom: var(--sp-sm);
+  border-bottom: var(--border-width) solid var(--color-border-light);
 }
-.section-subtitle .icon {
-  margin-right: var(--sp-sm);
-  font-size: 1.2rem;
+.card-title-icon svg {
+  color: var(--color-danger); /* Ícone na cor de perigo */
 }
-.form-section {
+
+.form {
   display: flex;
   flex-direction: column;
 }
-.form-group {
-  margin-bottom: var(--sp-md);
-}
-.form-group label {
-  display: block;
-  margin-bottom: var(--sp-xs);
-  color: var(--color-dark-gray);
-}
-.form-group input {
-  width: 100%;
-  padding: var(--sp-sm);
-  border: 1px solid var(--color-border);
-  border-radius: var(--sp-sm);
-  transition: border-color 0.2s;
-}
-.form-group input:focus {
-  border-color: var(--color-primary);
-  outline: none;
-}
-.button-danger {
-  background: #e74c3c;
-  color: #fff;
-  border: 2px solid #e74c3c;
-  padding: var(--sp-sm) var(--sp-md);
-  border-radius: var(--sp-sm);
-  cursor: pointer;
-  transition: background 0.3s, transform 0.2s;
-}
-.button-danger:hover,
-.button-danger:focus {
-  background-color: var(--color-bg);
-  color: #e74c3c;
-  outline: none;
+
+.form-text {
+    font-size: var(--fs-small);
+    color: var(--color-text-muted);
+    margin-top: var(--sp-xs);
 }
 
-/* Modal */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-.modal-content {
-  background-color: #ffffff !important;
-  padding: var(--sp-lg);
-  border-radius: var(--sp-sm);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-  font-family: var(--font-heading);
-  font-size: var(--font-size-base);
-  text-align: center;
-  max-width: 80%;
-}
-.modal-content.success {
-  border: 2px solid #27ae60;
-  color: #27ae60;
-}
-.modal-content.error {
-  border: 2px solid #e74c3c;
-  color: #e74c3c;
+.admin-action-card .button-danger { /* Garante que o botão de remover use o estilo de perigo */
+    margin-top: var(--sp-md);
 }
 </style>

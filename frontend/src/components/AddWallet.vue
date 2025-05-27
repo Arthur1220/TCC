@@ -1,174 +1,152 @@
 <template>
-  <div>
-    <div class="admin-action">
-      <div class="card">
-        <h3 class="section-subtitle">
-          Registrar Carteira
-        </h3>
-        <form @submit.prevent="handleAdd" class="form-section">
-          <div class="form-group">
-            <label for="new-registrar">Endereço da Carteira:</label>
-            <input
-              id="new-registrar"
-              v-model="registrar"
-              type="text"
-              placeholder="0x..."
-              required
-            />
-          </div>
-          <button type="submit" class="button-primary">Adicionar</button>
-        </form>
-      </div>
+  <div class="admin-action-card"> <div class="card">
+      <h3 class="card-title-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-3h-2v2H12v-2H10v-2h2V9h2v2h2v2z"/></svg>
+        Registrar Nova Carteira (Registrador)
+      </h3>
+      <form @submit.prevent="handleAdd" class="form">
+        <div class="form-group">
+          <label for="new-registrar-address" class="form-label">Endereço da Carteira Ethereum*</label>
+          <input
+            id="new-registrar-address"
+            v-model="registrarAddress"
+            type="text"
+            class="input"
+            placeholder="Cole o endereço da carteira (ex: 0x...)"
+            required
+            aria-required="true"
+          />
+          <p class="form-text">Este endereço será autorizado a registrar eventos na blockchain.</p>
+        </div>
+        <button type="submit" class="button button-primary button-block" :disabled="isSubmitting">
+          <span v-if="isSubmitting">Adicionando...</span>
+          <span v-else>Adicionar Carteira</span>
+        </button>
+      </form>
     </div>
 
-    <div v-if="showModal" class="modal-overlay">
-      <div
-        class="modal-content"
-        :class="message.startsWith('Erro') ? 'error' : 'success'"
-      >
-        {{ message }}
-      </div>
-    </div>
+    <NotificationModal
+      :show="notification.show"
+      :title="notification.title"
+      :message="notification.message"
+      :type="notification.type"
+      @close="closeNotification"
+    />
   </div>
 </template>
 
 <script>
 import { addRegistrar } from '@/services/contractService';
+import NotificationModal from '@/components/NotificationModal.vue';
+
 export default {
   name: 'AddWallet',
+  components: {
+    NotificationModal
+  },
   data() {
     return {
-      registrar: '',
-      message: '',
-      showModal: false
+      registrarAddress: '', // Renomeado para clareza
+      isSubmitting: false, // Estado de carregamento para o botão
+      notification: {
+        show: false,
+        title: '',
+        message: '',
+        type: 'success'
+      }
     };
   },
   methods: {
+    showAppNotification(title, message, type = 'success') {
+      this.notification.title = title;
+      this.notification.message = message;
+      this.notification.type = type;
+      this.notification.show = true;
+    },
+    closeNotification() {
+      this.notification.show = false;
+    },
     async handleAdd() {
-      if (!this.registrar.trim()) {
-        this.showFeedback('Informe o endereço da carteira.', true);
+      if (!this.registrarAddress.trim()) {
+        this.showAppNotification('Erro de Validação', 'Por favor, informe o endereço da carteira.', 'error');
         return;
       }
-      try {
-        const res = await addRegistrar(this.registrar.trim());
-        this.registrar = '';
-        this.showFeedback(`✔️ Registrador adicionado: ${res.tx_hash}`, false);
-      } catch (e) {
-        this.showFeedback(`Erro ao adicionar: ${e.error || e}`, true);
+      // Adicionar validação simples para formato de endereço Ethereum
+      if (!/^0x[a-fA-F0-9]{40}$/.test(this.registrarAddress.trim())) {
+          this.showAppNotification('Erro de Validação', 'Formato de endereço de carteira Ethereum inválido.', 'error');
+          return;
       }
-    },
-    showFeedback(msg, isError) {
-      this.message = msg;
-      this.showModal = true;
-      setTimeout(() => {
-        this.showModal = false;
-        this.message = '';
-      }, 3000);
+
+      this.isSubmitting = true;
+      this.closeNotification(); // Fecha notificações anteriores
+
+      try {
+        const addressToAdd = this.registrarAddress.trim();
+        const res = await addRegistrar(addressToAdd);
+        this.registrarAddress = ''; // Limpa o campo
+        this.showAppNotification(
+          'Sucesso!',
+          `Carteira ${addressToAdd.substring(0,6)}...${addressToAdd.substring(addressToAdd.length-4)} adicionada como registrador. Hash da transação: ${res.tx_hash || 'N/A'}`,
+          'success'
+        );
+      } catch (e) {
+        console.error('Erro ao adicionar carteira registradora:', e);
+        const errorMessage = e?.error || e?.message || e || 'Ocorreu um erro desconhecido.';
+        this.showAppNotification('Erro ao Adicionar Carteira', `Não foi possível adicionar a carteira: ${errorMessage}`, 'error');
+      } finally {
+        this.isSubmitting = false;
+      }
     }
   }
 };
 </script>
 
 <style scoped>
-.admin-action {
-  display: flex;
-  justify-content: center;
-  padding: var(--sp-lg) 0;
+/* A classe .admin-action-card é o container principal do componente dentro do grid da AdminPage */
+
+/* O .card global já define background, border-radius, padding base, box-shadow. */
+/* Sobrescrevemos apenas o que for necessário para o contexto do admin, se for diferente. */
+.admin-action-card .card {
+  border: var(--border-width) solid var(--color-border); /* Adiciona uma borda padrão */
+  /* Mantém a sombra padrão do .card, remove transform se AdminPage não deve ter cards interativos */
+  /* Para remover o efeito de levantar no hover, específico para admin cards: */
+  /* transition: none;
+  transform: none !important; */
 }
-.card {
-  width: 100%;
-  max-width: 500px;
-  background: var(--color-white);
-  border: none;
-  border-radius: var(--sp-sm);
-  padding: var(--sp-lg);
-  transform: none;
-  transition: none; /* Opcional: remove a transição para esse card específico */
-}
-.card:hover, .card:focus-within {
-  box-shadow: none; /* Use o box-shadow padrão ou none */
-  transform: none; /* Remove o efeito de levantar */
-}
-.section-subtitle {
+/* .admin-action-card .card:hover {
+  transform: none !important;
+  box-shadow: var(--shadow) !important; /* Mantém a sombra base ou a padrão de card */
+/*}*/
+
+
+.card-title-icon { /* Substitui .section-subtitle */
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: var(--sp-sm);
   font-family: var(--font-heading);
-  color: var(--color-primary);
-  margin-bottom: var(--sp-md);
+  font-size: var(--fs-h5); /* Tamanho apropriado para título de card de ação */
+  color: var(--color-text-primary); /* Cor de texto primário */
+  margin-bottom: var(--sp-lg); /* Mais espaço abaixo do título */
+  padding-bottom: var(--sp-sm);
+  border-bottom: var(--border-width) solid var(--color-border-light);
 }
-.section-subtitle .icon {
-  margin-right: var(--sp-sm);
-  font-size: 1.2rem;
+.card-title-icon svg {
+  color: var(--color-primary); /* Ícone na cor primária */
 }
-.form-section {
+
+.form { /* Se .form global não existir ou precisar de ajustes */
   display: flex;
   flex-direction: column;
 }
-.form-group {
-  margin-bottom: var(--sp-md);
-}
-.form-group label {
-  display: block;
-  margin-bottom: var(--sp-xs);
-  color: var(--color-dark-gray);
-}
-.form-group input {
-  width: 100%;
-  padding: var(--sp-sm);
-  border: 1px solid var(--color-border);
-  border-radius: var(--sp-sm);
-  transition: border-color 0.2s;
-}
-.form-group input:focus {
-  border-color: var(--color-primary);
-  outline: none;
-}
-.button-primary {
-  padding: var(--sp-sm) var(--sp-lg);
-  background-color: var(--color-bg);
-  color: var(--color-accent);
-  border: 2px solid var(--color-accent);
-  border-radius: var(--sp-sm);
-  cursor: pointer;
-  transition: background 0.3s, transform 0.2s;
-}
-.button-primary:hover,
-.button-primary:focus {
-  background-color: var(--color-accent);
-  color: var(--color-bg);
-  outline: none;
+
+/* .form-group, .form-label, .input, .button, .button-primary, .button-block são globais */
+.form-text { /* Para texto de ajuda abaixo do input, usar classe global */
+    font-size: var(--fs-small);
+    color: var(--color-text-muted);
+    margin-top: var(--sp-xs);
 }
 
-/* Modal */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-.modal-content {
-  background-color: #ffffff !important;
-  padding: var(--sp-lg);
-  border-radius: var(--sp-sm);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-  font-family: var(--font-heading);
-  font-size: var(--font-size-base);
-  text-align: center;
-  max-width: 80%;
-}
-.modal-content.success {
-  border: 2px solid #27ae60;
-  color: #27ae60;
-}
-.modal-content.error {
-  border: 2px solid #e74c3c;
-  color: #e74c3c;
+.admin-action-card .button-primary {
+    margin-top: var(--sp-md); /* Espaço acima do botão */
 }
 </style>

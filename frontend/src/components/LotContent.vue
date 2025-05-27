@@ -1,61 +1,89 @@
 <template>
-  <section class="content-panel">
-    <div class="header-row">
-      <button class="back-button" @click="goBack">
-        ← Voltar aos Animais
+  <section class="content-panel lot-content-panel">
+    <div class="panel-header"> <button class="button button-outline-secondary button-sm back-button-styled" @click="goBack">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+        Voltar
       </button>
-      <h2 class="panel-title">Gerenciar Lotes</h2>
+      <h2 class="panel-title-text">Gerenciar Lotes (Grupos de Animais)</h2>
     </div>
+    <p class="panel-description">
+      Visualize os lotes existentes, veja os animais em cada lote e realize edições em massa.
+    </p>
 
-    <div v-if="groups.length" class="cards-grid">
+    <div v-if="isLoadingGroups" class="loading-state">
+        <p>Carregando lotes...</p>
+    </div>
+    <div v-else-if="groups.length" class="cards-grid">
       <div
         v-for="group in groups"
         :key="group.id"
-        class="group-card"
-        @click="openGroup(group)"
+        class="group-card card card-interactive" 
+        @click="openGroupDetailsModal(group)"
         tabindex="0"
+        @keydown.enter="openGroupDetailsModal(group)"
+        :aria-label="`Ver detalhes do lote ${group.name}`"
       >
-        <div class="card-header">
-          <h3>{{ group.name }}</h3>
+        <div class="card-header-custom"> <h3 class="group-card-title">{{ group.name }}</h3>
         </div>
-        <div class="card-body">
-          <p>{{ groupAnimalsMap[group.id] }} animais</p>
+        <div class="card-body-custom">
+          <p class="group-animal-count">{{ groupAnimalsMap[group.id] || 0 }} animais</p>
+          <p class="group-description">{{ group.description || 'Sem descrição.' }}</p>
         </div>
+        <div class="card-footer-actions">
+            <button class="button button-outline-primary button-sm" @click.stop="openGroupDetailsModal(group)">Ver Animais</button>
+            </div>
       </div>
     </div>
     <div v-else class="empty-state">
       <p>Nenhum lote cadastrado.</p>
-    </div>
+      </div>
 
-    <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
-      <div class="modal-content large-modal">
-        <h3 class="modal-title">
-          Animais do Lote “{{ selectedGroup ? selectedGroup.name : '' }}”
-        </h3>
-
-        <div class="batch-actions-header">
-          <button v-if="selectedAnimalIdsForBatch.length > 0" class="button-secondary" @click="openBatchUpdateModal">
-            Editar em Lote ({{ selectedAnimalIdsForBatch.length }})
-          </button>
-          <button v-else class="button-secondary" disabled>
-            Editar em Lote
-          </button>
+    <div v-if="showGroupDetailsModal" class="modal-overlay" @click.self="closeGroupDetailsModal">
+      <div class="modal-content card large-modal">
+        <div class="modal-header">
+            <h3 class="modal-title-text">
+            Animais do Lote: {{ selectedGroup ? selectedGroup.name : '' }}
+            </h3>
+            <button @click="closeGroupDetailsModal" class="button-close" aria-label="Fechar modal">&times;</button>
         </div>
-
-        <ul class="modal-list">
-          <li v-for="animal in selectedAnimals" :key="animal.id">
-            <input type="checkbox" :value="animal.id" v-model="selectedAnimalIdsForBatch" />
-            <div class="animal-info">
-              <span class="animal-id">{{ animal.identification }}</span> -
-              Status: <span :class="getStatusClass(animal.status)">{{ getStatusName(animal.status) }}</span> -
-              Grupo: {{ getGroupName(animal.group) }} -
-              Tipo ID: {{ getIdentificationTypeName(animal.identification_type) }} -
-              Raça: {{ getBreedName(animal.breed) }} (Espécie: {{ getSpecieName(animal.specie) }})
+        <div class="modal-body">
+            <div class="batch-actions-bar">
+                <span>{{ selectedAnimalIdsForBatch.length }} animal(is) selecionado(s)</span>
+                <button 
+                    class="button button-primary button-sm" 
+                    @click="openBatchUpdateModal"
+                    :disabled="selectedAnimalIdsForBatch.length === 0"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                    Editar Selecionados
+                </button>
             </div>
-          </li>
-        </ul>
-        <div class="form-actions">
-          <button class="button-primary" @click="closeModal">
+
+            <div v-if="isLoadingAnimalsInGroup" class="loading-state">
+                <p>Carregando animais do lote...</p>
+            </div>
+            <ul v-else-if="selectedAnimals.length" class="animal-list-in-modal styled-list-group">
+            <li v-for="animal in selectedAnimals" :key="animal.id" class="list-item">
+                <label :for="`animal-check-${animal.id}`" class="animal-select-label">
+                    <input 
+                        type="checkbox" 
+                        :id="`animal-check-${animal.id}`"
+                        :value="animal.id" 
+                        v-model="selectedAnimalIdsForBatch" 
+                        class="checkbox-input"
+                    />
+                    <div class="animal-info-details">
+                        <span class="animal-id-text">{{ animal.identification }}</span>
+                        <span class="animal-detail-item">Status: <span :class="getStatusClass(animal.status_name)">{{ animal.status_name || 'N/D' }}</span></span>
+                        <span class="animal-detail-item">Raça: {{ animal.breed_name || 'N/D' }} (Espécie: {{ animal.specie_name || 'N/D' }})</span>
+                    </div>
+                </label>
+            </li>
+            </ul>
+            <p v-else class="empty-state small-empty-state">Nenhum animal encontrado neste lote.</p>
+        </div>
+        <div class="modal-actions form-actions">
+          <button class="button button-secondary" @click="closeGroupDetailsModal">
             Fechar
           </button>
         </div>
@@ -63,81 +91,74 @@
     </div>
 
     <div v-if="showBatchUpdateModal" class="modal-overlay" @click.self="closeBatchUpdateModal">
-      <div class="modal-content">
-        <h3 class="modal-title">Atualizar em Lote</h3>
-        <p v-if="selectedAnimalIdsForBatch.length">
-          Você selecionou **{{ selectedAnimalIdsForBatch.length }} animal(is)** para atualização.
-        </p>
-
-        <div class="form-group">
-          <label for="batch-update-type">O que deseja atualizar?</label>
-          <select id="batch-update-type" v-model="batchUpdateType" @change="resetBatchUpdateValue">
-            <option disabled value="">Selecione um tipo de atualização</option>
-            <option value="status">Status</option>
-            <option value="group">Grupo/Lote</option>
-            <option value="identification_type">Tipo de Identificação</option>
-            <option value="breed">Raça</option>
-          </select>
+      <div class="modal-content card"> <div class="modal-header">
+            <h3 class="modal-title-text">Atualizar Animais em Lote</h3>
+            <button @click="closeBatchUpdateModal" class="button-close" aria-label="Fechar modal">&times;</button>
         </div>
+        <form @submit.prevent="handleBatchUpdate" class="modal-form">
+            <p v-if="selectedAnimalIdsForBatch.length" class="selection-info">
+            Você está atualizando <strong>{{ selectedAnimalIdsForBatch.length }} animal(is)</strong>.
+            </p>
 
-        <div class="form-group" v-if="batchUpdateType === 'status'">
-          <label for="batch-status">Novo Status:</label>
-          <select id="batch-status" v-model="newBatchValue.status_id" required>
-            <option disabled value="">Selecione um status</option>
-            <option v-for="s in statuses" :key="s.id" :value="s.id">
-              {{ s.name }}
-            </option>
-          </select>
-        </div>
+            <div class="form-group">
+            <label for="batch-update-type" class="form-label">O que deseja atualizar?</label>
+            <select id="batch-update-type" v-model="batchUpdateType" @change="resetBatchUpdateValue" class="select" required>
+                <option disabled value="">Selecione um atributo</option>
+                <option value="status">Status</option>
+                <option value="group">Grupo/Lote</option>
+                <option value="identification_type">Tipo de Identificação</option>
+                <option value="breed">Raça (e Espécie associada)</option>
+            </select>
+            </div>
 
-        <div class="form-group" v-else-if="batchUpdateType === 'group'">
-          <label for="batch-group">Novo Grupo/Lote:</label>
-          <select id="batch-group" v-model="newBatchValue.group_id">
-            <option value="">(Remover de Lote)</option>
-            <option v-for="g in animalGroups" :key="g.id" :value="g.id">
-              {{ g.name }}
-            </option>
-          </select>
-        </div>
+            <div class="form-group" v-if="batchUpdateType === 'status'">
+            <label for="batch-status" class="form-label">Novo Status:</label>
+            <select id="batch-status" v-model="newBatchValue.status_id" class="select" required>
+                <option disabled :value="null_placeholder_batch_status">Selecione um status</option>
+                <option v-for="s in statuses" :key="s.id" :value="s.id">{{ s.name }}</option>
+            </select>
+            </div>
 
-        <div class="form-group" v-else-if="batchUpdateType === 'identification_type'">
-          <label for="batch-identification-type">Novo Tipo de Identificação:</label>
-          <select id="batch-identification-type" v-model="newBatchValue.identification_type_id" required>
-            <option disabled value="">Selecione um tipo</option>
-            <option v-for="it in identificationTypes" :key="it.id" :value="it.id">
-              {{ it.name }}
-            </option>
-          </select>
-        </div>
+            <div class="form-group" v-else-if="batchUpdateType === 'group'">
+            <label for="batch-group" class="form-label">Novo Grupo/Lote:</label>
+            <select id="batch-group" v-model="newBatchValue.group_id" class="select">
+                <option :value="null_placeholder_batch_group">(Remover do Lote / Sem Lote)</option>
+                <option v-for="g in availableAnimalGroupsForBatch" :key="g.id" :value="g.id">{{ g.name }}</option>
+            </select>
+            </div>
 
-        <div class="form-group" v-else-if="batchUpdateType === 'breed'">
-          <label for="batch-specie">Espécie (para filtrar raças):</label>
-          <select id="batch-specie" v-model="selectedSpecieForBreedFilter" @change="onSpecieForBreedFilterChange">
-            <option value="">Todas as Espécies</option>
-            <option v-for="s in species" :key="s.id" :value="s.id">{{ s.name }}</option>
-          </select>
+            <div class="form-group" v-else-if="batchUpdateType === 'identification_type'">
+            <label for="batch-identification-type" class="form-label">Novo Tipo de Identificação:</label>
+            <select id="batch-identification-type" v-model="newBatchValue.identification_type_id" class="select" required>
+                <option disabled :value="null_placeholder_batch_id_type">Selecione um tipo</option>
+                <option v-for="it in identificationTypes" :key="it.id" :value="it.id">{{ it.name }}</option>
+            </select>
+            </div>
 
-          <label for="batch-breed">Nova Raça:</label>
-          <select id="batch-breed" v-model="newBatchValue.breed_id" required>
-            <option value="">(Remover Raça)</option>
-            <option
-              v-for="b in filteredBreedsForBatch"
-              :key="b.id"
-              :value="b.id"
-            >
-              {{ b.name }}
-            </option>
-          </select>
-        </div>
+            <div class="form-group" v-else-if="batchUpdateType === 'breed'">
+            <label for="batch-specie-filter" class="form-label">Filtrar Raças por Espécie:</label>
+            <select id="batch-specie-filter" v-model="selectedSpecieForBreedFilter" @change="onSpecieForBreedFilterChange" class="select">
+                <option value="">Todas as Espécies</option>
+                <option v-for="s in species" :key="s.id" :value="s.id">{{ s.name }}</option>
+            </select>
 
-        <div class="form-actions">
-          <button class="button-primary" @click="handleBatchUpdate">
-            Aplicar Mudanças
-          </button>
-          <button type="button" class="button-secondary" @click="closeBatchUpdateModal">
-            Cancelar
-          </button>
-        </div>
+            <label for="batch-breed" class="form-label">Nova Raça:</label>
+            <select id="batch-breed" v-model="newBatchValue.breed_id" class="select" :disabled="filteredBreedsForBatch.length === 0 && !!selectedSpecieForBreedFilter">
+                <option :value="null_placeholder_batch_breed">(Remover Raça)</option>
+                <option v-for="b in filteredBreedsForBatch" :key="b.id" :value="b.id">{{ b.name }}</option>
+            </select>
+            <p v-if="filteredBreedsForBatch.length === 0 && !!selectedSpecieForBreedFilter" class="form-text text-warning">Nenhuma raça encontrada para a espécie selecionada.</p>
+            </div>
+
+            <div class="form-actions">
+            <button type="submit" class="button button-primary" :disabled="!batchUpdateType">
+                Aplicar Mudanças
+            </button>
+            <button type="button" class="button button-secondary" @click="closeBatchUpdateModal">
+                Cancelar
+            </button>
+            </div>
+        </form>
       </div>
     </div>
 
@@ -145,113 +166,164 @@
       :show="notification.show"
       :message="notification.message"
       :type="notification.type"
-      @close="notification.show = false"
+      @close="closeNotification"
     />
   </section>
 </template>
 
 <script>
+// Seu script existente, com as melhorias de notificação e placeholders
 import { getAnimals, updateAnimalsBatch } from '@/services/animalService';
 import { getAnimalGroups, getStatuses, getIdentificationTypes, getBreeds, getSpecies } from '@/services/lookupService';
-import NotificationModal from '@/components/NotificationModal.vue'; // Importa o novo componente
+import NotificationModal from '@/components/NotificationModal.vue';
 
 export default {
   name: 'LotContent',
   components: {
-    NotificationModal // Registra o componente
+    NotificationModal
   },
+  emits: ['back'], // Declarar emits
   data() {
+    const nullPlaceholder = null;
     return {
       groups: [],
       groupAnimalsMap: {},
-      showModal: false,
+      showGroupDetailsModal: false, // Renomeado de showModal
       selectedGroup: null,
       selectedAnimals: [],
+      isLoadingGroups: true,
+      isLoadingAnimalsInGroup: false,
       selectedAnimalIdsForBatch: [],
 
       showBatchUpdateModal: false,
       batchUpdateType: '',
       newBatchValue: {
-        status_id: null,
-        group_id: null,
-        identification_type_id: null,
-        breed_id: null,
-        specie_id: null,
+        status_id: nullPlaceholder,
+        group_id: nullPlaceholder,
+        identification_type_id: nullPlaceholder,
+        breed_id: nullPlaceholder,
+        // specie_id não é diretamente atualizado no animal, é derivado da raça
       },
       selectedSpecieForBreedFilter: '',
 
       statuses: [],
-      animalGroups: [],
+      animalGroups: [], // Lista completa para selects
       identificationTypes: [],
       breeds: [],
       species: [],
 
-      // Dados para o modal de notificação
-      notification: {
-        show: false,
-        message: '',
-        type: 'success' // ou 'error'
-      }
-    }
-  },
-  async created() {
-    await this.loadLookupsForBatchUpdate();
-    await this.loadInitialData();
+      notification: { show: false, message: '', type: 'success' },
+
+      // Placeholders para selects no modal de atualização em lote
+      null_placeholder_batch_status: nullPlaceholder,
+      null_placeholder_batch_group: nullPlaceholder, // Usado para "(Remover de Lote)"
+      null_placeholder_batch_id_type: nullPlaceholder,
+      null_placeholder_batch_breed: nullPlaceholder, // Usado para "(Remover Raça)"
+    };
   },
   computed: {
     filteredBreedsForBatch() {
         if (!this.selectedSpecieForBreedFilter) {
             return this.breeds;
         }
+        // `b.specie` no objeto Breed deve ser o ID da espécie
         return this.breeds.filter(b => b.specie === this.selectedSpecieForBreedFilter);
+    },
+    availableAnimalGroupsForBatch() {
+        // Exclui o lote atual da lista de "novo grupo" para evitar mover para o mesmo lote
+        if (this.selectedGroup) {
+            return this.animalGroups.filter(g => g.id !== this.selectedGroup.id);
+        }
+        return this.animalGroups;
     }
   },
+  async created() {
+    await this.loadLookupsForBatchUpdate(); // Carrega todos os lookups primeiro
+    await this.loadInitialData();
+  },
   methods: {
+    showAppNotification(message, type = 'success', duration = 3000) {
+      this.notification.message = message;
+      this.notification.type = type;
+      this.notification.show = true;
+      if (duration) { // Permite notificações que não fecham automaticamente
+        setTimeout(() => { this.notification.show = false; }, duration);
+      }
+    },
+    closeNotification() { this.notification.show = false; },
     async loadInitialData() {
+      this.isLoadingGroups = true;
       try {
-        this.groups = await getAnimalGroups();
+        // getAnimalGroups já deve ser filtrado por owner no backend ou no serviço
+        const groupsData = await getAnimalGroups();
+        this.groups = groupsData.sort((a,b) => a.name.localeCompare(b.name));
         await this.loadAnimalsCount();
       } catch (e) {
         console.error('Erro ao carregar lotes:', e);
-        this.showNotification('Erro ao carregar lotes.', 'error');
+        this.showAppNotification('Erro ao carregar lotes.', 'error');
+      } finally {
+        this.isLoadingGroups = false;
       }
     },
     async loadLookupsForBatchUpdate() {
-        try {
-            this.statuses = await getStatuses();
-            this.animalGroups = await getAnimalGroups();
-            this.identificationTypes = await getIdentificationTypes();
-            this.breeds = await getBreeds();
-            this.species = await getSpecies();
-        } catch (e) {
-            console.error('Erro ao carregar dados de lookup:', e);
-            this.showNotification('Erro ao carregar dados de lookup.', 'error');
-        }
-    },
-    async loadAnimalsCount() {
-      for (const g of this.groups) {
-        try {
-          const list = await getAnimals({ group: g.id });
-          this.$set(this.groupAnimalsMap, g.id, list.length);
-        } catch {
-          this.$set(this.groupAnimalsMap, g.id, 0);
-        }
+      try {
+        [
+            this.statuses, this.animalGroups, this.identificationTypes,
+            this.breeds, this.species
+        ] = await Promise.all([
+            getStatuses(), getAnimalGroups(), getIdentificationTypes(),
+            getBreeds(), getSpecies()
+        ]);
+        // Ordenar listas para melhor UX nos selects
+        this.statuses.sort((a,b) => a.name.localeCompare(b.name));
+        this.animalGroups.sort((a,b) => a.name.localeCompare(b.name));
+        this.identificationTypes.sort((a,b) => a.name.localeCompare(b.name));
+        this.breeds.sort((a,b) => a.name.localeCompare(b.name));
+        this.species.sort((a,b) => a.name.localeCompare(b.name));
+
+      } catch (e) {
+        console.error('Erro ao carregar dados de lookup para atualização em lote:', e);
+        this.showAppNotification('Erro ao carregar dados de referência para atualização.', 'error');
       }
     },
-    async openGroup(group) {
+    async loadAnimalsCount() {
+      const counts = {};
+      // Otimização: Buscar todos os animais uma vez e contar no frontend,
+      // ou ter um endpoint que retorne contagens.
+      // Por simplicidade, mantendo chamadas individuais por enquanto, mas ciente do N+1.
+      const allAnimals = await getAnimals(); // Assumindo que isso busca todos os animais do usuário
+
+      for (const group of this.groups) {
+          counts[group.id] = allAnimals.filter(animal => animal.group === group.id).length;
+      }
+      this.groupAnimalsMap = counts;
+    },
+    async openGroupDetailsModal(group) {
       this.selectedGroup = group;
-      this.selectedAnimalIdsForBatch = [];
+      this.selectedAnimalIdsForBatch = []; // Limpa seleção anterior
+      this.isLoadingAnimalsInGroup = true;
+      this.showGroupDetailsModal = true;
       try {
-        this.selectedAnimals = await getAnimals({ group: group.id });
+        // getAnimals já deve ser filtrado por owner no backend.
+        // Aqui filtramos especificamente pelo grupo.
+        const animalsInGroup = await getAnimals({ group: group.id });
+        this.selectedAnimals = animalsInGroup.map(a => ({
+            ...a,
+            // Adiciona nomes para exibição na lista do modal, caso o serializer não os inclua
+            status_name: a.status_name || this.getStatusName(a.status),
+            breed_name: a.breed_name || this.getBreedName(a.breed),
+            specie_name: a.specie_name || this.getSpecieNameFromBreed(a.breed) // Deriva espécie da raça
+        })).sort((a,b) => a.identification.localeCompare(b.identification));
       } catch (e) {
         console.error('Erro ao carregar animais do lote:', e);
         this.selectedAnimals = [];
-        this.showNotification('Erro ao carregar animais do lote.', 'error');
+        this.showAppNotification('Erro ao carregar animais do lote.', 'error');
+      } finally {
+        this.isLoadingAnimalsInGroup = false;
       }
-      this.showModal = true;
     },
-    closeModal() {
-      this.showModal = false;
+    closeGroupDetailsModal() {
+      this.showGroupDetailsModal = false;
       this.selectedGroup = null;
       this.selectedAnimals = [];
       this.selectedAnimalIdsForBatch = [];
@@ -259,454 +331,377 @@ export default {
     goBack() {
       this.$emit('back');
     },
-
     openBatchUpdateModal() {
         if (this.selectedAnimalIdsForBatch.length === 0) {
-            this.showNotification('Por favor, selecione pelo menos um animal para atualizar.', 'error');
+            this.showAppNotification('Por favor, selecione pelo menos um animal para atualizar.', 'warning');
             return;
         }
-        this.batchUpdateType = '';
-        this.resetBatchUpdateValue();
-        this.selectedSpecieForBreedFilter = '';
+        this.batchUpdateType = ''; // Reseta o tipo de atualização
+        this.resetBatchUpdateValue(); // Reseta os valores
         this.showBatchUpdateModal = true;
     },
     closeBatchUpdateModal() {
       this.showBatchUpdateModal = false;
     },
     resetBatchUpdateValue() {
-        this.newBatchValue = {
-            status_id: null,
-            group_id: null,
-            identification_type_id: null,
-            breed_id: null,
-            specie_id: null,
-        };
-        this.selectedSpecieForBreedFilter = '';
+      this.newBatchValue = {
+        status_id: this.null_placeholder_batch_status,
+        group_id: this.null_placeholder_batch_group, // Permitir "nenhum lote"
+        identification_type_id: this.null_placeholder_batch_id_type,
+        breed_id: this.null_placeholder_batch_breed, // Permitir "nenhuma raça"
+      };
+      this.selectedSpecieForBreedFilter = ''; // Reseta filtro de espécie
     },
     onSpecieForBreedFilterChange() {
-        this.newBatchValue.breed_id = null;
+      this.newBatchValue.breed_id = this.null_placeholder_batch_breed; // Reseta a raça selecionada
     },
-
     async handleBatchUpdate() {
-        if (this.selectedAnimalIdsForBatch.length === 0) {
-            this.showNotification('Nenhum animal selecionado para atualização.', 'error');
-            return;
+      if (this.selectedAnimalIdsForBatch.length === 0) {
+        this.showAppNotification('Nenhum animal selecionado para atualização.', 'warning');
+        return;
+      }
+      if (!this.batchUpdateType) {
+          this.showAppNotification('Selecione um atributo para atualizar.', 'warning');
+          return;
+      }
+
+      let updatePayload = {};
+      let fieldDescription = ''; // Para a mensagem de sucesso/erro
+
+      switch (this.batchUpdateType) {
+        case 'status':
+          if (this.newBatchValue.status_id === this.null_placeholder_batch_status) {
+            this.showAppNotification('Por favor, selecione um novo status.', 'warning'); return;
+          }
+          updatePayload = { new_status_id: this.newBatchValue.status_id };
+          fieldDescription = 'Status';
+          break;
+        case 'group':
+          // new_group_id pode ser null se null_placeholder_batch_group for null
+          updatePayload = { new_group_id: this.newBatchValue.group_id };
+          fieldDescription = 'Grupo/Lote';
+          break;
+        case 'identification_type':
+          if (this.newBatchValue.identification_type_id === this.null_placeholder_batch_id_type) {
+            this.showAppNotification('Por favor, selecione um novo tipo de identificação.', 'warning'); return;
+          }
+          updatePayload = { new_identification_type_id: this.newBatchValue.identification_type_id };
+          fieldDescription = 'Tipo de Identificação';
+          break;
+        case 'breed':
+          updatePayload = { new_breed_id: this.newBatchValue.breed_id };
+          // A espécie (new_specie_id) será derivada no backend ou no serviço pelo new_breed_id
+          fieldDescription = 'Raça';
+          break;
+        default:
+          this.showAppNotification('Tipo de atualização inválido.', 'error');
+          return;
+      }
+
+      try {
+        const response = await updateAnimalsBatch(this.selectedAnimalIdsForBatch, updatePayload);
+        this.showAppNotification(
+          `${response.updated_animals_count} animal(is) tiveram o(a) ${fieldDescription.toLowerCase()} atualizado(s) com sucesso!`,
+          'success'
+        );
+        this.closeBatchUpdateModal();
+        // Recarregar animais do lote selecionado após a atualização
+        if (this.selectedGroup) {
+            await this.openGroupDetailsModal(this.selectedGroup); // Reabre e recarrega
         }
-
-        let updatePayload = {};
-        let successMessage = '';
-        let errorMessage = '';
-
-        switch (this.batchUpdateType) {
-            case 'status':
-                if (this.newBatchValue.status_id === null) { // Usar null para verificar se algo foi selecionado
-                    this.showNotification('Por favor, selecione um novo status.', 'error');
-                    return;
-                }
-                updatePayload = { new_status_id: this.newBatchValue.status_id };
-                successMessage = 'Status';
-                errorMessage = 'status';
-                break;
-            case 'group':
-                updatePayload = { new_group_id: this.newBatchValue.group_id || null };
-                successMessage = 'Grupo/Lote';
-                errorMessage = 'grupo/lote';
-                break;
-            case 'identification_type':
-                if (this.newBatchValue.identification_type_id === null) {
-                    this.showNotification('Por favor, selecione um novo tipo de identificação.', 'error');
-                    return;
-                }
-                updatePayload = { new_identification_type_id: this.newBatchValue.identification_type_id };
-                successMessage = 'Tipo de Identificação';
-                errorMessage = 'tipo de identificação';
-                break;
-            case 'breed':
-                updatePayload = { new_breed_id: this.newBatchValue.breed_id || null };
-
-                if (this.newBatchValue.breed_id) {
-                    const selectedBreed = this.breeds.find(b => b.id === this.newBatchValue.breed_id);
-                    if (selectedBreed) {
-                        updatePayload.new_specie_id = selectedBreed.specie;
-                    }
-                } else {
-                    updatePayload.new_specie_id = null;
-                }
-
-                successMessage = 'Raça e Espécie';
-                errorMessage = 'raça e espécie';
-                break;
-            default:
-                this.showNotification('Selecione um tipo de atualização e um valor válido.', 'error');
-                return;
+        await this.loadAnimalsCount(); // Atualiza contagem nos cards principais
+      } catch (error) {
+        console.error(`Erro ao atualizar ${fieldDescription} em lote:`, error.response?.data || error);
+        let errorMsg = `Erro ao atualizar ${fieldDescription.toLowerCase()} em lote.`;
+        if (error.response && error.response.data) {
+            const errors = error.response.data;
+            if (errors.error) errorMsg += ` ${errors.error}`;
+            // Adicionar mais detalhes se o backend os fornecer
+            else if (typeof errors === 'object') {
+                 errorMsg += ' Detalhes: ' + Object.values(errors).flat().join(' ');
+            }
         }
-
-        try {
-            const response = await updateAnimalsBatch(
-                this.selectedAnimalIdsForBatch,
-                updatePayload
-            );
-            this.showNotification(`${response.updated_animals_count} animais tiveram o(a) ${successMessage.toLowerCase()} atualizado(s) com sucesso!`, 'success');
-
-            this.closeBatchUpdateModal();
-            this.closeModal();
-
-            await this.loadInitialData();
-
-        } catch (error) {
-            this.showNotification(`Erro ao atualizar ${errorMessage} em lote: ` + (error.response?.data?.error || error.message), 'error');
-        }
+        this.showAppNotification(errorMsg, 'error');
+      }
     },
-
-    // Novo método para exibir o modal de notificação
-    showNotification(message, type) {
-      this.notification.message = message;
-      this.notification.type = type;
-      this.notification.show = true;
-      setTimeout(() => {
-        this.notification.show = false;
-      }, 3000); // 3 segundos
-    },
-
     getStatusName(statusId) {
-        const status = this.statuses.find(s => s.id === statusId);
-        return status ? status.name : 'Desconhecido';
+      const status = this.statuses.find(s => s.id === statusId);
+      return status ? status.name : 'N/D';
     },
-    getStatusClass(statusId) {
-        const statusName = this.getStatusName(statusId).toLowerCase();
-        if (statusName === 'ativo') return 'status-active';
-        if (statusName === 'vendido') return 'status-sold';
-        return 'status-default';
+    getStatusClass(statusName) { // Recebe o nome do status já
+        if (!statusName) return 'status-badge status-default';
+        const nameLower = statusName.toLowerCase();
+        if (nameLower === 'ativo') return 'status-badge status-active';
+        if (nameLower === 'vendido') return 'status-badge status-sold';
+        if (nameLower === 'abatido') return 'status-badge status-slaughtered';
+        return 'status-badge status-default';
     },
     getGroupName(groupId) {
-        if (!groupId) return 'Nenhum Lote';
-        const group = this.animalGroups.find(g => g.id === groupId);
-        return group ? group.name : 'Desconhecido';
+      if (groupId === null || groupId === undefined) return 'Nenhum';
+      const group = this.animalGroups.find(g => g.id === groupId);
+      return group ? group.name : 'N/D';
     },
     getIdentificationTypeName(typeId) {
-        const type = this.identificationTypes.find(it => it.id === typeId);
-        return type ? type.name : 'Desconhecido';
+      const type = this.identificationTypes.find(it => it.id === typeId);
+      return type ? type.name : 'N/D';
     },
     getBreedName(breedId) {
-        if (!breedId) return 'Nenhuma Raça';
-        const breed = this.breeds.find(b => b.id === breedId);
-        return breed ? breed.name : 'Desconhecido';
+      if (!breedId) return 'N/D';
+      const breed = this.breeds.find(b => b.id === breedId);
+      return breed ? breed.name : 'N/D';
     },
-    getSpecieName(specieId) {
-        if (!specieId) return 'Nenhuma Espécie';
+    getSpecieNameFromBreed(breedId) { // Busca o nome da espécie através do ID da raça
+        if (!breedId) return 'N/D';
+        const breed = this.breeds.find(b => b.id === breedId);
+        if (breed && breed.specie) { // breed.specie é o ID da espécie
+            const specie = this.species.find(s => s.id === breed.specie);
+            return specie ? specie.name : 'N/D';
+        }
+        return 'N/D';
+    },
+     getSpecieName(specieId) { // Método direto se você tiver o specieId (ex: do animal.specie_id)
+        if (!specieId) return 'N/D';
         const specie = this.species.find(s => s.id === specieId);
-        return specie ? specie.name : 'Desconhecida';
+        return specie ? specie.name : 'N/D';
     }
   }
 }
 </script>
 
 <style scoped>
-/* Variáveis CSS para um tema mais limpo */
-:root {
-  --color-primary: #4CAF50; /* Verde principal */
-  --color-accent: #FF9800; /* Laranja de destaque */
-  --color-secondary: #757575; /* Cinza secundário */
-  --color-dark-gray: #333333;
-  --color-light-gray: #eeeeee;
-  --color-border: #e0e0e0;
-  --color-white: #ffffff;
-  --color-bg: #f9f9f9; /* Fundo mais claro */
-  --color-success: #4CAF50;
-  --color-danger: #F44336; /* Vermelho para erros/vendido */
+/* Estilos globais via classes e variáveis CSS são primários. */
+/* Estes são estilos específicos para LotContent. */
 
-  --sp-xs: 4px;
-  --sp-sm: 8px;
-  --sp-md: 16px;
-  --sp-lg: 24px;
-  --sp-xl: 32px;
-
-  --font-heading: 'Roboto', sans-serif;
-  --font-body: 'Open Sans', sans-serif;
-  --font-size-small: 0.875rem;
-  --font-size-base: 1rem;
-}
-
-body {
-  font-family: var(--font-body);
-  margin: 0;
-  background-color: var(--color-bg);
-  color: var(--color-dark-gray);
-}
-
-.content-panel {
-  background: var(--color-white);
-  padding: var(--sp-lg);
-  border-radius: var(--sp-sm);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08); /* Sombra mais suave */
-  margin-bottom: var(--sp-xl);
-}
-.header-row {
+.panel-header {
   display: flex;
   align-items: center;
+  justify-content: space-between; /* Ajustado para espaço entre o botão e o título */
   gap: var(--sp-md);
-  margin-bottom: var(--sp-lg);
+  margin-bottom: var(--sp-md); /* Reduzido */
   padding-bottom: var(--sp-md);
-  border-bottom: 1px solid var(--color-light-gray);
+  border-bottom: var(--border-width) solid var(--color-border-light);
 }
-.header-row .panel-title {
-  flex: 1;
-  margin: 0;
+
+.back-button-styled { /* Renomeado de .back-button para não conflitar com classe global .button */
+  /* Usar classes de botão globais e adicionar ajustes se necessário */
+  /* Ex: class="button button-outline-secondary button-sm" */
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs);
+  font-weight: var(--fw-medium);
+}
+.panel-title-text { /* Renomeado de .panel-title */
+  flex-grow: 1; /* Título ocupa espaço disponível */
   text-align: center;
   font-family: var(--font-heading);
-  color: var(--color-primary);
-  font-size: 1.8rem; /* Título maior */
-  font-weight: 700;
+  color: var(--color-text-primary);
+  font-size: var(--fs-h3);
+  margin: 0;
 }
-.back-button {
-  background: none;
-  border: none;
-  color: var(--color-secondary); /* Cor mais neutra */
-  font-size: 1rem;
-  cursor: pointer;
-  transition: color 0.2s ease-in-out;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: var(--sp-sm);
-  border-radius: var(--sp-sm);
+.panel-description {
+  text-align: center; /* Centralizado para esta tela */
+  color: var(--color-text-secondary);
+  margin-bottom: var(--sp-lg);
+  font-size: var(--fs-base);
 }
-.back-button:hover {
-  color: var(--color-primary);
-  background-color: var(--color-light-gray);
-}
+
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill,minmax(200px,1fr)); /* Cards um pouco maiores */
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); /* Cards um pouco maiores */
   gap: var(--sp-lg);
   padding: var(--sp-md) 0;
 }
 .group-card {
-  background: var(--color-white);
-  border: 1px solid var(--color-border);
-  border-radius: var(--sp-sm);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  padding: var(--sp-md);
-  cursor: pointer;
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  /* .card e .card-interactive (se definida globalmente para hover) já aplicam estilos base */
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 120px; /* Altura mínima para cards */
+  min-height: 150px; /* Altura mínima aumentada */
+  cursor: pointer;
 }
-.group-card:hover,
-.group-card:focus {
-  transform: translateY(-5px); /* Mais destaque no hover */
-  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-  outline: none;
-}
-.card-header h3 {
-  margin: 0;
-  font-size: 1.3rem; /* Título do card maior */
-  color: var(--color-primary);
-  font-weight: 600;
-  margin-bottom: var(--sp-sm);
-}
-.card-body p {
-  margin: var(--sp-xs) 0 0;
-  font-size: var(--font-size-base);
-  color: var(--color-secondary);
-}
-.empty-state {
-  text-align: center;
-  color: var(--color-secondary);
-  padding: var(--sp-xl) 0;
-  font-size: 1.1rem;
+.group-card:hover, .group-card:focus-within {
+    border-color: var(--color-primary); /* Destaque no hover */
 }
 
-/* Estilos de Modal */
-.modal-overlay {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.5); /* Fundo mais escuro para modals */
-  display: flex; align-items: center; justify-content: center;
-  z-index: 1000;
-  backdrop-filter: blur(3px); /* Efeito de blur no fundo */
+.card-header-custom { /* Para diferenciar do .card-header global se necessário */
+    padding-bottom: var(--sp-sm);
+    border-bottom: var(--border-width) solid var(--color-border-light);
+    margin-bottom: var(--sp-sm);
 }
-.modal-content {
-  background-color: #ffffff !important;
-  padding: var(--sp-lg);
-  border-radius: var(--sp-sm);
-  width: 100%; max-width: 500px; /* Largura padrão para modals */
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2); /* Sombra mais forte */
-  text-align: center;
-  position: relative;
-  animation: fadeInScale 0.3s ease-out; /* Animação de entrada */
-}
-.large-modal {
-  max-width: 900px; /* Aumenta a largura do modal de animais do lote */
-}
-.modal-title {
-  font-family: var(--font-heading);
+.group-card-title { /* Era h3 */
+  margin: 0;
+  font-size: var(--fs-large); /* Título do card */
   color: var(--color-primary);
-  margin-bottom: var(--sp-md);
-  font-size: 1.5rem;
-  font-weight: 700;
-  border-bottom: 1px solid var(--color-light-gray);
-  padding-bottom: var(--sp-sm);
+  font-weight: var(--fw-semibold);
 }
-.modal-list {
+.card-body-custom p {
+  margin: var(--sp-xs) 0 0;
+  font-size: var(--fs-base);
+  color: var(--color-text-secondary);
+}
+.group-animal-count {
+    font-weight: var(--fw-medium);
+}
+.group-description {
+    font-style: italic;
+    font-size: var(--fs-small);
+    color: var(--color-text-muted);
+    margin-top: var(--sp-xs);
+    /* Limitar número de linhas se necessário */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Mostrar no máximo 2 linhas */
+    line-clamp: 2; /* Standard property for compatibility */
+    -webkit-box-orient: vertical;
+}
+.card-footer-actions {
+    margin-top: var(--sp-md);
+    padding-top: var(--sp-sm);
+    border-top: var(--border-width) solid var(--color-border-light);
+    display: flex;
+    justify-content: flex-end;
+}
+
+
+.empty-state, .loading-state { /* .empty-state global já tem estilos */
+  padding: var(--sp-xl) 0;
+  font-size: var(--fs-large); /* Maior para destaque */
+}
+
+
+/* Modal de Detalhes do Lote */
+.modal-content.large-modal {
+  max-width: 900px; /* Mantido */
+}
+.batch-actions-bar { /* Renomeado de .batch-actions-header */
+  display: flex;
+  justify-content: space-between; /* Botão à direita, texto à esquerda */
+  align-items: center;
+  margin-bottom: var(--sp-md);
+  padding: var(--sp-sm) var(--sp-xs); /* Menor padding */
+  border-bottom: var(--border-width) solid var(--color-border-light);
+  background-color: var(--color-bg-muted);
+  border-radius: var(--border-radius-sm);
+}
+.batch-actions-bar span {
+    font-size: var(--fs-small);
+    color: var(--color-text-secondary);
+}
+.batch-actions-bar .button { /* Botão de editar em lote */
+    font-size: var(--fs-small);
+    padding: var(--sp-xs) var(--sp-sm);
+}
+.batch-actions-bar .button svg {
+    margin-right: var(--sp-xs);
+}
+
+
+.animal-list-in-modal { /* Renomeado de .modal-list */
   list-style: none;
   padding: 0;
   margin: 0 0 var(--sp-md);
-  max-height: 350px; /* Altura maior para a lista de animais */
+  max-height: 40vh; /* Ajustar altura máxima */
   overflow-y: auto;
-  border: 1px solid var(--color-border); /* Borda ao redor da lista */
-  border-radius: var(--sp-sm);
-  text-align: left;
-  background-color: var(--color-bg); /* Fundo da lista */
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--border-radius-sm);
 }
-.modal-list li {
+.animal-list-in-modal .list-item { /* Usando .list-item para consistência */
   padding: var(--sp-sm) var(--sp-md);
-  border-bottom: 1px solid var(--color-light-gray);
-  font-size: var(--font-size-base);
-  color: var(--color-dark-gray);
-  display: flex;
+  border-bottom: var(--border-width) solid var(--color-border-light);
+  display: flex; /* Já é flex, mas confirmar */
   align-items: center;
-  gap: var(--sp-sm);
-  background-color: var(--color-white);
-  transition: background-color 0.2s ease-in-out;
+  gap: var(--sp-md); /* Maior gap */
+  background-color: var(--color-bg-component);
 }
-.modal-list li:hover {
-  background-color: var(--color-light-gray);
-}
-.modal-list li:last-child {
+.animal-list-in-modal .list-item:last-child {
   border-bottom: none;
 }
-
-/* Estilos para o Checkbox e Info do Animal */
-.modal-list li input[type="checkbox"] {
-  transform: scale(1.2); /* Checkbox um pouco maior */
-  cursor: pointer;
+.animal-list-in-modal .list-item:hover {
+  background-color: var(--color-bg-hover);
 }
-.animal-info {
-  flex: 1;
+
+.animal-select-label { /* Label envolvendo checkbox e info para melhor clique */
+    display: flex;
+    align-items: center;
+    gap: var(--sp-md);
+    width: 100%;
+    cursor: pointer;
+}
+.checkbox-input { /* Classe para o input checkbox */
+  transform: scale(1.3); /* Checkbox maior */
+  margin-right: var(--sp-sm); /* Mantém o gap se o label não for usado para envolver */
+  flex-shrink: 0;
+}
+.animal-info-details { /* Renomeado de .animal-info */
+  flex-grow: 1;
   text-align: left;
-  white-space: normal; /* Permite quebras de linha no info para melhor leitura */
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.4; /* Espaçamento entre linhas */
+  font-size: var(--fs-base);
+  color: var(--color-text-secondary);
 }
-.animal-info .animal-id {
-  font-weight: bold;
-  color: var(--color-primary);
+.animal-id-text { /* Renomeado de .animal-id */
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-primary);
 }
-
-/* Estilos de Botões */
-.button-primary, .button-secondary {
-  padding: var(--sp-sm) var(--sp-lg);
-  border-radius: var(--sp-sm);
-  cursor: pointer;
-  transition: all 0.3s ease-in-out;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-size: 0.9rem;
+.animal-detail-item { /* Para cada detalhe do animal na lista */
+    display: block; /* Cada detalhe em uma nova linha */
+    font-size: var(--fs-small);
+    color: var(--color-text-muted);
+    margin-top: var(--sp-xxs);
 }
-.button-primary {
-  background-color: var(--color-primary);
-  color: var(--color-white);
-  border: 2px solid var(--color-primary);
-}
-.button-primary:hover, .button-primary:focus {
-  background-color: #43A047; /* Um tom mais escuro de verde */
-  box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
-  transform: translateY(-2px);
-}
-.button-secondary {
-  background-color: var(--color-white);
-  color: var(--color-accent);
-  border: 2px solid var(--color-accent);
-}
-.button-secondary:hover, .button-secondary:focus {
-  background-color: var(--color-accent);
-  color: var(--color-white);
-  box-shadow: 0 4px 10px rgba(255, 152, 0, 0.3);
-  transform: translateY(-2px);
-}
-.button-secondary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  background-color: var(--color-light-gray);
-  border-color: var(--color-border);
-  color: var(--color-secondary);
-  transform: none;
-  box-shadow: none;
+.animal-detail-item .status-badge { /* Para o status dentro da lista */
+    display: inline-block; /* Para o padding funcionar bem */
+    margin-left: var(--sp-xs);
 }
 
-.batch-actions-header {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: var(--sp-md);
-  padding-bottom: var(--sp-sm);
-  border-bottom: 1px solid var(--color-light-gray);
-}
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-sm); /* Espaçamento menor entre label e input */
+/* Modal de Atualização em Lote */
+.modal-content .form-group { /* Estilos para form-groups dentro de modais */
   margin-top: var(--sp-md);
   text-align: left;
 }
-.form-group label {
-  font-weight: 600;
-  color: var(--color-dark-gray);
-  font-size: 0.95rem;
+.modal-content .form-group label.form-label { /* Estilos para labels dentro de modais */
+  /* .form-label global já deve ter estilos */
+  margin-bottom: var(--sp-xs); /* Espaço menor abaixo do label */
 }
-.form-group select {
-  padding: var(--sp-sm);
-  border: 1px solid var(--color-border);
-  border-radius: var(--sp-sm);
-  width: 100%;
-  font-size: var(--font-size-base);
-  background-color: var(--color-white);
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
-  appearance: none; /* Remove a seta padrão */
-  background-image: url('data:image/svg+xml;utf8,<svg fill="%23757575" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
-  background-repeat: no-repeat;
-  background-position: right 8px center;
-  background-size: 20px;
+.selection-info {
+    font-size: var(--fs-base);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--sp-md);
+    padding: var(--sp-sm);
+    background-color: var(--color-primary-light);
+    border-left: 4px solid var(--color-primary);
+    border-radius: var(--border-radius-sm);
 }
-.form-group select:focus {
-  border-color: var(--color-accent);
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.2);
-}
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--sp-sm);
-  margin-top: var(--sp-lg);
-  padding-top: var(--sp-md);
-  border-top: 1px solid var(--color-light-gray);
+.form-text.text-warning { /* Para mensagens de aviso em formulários */
+    font-size: var(--fs-small);
+    color: var(--color-warning); /* Assumindo que --color-warning está definido */
+    margin-top: var(--sp-xs);
 }
 
-/* Animações */
+/* Classes de status (reutilizadas de AnimalContent) */
+.status-badge {
+    font-size: var(--fs-smaller);
+    padding: calc(var(--sp-xxs) / 2) var(--sp-xs);
+    border-radius: var(--border-radius-pill);
+    font-weight: var(--fw-medium);
+    color: var(--color-text-inverted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-block; /* Para padding funcionar corretamente */
+}
+.status-active { background-color: var(--color-success); }
+.status-sold { background-color: var(--color-danger); }
+.status-slaughtered { background-color: var(--color-secondary); } /* Exemplo */
+.status-default { background-color: var(--color-text-muted); }
+
+/* Animação de entrada para modal (se .fadeInScale não estiver global) */
 @keyframes fadeInScale {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
 
-/* Classes para status de animais */
-.status-active {
-  color: var(--color-success);
-  font-weight: bold;
-}
-.status-sold {
-  color: var(--color-danger);
-  font-weight: bold;
-}
-.status-default {
-  color: var(--color-secondary);
+.small-empty-state {
+    font-size: var(--fs-base);
+    padding: var(--sp-md);
 }
 </style>

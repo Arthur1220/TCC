@@ -1,37 +1,124 @@
 /* ============================
-   Novo Style Sheet - AnimalTracking
-   Identidade Visual Minimalista
-   ============================ */
+    Style Sheet Global - AnimalTracking
+    Paleta de Cores Expandida e Utilitários
+    ============================ */
 
 /* 1. Importação de Fontes */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Merriweather:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@400;700&display=swap');
 
-/* 2. Variáveis - Paleta Minimalista */
+/* 2. Variáveis CSS */
 :root {
-  /* Neutras */
-  --color-bg: #FFFFFF;
-  --color-text: #000000;
-  --color-muted: #F5F5F5;
-  --color-border: #E0E0E0;
+  /* Cores Base */
+  --color-white: #FFFFFF;
+  --color-black: #000000;
 
-  /* Cor de Destaque */
-  --color-accent: #1A73E8;
+  /* Cores Primárias e de Destaque */
+  --color-primary: #1A73E8; /* Azul principal para ações e links */
+  --color-primary-dark: #135ABC;
+  --color-primary-light: #D4E3FB;
+  --color-accent: var(--color-primary); /* Mantendo seu --color-accent como primário */
+  
+  /* Cores Secundárias (Opcional, para variação) */
+  --color-secondary: #6c757d; /* Cinza azulado sutil */
+  --color-secondary-dark: #545b62;
+  --color-secondary-light: #e9ecef;
+
+  /* Cores de Feedback Semântico */
+  --color-success: #28a745;
+  --color-danger: #dc3545;
+  --color-warning: #ffc107;
+  --color-info: #17a2b8;
+
+  /* Cores de Texto */
+  --color-text-primary: #212529;   /* Preto suave para corpo de texto principal */
+  --color-text-secondary: #495057; /* Cinza escuro para texto secundário */
+  --color-text-muted: #6c757d;     /* Cinza mais claro para texto silenciado, placeholders */
+  --color-text-inverted: var(--color-white); /* Para texto sobre fundos escuros */
+  --color-text-link: var(--color-primary);
+
+  /* Cores de Fundo */
+  --color-bg-body: #f8f9fa;        /* Fundo principal do corpo, cinza muito claro */
+  --color-bg-component: var(--color-white); /* Fundo para cards, modais, etc. */
+  --color-bg-muted: #f1f3f5;       /* Fundo para áreas sutilmente destacadas */
+  --color-bg-hover: #e9ecef;       /* Fundo para hover em listas, etc. */
+  --color-bg-disabled: #e9ecef;    /* Fundo para elementos desabilitados */
+
+  /* Cores de Borda */
+  --color-border: #dee2e6;         /* Borda padrão, cinza claro */
+  --color-border-light: #f1f3f5;   /* Borda mais sutil */
+  --color-border-focus: var(--color-primary-light);
 
   /* Tipografia */
-  --font-body: 'Inter', sans-serif;
-  --font-heading: 'Merriweather', serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-heading: 'Merriweather', Georgia, serif;
+  --font-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
-  /* Tamanhos de Fonte */
-  --fs-base: 14px;
-  --fs-small: 12px;
-  --fs-large: 18px;
+  /* Pesos de Fonte */
+  --fw-light: 300;
+  --fw-normal: 400;
+  --fw-medium: 500; /* Adicionado */
+  --fw-semibold: 600;
+  --fw-bold: 700;
 
-  /* Espaçamentos */
-  --sp-sm: 0.5rem;
-  --sp-md: 1rem;
-  --sp-lg: 1.5rem;
-  --sp-xl: 2rem;
-  --sp-xxl: 3rem;
+  /* Tamanhos de Fonte Base (ajuste responsivo na media query) */
+  --fs-root: 16px; /* Usado para calcular rems, pode ser 100% */
+  --fs-base: 1rem;  /* Equivale a 16px se --fs-root é 16px */
+  --fs-small: 0.875rem; /* 14px */
+  --fs-smaller: 0.75rem;/* 12px */
+  --fs-large: 1.125rem; /* 18px */
+  
+  /* Tamanhos de Fonte para Títulos (H1-H6) */
+  --fs-h1: 2.25rem;   /* 36px */
+  --fs-h2: 1.875rem; /* 30px */
+  --fs-h3: 1.5rem;   /* 24px */
+  --fs-h4: 1.25rem;   /* 20px */
+  --fs-h5: 1.125rem; /* 18px */
+  --fs-h6: 1rem;     /* 16px */
+
+  /* Line Heights */
+  --lh-base: 1.6;
+  --lh-heading: 1.3;
+
+  /* Espaçamentos (escala modular) */
+  --sp-base: 1rem; /* 16px */
+  --sp-xxs: calc(var(--sp-base) * 0.25); /* 4px */
+  --sp-xs:  calc(var(--sp-base) * 0.5);  /* 8px */
+  --sp-sm:  calc(var(--sp-base) * 0.75); /* 12px */
+  --sp-md:  var(--sp-base);              /* 16px (igual a --sp-base) */
+  --sp-lg:  calc(var(--sp-base) * 1.5);  /* 24px */
+  --sp-xl:  calc(var(--sp-base) * 2);    /* 32px */
+  --sp-xxl: calc(var(--sp-base) * 3);   /* 48px */
+
+  /* Bordas e Raios */
+  --border-width: 1px;
+  --border-radius-sm: 0.2rem;   /* ~3px */
+  --border-radius: 0.375rem; /* ~6px */
+  --border-radius-lg: 0.5rem;   /* ~8px */
+  --border-radius-pill: 50rem;
+
+  /* Sombras */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+
+  /* Transições */
+  --transition-base: all 0.2s ease-in-out;
+  --transition-fast: all 0.1s ease-in-out;
+
+  /* Z-indexes (apenas exemplo, ajuste conforme necessário) */
+  --zindex-dropdown: 1000;
+  --zindex-sticky: 1020;
+  --zindex-modal-backdrop: 1040; /* Mantido para compatibilidade com seu var(--modal-backdrop-bg) */
+  --zindex-modal: 1050;          /* Mantido para compatibilidade com seu var(--modal-bg) */
+  --zindex-popover: 1060;
+  --zindex-tooltip: 1070;
+
+  /* Variáveis para Modais (já presentes, apenas verificando) */
+  --modal-bg: var(--color-white);
+  --modal-backdrop-bg: rgba(0, 0, 0, 0.65);
+  --blur-intensity-md: 4px;
+  /* --zindex-modal-overlay: 1040;  (usando --zindex-modal-backdrop) */
+  /* --zindex-modal-content: 1050; (usando --zindex-modal) */
 }
 
 /* 3. Reset & Box-sizing */
@@ -41,123 +128,548 @@
   box-sizing: border-box;
 }
 
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px var(--color-border-focus);
+}
+
 /* 4. Estilos Base */
+html {
+  font-size: var(--fs-root);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
 body {
   font-family: var(--font-body);
   font-size: var(--fs-base);
-  color: var(--color-text);
-  background-color: var(--color-bg);
-  line-height: 1.5;
+  font-weight: var(--fw-normal);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-body);
+  line-height: var(--lh-base);
 }
 
-h1, h2, h3, h4 {
+h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
-  color: var(--color-text);
-  margin-bottom: var(--sp-md);
+  font-weight: var(--fw-bold);
+  color: var(--color-text-primary);
+  margin-top: 0;
+  margin-bottom: var(--sp-sm);
+  line-height: var(--lh-heading);
 }
-h1 { font-size: 2.5rem; }
-h2 { font-size: 2rem; }
-h3 { font-size: 1.75rem; }
-h4 { font-size: 1.5rem; }
+h1 { font-size: var(--fs-h1); }
+h2 { font-size: var(--fs-h2); }
+h3 { font-size: var(--fs-h3); }
+h4 { font-size: var(--fs-h4); }
+h5 { font-size: var(--fs-h5); }
+h6 { font-size: var(--fs-h6); }
 
 p {
+  margin-top: 0;
   margin-bottom: var(--sp-md);
+}
+p:last-child {
+    margin-bottom: 0;
 }
 
 a {
-  color: var(--color-accent);
+  color: var(--color-text-link);
   text-decoration: none;
-  transition: color 0.2s;
+  transition: var(--transition-fast);
 }
 a:hover, a:focus {
-  color: var(--color-text);
-  outline: none;
+  color: var(--color-primary-dark);
+  text-decoration: underline;
 }
 
-/* 5. Botões */
+img, svg {
+  max-width: 100%;
+  height: auto;
+  vertical-align: middle;
+}
+
+hr {
+  border: 0;
+  border-top: var(--border-width) solid var(--color-border);
+  margin: var(--sp-md) 0;
+}
+
+/* 5. Botões (Estilo Base e Modificadores) */
 .button {
+  display: inline-block;
   font-family: var(--font-body);
-  font-size: var(--fs-large);
+  font-weight: var(--fw-medium);
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  color: var(--color-text-inverted);
+  background-color: var(--color-primary);
+  border: var(--border-width) solid var(--color-primary);
   padding: var(--sp-sm) var(--sp-md);
-  border: 2px solid var(--color-accent);
-  border-radius: var(--sp-sm);
-  background-color: var(--color-accent);
-  color: var(--color-bg);
+  border-radius: var(--border-radius);
+  text-align: center;
+  vertical-align: middle;
   cursor: pointer;
-  transition: background-color 0.2s, color 0.2s, transform 0.2s;
+  user-select: none;
+  transition: var(--transition-base);
+  text-decoration: none;
 }
 .button:hover, .button:focus {
-  background-color: var(--color-bg);
-  color: var(--color-accent);
-  transform: scale(1.02);
-  outline: none;
+  background-color: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+  color: var(--color-text-inverted);
+  text-decoration: none;
 }
+.button:focus-visible {
+    outline: 2px solid var(--color-primary-dark);
+    outline-offset: 1px;
+    box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+.button:disabled, .button.disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Modificadores de Botão */
+.button-secondary {
+  color: var(--color-text-primary);
+  background-color: var(--color-secondary-light);
+  border-color: var(--color-secondary-light);
+}
+.button-secondary:hover, .button-secondary:focus {
+  background-color: var(--color-secondary);
+  border-color: var(--color-secondary);
+  color: var(--color-text-inverted);
+}
+
+.button-success { /* Função darken não existe em CSS puro, usar cor mais escura diretamente ou pré-processador */
+  color: var(--color-text-inverted);
+  background-color: var(--color-success);
+  border-color: var(--color-success);
+}
+.button-success:hover, .button-success:focus {
+  background-color: #1e7e34; /* Exemplo de cor mais escura para --color-success */
+  border-color: #1c7430;   /* Exemplo de cor mais escura para --color-success */
+}
+
+.button-danger {
+  color: var(--color-text-inverted);
+  background-color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+.button-danger:hover, .button-danger:focus {
+  background-color: #c82333; /* Exemplo de cor mais escura para --color-danger */
+  border-color: #bd2130;   /* Exemplo de cor mais escura para --color-danger */
+}
+
+.button-warning {
+  color: var(--color-text-primary);
+  background-color: var(--color-warning);
+  border-color: var(--color-warning);
+}
+.button-warning:hover, .button-warning:focus {
+  background-color: #e0a800; /* Exemplo de cor mais escura para --color-warning */
+  border-color: #d39e00;   /* Exemplo de cor mais escura para --color-warning */
+}
+
+.button-info {
+  color: var(--color-text-inverted);
+  background-color: var(--color-info);
+  border-color: var(--color-info);
+}
+.button-info:hover, .button-info:focus {
+  background-color: #138496; /* Exemplo de cor mais escura para --color-info */
+  border-color: #117a8b;   /* Exemplo de cor mais escura para --color-info */
+}
+
+.button-outline-primary {
+  color: var(--color-primary);
+  background-color: transparent;
+  border-color: var(--color-primary);
+}
+.button-outline-primary:hover, .button-outline-primary:focus {
+  color: var(--color-text-inverted);
+  background-color: var(--color-primary);
+}
+
+.button-link {
+  color: var(--color-text-link);
+  background-color: transparent;
+  border-color: transparent;
+  text-decoration: underline;
+  padding-left: var(--sp-xxs);
+  padding-right: var(--sp-xxs);
+}
+.button-link:hover, .button-link:focus {
+  color: var(--color-primary-dark);
+  background-color: transparent;
+  border-color: transparent;
+}
+
+/* Tamanhos de Botão */
+.button-sm {
+  padding: calc(var(--sp-sm) * 0.75) calc(var(--sp-md) * 0.75);
+  font-size: var(--fs-small);
+  border-radius: var(--border-radius-sm);
+}
+.button-lg {
+  padding: calc(var(--sp-sm) * 1.25) calc(var(--sp-md) * 1.25);
+  font-size: var(--fs-large);
+  border-radius: var(--border-radius-lg);
+}
+
 
 /* 6. Containers & Layout */
 .container {
+  width: 100%;
   max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 var(--sp-md);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--sp-md);
+  padding-right: var(--sp-md);
+}
+.container-fluid {
+  width: 100%;
+  padding-left: var(--sp-md);
+  padding-right: var(--sp-md);
 }
 
 .grid {
   display: grid;
   gap: var(--sp-lg);
 }
-.grid-2 { grid-template-columns: repeat(2, 1fr); }
-.grid-3 { grid-template-columns: repeat(3, 1fr); }
+
 
 /* 7. Cards */
 .card {
-  background-color: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--sp-sm);
+  background-color: var(--color-bg-component);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--border-radius);
   padding: var(--sp-md);
-  transition: box-shadow 0.2s, transform 0.2s;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-base);
 }
 .card:hover, .card:focus-within {
-  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-  transform: translateY(-4px);
-  outline: none;
+  box-shadow: var(--shadow);
+  transform: translateY(-2px);
+}
+.card-header, .card-body, .card-footer {
+    padding: var(--sp-md);
+}
+.card-header {
+    border-bottom: var(--border-width) solid var(--color-border);
+    background-color: var(--color-bg-muted);
+    border-top-left-radius: var(--border-radius);
+    border-top-right-radius: var(--border-radius);
+}
+.card-footer {
+    border-top: var(--border-width) solid var(--color-border);
+    background-color: var(--color-bg-muted);
+    border-bottom-left-radius: var(--border-radius);
+    border-bottom-right-radius: var(--border-radius);
+}
+.card-title {
+    font-size: var(--fs-h5);
+    margin-bottom: var(--sp-sm);
 }
 
 /* 8. Formulários */
+.form-group {
+  margin-bottom: var(--sp-md);
+}
+.form-label {
+  display: inline-block;
+  font-weight: var(--fw-medium);
+  margin-bottom: var(--sp-xs);
+}
+.form-text {
+    display: block;
+    margin-top: var(--sp-xxs);
+    font-size: var(--fs-small);
+    color: var(--color-text-muted);
+}
+
 .input, .textarea, .select {
+  display: block;
   width: 100%;
   font-family: var(--font-body);
   font-size: var(--fs-base);
-  padding: var(--sp-sm);
-  border: 1px solid var(--color-border);
-  border-radius: var(--sp-sm);
-  transition: border-color 0.2s;
+  font-weight: var(--fw-normal);
+  line-height: var(--lh-base);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-component);
+  background-clip: padding-box;
+  border: var(--border-width) solid var(--color-border);
+  appearance: none;
+  border-radius: var(--border-radius);
+  padding: var(--sp-sm) var(--sp-md);
+  transition: var(--transition-base);
+  box-shadow: var(--shadow-sm);
 }
+.textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
 .input:focus, .textarea:focus, .select:focus {
-  border-color: var(--color-accent);
+  border-color: var(--color-primary);
+  outline: 0;
+  box-shadow: var(--shadow-sm), 0 0 0 0.2rem var(--color-border-focus);
+}
+.input::placeholder, .textarea::placeholder {
+    color: var(--color-text-muted);
+    opacity: 1;
+}
+.input:disabled, .textarea:disabled, .select:disabled {
+    background-color: var(--color-bg-disabled);
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right var(--sp-md) center;
+  background-size: 16px 12px;
+  padding-right: calc(var(--sp-md) * 2.5);
+}
+.select::-ms-expand {
+  display: none;
+}
+
+/* ============================
+    MODAL STYLES
+   ============================ */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--modal-backdrop-bg); /* rgba(0, 0, 0, 0.65) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--zindex-modal-backdrop); /* Usando sua variável existente */
+  -webkit-backdrop-filter: blur(var(--blur-intensity-md));
+  backdrop-filter: blur(var(--blur-intensity-md));
+}
+
+.modal-content {
+  background-color: var(--modal-bg); /* var(--color-white) */
+  padding: var(--sp-lg); /* 24px */
+  border-radius: var(--border-radius-lg); /* Raio maior para modais */
+  width: 90%;
+  max-width: 650px; /* Aumentado para acomodar melhor o formulário, ajuste conforme necessário */
+  box-shadow: var(--shadow-lg);
+  overflow-y: auto;
+  max-height: 90vh;
+  position: relative; /* Para posicionamento de elementos internos, como o botão de fechar */
+  /* A classe .card já é aplicada no HTML, então herda borda etc.
+     Se quiser remover a borda do .card especificamente no modal:
+     border: none;
+  */
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: var(--sp-md); /* 16px */
+  margin-bottom: var(--sp-lg);  /* 24px - Espaço antes do formulário */
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.modal-title-text {
+  font-size: var(--fs-h4); /* Ex: 20px */
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-primary);
+  margin: 0; /* Remove margem padrão de h3/h4 */
+}
+
+.button-close {
+  background: transparent;
+  border: none;
+  font-size: 1.8rem; /* Tamanho do '×' */
+  font-weight: var(--fw-normal);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: var(--sp-xxs) var(--sp-xs);
+  line-height: 1;
+  transition: color var(--transition-fast);
+  /* Se quiser posicionar no canto superior direito absoluto:
+  position: absolute;
+  top: var(--sp-md);
+  right: var(--sp-md);
+  z-index: 10;
+  */
+}
+.button-close:hover,
+.button-close:focus {
+  color: var(--color-text-primary);
   outline: none;
 }
+.button-close:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+  border-radius: var(--border-radius-sm);
+}
 
-/* 9. Utilitários */
-.mt-1 { margin-top: var(--sp-sm); }
-.mt-2 { margin-top: var(--sp-md); }
-.mb-1 { margin-bottom: var(--sp-sm); }
-.mb-2 { margin-bottom: var(--sp-md); }
+/* Layout para o Formulário no Modal */
+.modal-form.form-grid {
+  display: grid;
+  /* Define 2 colunas por padrão. Em telas menores, ajustado via media query. */
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-md) var(--sp-lg); /* Espaçamento vertical e horizontal */
+                                  /* 16px vertical, 24px horizontal */
+}
+
+/* O .form-group.full-width é tratado no style scoped do componente PropertyContent.vue */
+/* Se quiser torná-lo global para qualquer .form-grid:
+.form-grid .form-group.full-width {
+    grid-column: 1 / -1;
+}
+*/
+
+.modal-form .form-actions {
+  /* Assume-se que .full-width está aplicado no HTML, fazendo-o ocupar grid-column: 1 / -1; */
+  display: flex;
+  justify-content: flex-end; /* Alinha botões à direita */
+  gap: var(--sp-sm);         /* Espaço entre os botões */
+  margin-top: var(--sp-lg);  /* Espaço acima dos botões de ação */
+  padding-top: var(--sp-md); /* Opcional: espaço para linha divisória */
+  /* border-top: var(--border-width) solid var(--color-border-light); /* Linha divisória opcional */
+}
+
+/* Ajustes Opcionais para inputs e labels dentro do modal */
+.modal-form .form-label {
+  font-size: var(--fs-small); /* Labels um pouco menores */
+}
+.modal-form .input {
+  padding: var(--sp-xs) var(--sp-sm); /* Padding um pouco menor */
+}
+
+
+/* Transições Vue para o Modal (se estiver usando <transition name="modal-vue-fade">) */
+.modal-vue-fade-enter-active,
+.modal-vue-fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.modal-vue-fade-enter-from,
+.modal-vue-fade-leave-to {
+  opacity: 0;
+}
+
+.modal-vue-fade-enter-active .modal-content,
+.modal-vue-fade-leave-active .modal-content {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.modal-vue-fade-enter-from .modal-content,
+.modal-vue-fade-leave-to .modal-content {
+  opacity: 0;
+  transform: scale(0.95);
+}
+.modal-vue-fade-enter-to .modal-content, 
+.modal-vue-fade-leave-from .modal-content {
+    opacity: 1;
+    transform: scale(1);
+}
+
+
+/* 9. Utilitários de Espaçamento e Display (Já existentes no seu código) */
+.m-0 { margin: 0 !important; }
+.mt-0, .my-0 { margin-top: 0 !important; }
+.mr-0, .mx-0 { margin-right: 0 !important; }
+.mb-0, .my-0 { margin-bottom: 0 !important; }
+.ml-0, .mx-0 { margin-left: 0 !important; }
+.mt-1 { margin-top: var(--sp-xs) !important; }
+.mt-2 { margin-top: var(--sp-sm) !important; }
+.mt-3 { margin-top: var(--sp-md) !important; }
+.mt-4 { margin-top: var(--sp-lg) !important; }
+.mt-5 { margin-top: var(--sp-xl) !important; }
+
+.p-0 { padding: 0 !important; }
+.pt-1 { padding-top: var(--sp-xs) !important; }
+
+
+.d-none { display: none !important; }
+.d-inline { display: inline !important; }
+.d-inline-block { display: inline-block !important; }
+.d-block { display: block !important; }
+.d-grid { display: grid !important; }
+.d-flex { display: flex !important; }
+
+.text-center { text-align: center !important; }
+.text-left { text-align: left !important; }
+.text-right { text-align: right !important; }
+.text-primary { color: var(--color-primary) !important; }
 
 .visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-  border: 0;
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
+
 
 /* 10. Responsividade */
 @media (max-width: 768px) {
-  body { font-size: var(--fs-small); }
-  h1 { font-size: 2rem; }
-  h2 { font-size: 1.75rem; }
-  .grid-2, .grid-3 { grid-template-columns: 1fr; }
-  .container { padding: 0 var(--sp-sm); }
+  
+  /* body {
+    font-size: var(--fs-small);
+  } */
+  /* h1 { font-size: calc(var(--fs-h1) * 0.85); }
+  h2 { font-size: calc(var(--fs-h2) * 0.85); } */
+  
+  .container {
+    padding-left: var(--sp-sm);
+    padding-right: var(--sp-sm);
+  }
+
+  /* Ajustes responsivos para o Modal */
+  .modal-content {
+    max-width: 95vw; /* Modal ocupa quase toda a largura em telas pequenas */
+    padding: var(--sp-md); /* Reduz padding interno do modal */
+  }
+
+  .modal-form.form-grid {
+    grid-template-columns: 1fr; /* Formulário volta para uma coluna */
+    gap: var(--sp-md) 0; /* Ajusta gap para uma coluna, sem gap horizontal */
+  }
+
+  .modal-header {
+    margin-bottom: var(--sp-md); /* Reduz espaço abaixo do header no modal */
+  }
+  .modal-title-text {
+    font-size: var(--fs-h5); /* Reduz título do modal em telas pequenas */
+  }
 }
+
+/* Debugger de tela pequena (opcional) */
+/*
+body::after {
+  content: " Small Screen (<768px)";
+  position: fixed;
+  bottom: 10px;
+  left: 10px;
+  padding: 5px;
+  background: yellow;
+  color: black;
+  z-index: 9999;
+  display: none;
+}
+@media (max-width: 768px) {
+  body::after {
+    display: block;
+  }
+}
+*/

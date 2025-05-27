@@ -1,127 +1,138 @@
-<!-- File: src/components/AnimalContent.vue -->
 <template>
   <div>
-    <section v-if="!showGroupManager" class="content-panel">
-      <h2 class="panel-title">Gerenciar Animais</h2>
+    <section v-if="!showGroupManager" class="content-panel animal-content-panel">
+      <div class="panel-header">
+        <h2 class="panel-title-text">Gerenciar Animais</h2>
+        <div class="panel-actions">
+          <button class="button button-primary" @click="openModalForAdd">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            Cadastrar Animal
+          </button>
+          <button class="button button-secondary" @click="openGroupManager">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-3 9h-3v3h-2v-3H8V9h3V6h2v3h3v2z"/></svg>
+            Gerenciar Lotes
+          </button>
+        </div>
+      </div>
       <p class="panel-description">
-        Nesta tela você pode cadastrar novos animais, editar dados existentes ou removê-los.
+        Nesta tela você pode cadastrar novos animais, visualizar, editar dados existentes ou removê-los da sua base.
       </p>
 
-      <div class="add-button-wrapper">
-        <button class="button-primary" @click="openModalForAdd">
-          + Cadastrar Animal
-        </button>
-        <button class="button-primary" @click="openGroupManager">
-          Gerenciar Lotes
-        </button>
+      <div v-if="isLoadingAnimals" class="loading-state">
+        <p>Carregando animais...</p>
       </div>
-
-      <div v-if="animals.length" class="list-group">
+      <div v-else-if="animals.length" class="animal-list styled-list-group">
         <ul>
           <li
             v-for="animal in animals"
             :key="animal.id"
-            class="list-item"
+            class="list-item card-hover"
+            :data-animal-id="animal.id"
+            @click="openModalForEdit(animal)"
+            tabindex="0"
+            @keydown.enter="openModalForEdit(animal)"
+            role="button"
+            :aria-label="`Ver detalhes do animal ${animal.identification}`"
           >
             <div class="item-info">
-              <strong>{{ animal.identification }}</strong><br />
-              Espécie: {{ animal.specie_name }} •
-              Raça: {{ animal.breed_name }} •
-              Grupo: {{ animal.group_name }} •
-              Nascimento: {{ animal.birth_date }}<br />
+              <strong class="animal-identification">{{ animal.identification }}</strong>
+              <span class="animal-detail">Espécie: {{ animal.specie_name || 'N/D' }}</span>
+              <span class="animal-detail">Raça: {{ animal.breed_name || 'N/D' }}</span>
+              <span class="animal-detail">Grupo: {{ animal.group_name || 'Nenhum' }}</span>
+              <span class="animal-detail">Nascimento: {{ formatDate(animal.birth_date) || 'N/D' }}</span>
+              <span class="animal-detail">Status: <span :class="getStatusClass(animal.status_name)">{{ animal.status_name || 'N/D' }}</span></span>
             </div>
             <div class="item-actions">
-              <button class="button-secondary" @click="openModalForEdit(animal)">
-                Editar
-              </button>
-              <button class="button-danger" @click="handleDelete(animal.id)">
-                Deletar
-              </button>
+              <button class="button button-outline-primary button-sm" @click.stop="openModalForEdit(animal)">Editar</button>
+              <button class="button button-danger button-sm" @click.stop="handleDelete(animal.id)">Deletar</button>
             </div>
           </li>
         </ul>
       </div>
       <div v-else class="empty-state">
-        <p>Nenhum animal cadastrado.</p>
+        <p>Nenhum animal cadastrado ainda. Que tal <a href="#" @click.prevent="openModalForAdd" class="link">adicionar o primeiro</a>?</p>
       </div>
 
-      <!-- Modal de Cadastrar/Editar Animal -->
       <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
-        <div class="modal-content">
-          <h3 class="modal-title">
-            {{ editing ? 'Editar Animal' : 'Cadastrar Animal' }}
-          </h3>
-          <form @submit.prevent="handleSubmit" class="form-group">
-            <label for="identification">Identificação</label>
-            <input id="identification" v-model="form.identification" type="text" required />
+        <div class="modal-content card large-modal">
+          <div class="modal-header">
+            <h3 class="modal-title-text">{{ editing ? 'Editar Animal' : 'Cadastrar Novo Animal' }}</h3>
+            <button @click="closeModal" class="button-close" aria-label="Fechar modal">&times;</button>
+          </div>
+          <form @submit.prevent="handleSubmit" class="modal-form form-grid">
+            <div class="form-group full-width">
+              <label for="identification" class="form-label">Identificação*</label>
+              <input id="identification" v-model="form.identification" type="text" class="input" required />
+            </div>
 
-            <label for="specie">Espécie</label>
-            <select
-              id="specie"
-              v-model="form.specie"
-              @change="onSpecieChange"
-              required
-            >
-              <option disabled value="">Selecione</option>
-              <option v-for="s in species" :key="s.id" :value="s.id">{{ s.name }}</option>
-            </select>
-
-            <label for="breed">Raça</label>
-            <select id="breed" v-model="form.breed" required>
-              <option disabled value="">Selecione</option>
-              <option
-                v-for="b in filteredBreeds"
-                :key="b.id"
-                :value="b.id"
-              >{{ b.name }}</option>
-            </select>
-
-            <label for="group">Grupo / Lote</label>
-            <select id="group" v-model="form.group" @change="handleGroupChange" required>
-              <option disabled value="">Selecione</option>
-              <option v-for="o in animalGroups" :key="o.id" :value="o.id">{{ o.name }}</option>
-              <option value="new">+ Novo Grupo</option>
-            </select>
-
-            <label for="gender">Gênero</label>
-            <select id="gender" v-model="form.gender" required>
-              <option disabled value="">Selecione</option>
-              <option v-for="o in genders" :key="o.id" :value="o.id">{{ o.name }}</option>
-            </select>
-
-            <label for="status">Status</label>
-            <div v-if="editing">
-              <select id="status" v-model="form.status" required>
-                <option disabled value="">Selecione</option>
-                <option v-for="o in statuses" :key="o.id" :value="o.id">{{ o.name }}</option>
+            <div class="form-group">
+              <label for="specie" class="form-label">Espécie*</label>
+              <select id="specie" v-model="form.specie" @change="onSpecieChange" class="select" required>
+                <option disabled :value="null_placeholder_specie">Selecione a espécie</option>
+                <option v-for="s in species" :key="s.id" :value="s.id">{{ s.name }}</option>
               </select>
             </div>
-            <div v-else>
-              <input type="hidden" v-model="form.status" />
-              <p class="status-default">Ativo</p>
+            <div class="form-group">
+              <label for="breed" class="form-label">Raça*</label>
+              <select id="breed" v-model="form.breed" class="select" required :disabled="!form.specie || form.specie === null_placeholder_specie || filteredBreeds.length === 0">
+                <option disabled :value="null_placeholder_breed">
+                  {{ !form.specie || form.specie === null_placeholder_specie ? 'Selecione uma espécie primeiro' : (filteredBreeds.length === 0 ? 'Nenhuma raça para esta espécie' : 'Selecione a raça') }}
+                </option>
+                <option v-for="b in filteredBreeds" :key="b.id" :value="b.id">{{ b.name }}</option>
+              </select>
             </div>
 
-            <label for="identification_type">Tipo de Identificação</label>
-            <select id="identification_type" v-model="form.identification_type" required>
-              <option disabled value="">Selecione</option>
-              <option
-                v-for="o in identificationTypes"
-                :key="o.id"
-                :value="o.id"
-              >{{ o.name }}</option>
-            </select>
+            <div class="form-group">
+              <label for="group" class="form-label">Grupo / Lote</label>
+              <select id="group" v-model="form.group" @change="handleGroupChange" class="select">
+                <option :value="null_placeholder_group">(Sem Lote)</option>
+                <option v-for="o in animalGroups" :key="o.id" :value="o.id">{{ o.name }}</option>
+                <option value="new">+ Criar Novo Grupo</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="gender" class="form-label">Gênero*</label>
+              <select id="gender" v-model="form.gender" class="select" required>
+                <option disabled :value="null_placeholder_gender">Selecione o gênero</option>
+                <option v-for="o in genders" :key="o.id" :value="o.id">{{ o.name }}</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="status" class="form-label">Status*</label>
+              <div v-if="editing">
+                <select id="status" v-model="form.status" class="select" required>
+                  <option disabled :value="null_placeholder_status">Selecione o status</option>
+                  <option v-for="o in statuses" :key="o.id" :value="o.id">{{ o.name }}</option>
+                </select>
+              </div>
+              <div v-else class="status-default-display input">
+                {{ defaultStatusName }}
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="identification_type" class="form-label">Tipo de Identificação*</label>
+              <select id="identification_type" v-model="form.identification_type" class="select" required>
+                <option disabled :value="null_placeholder_id_type">Selecione o tipo</option>
+                <option v-for="o in identificationTypes" :key="o.id" :value="o.id">{{ o.name }}</option>
+              </select>
+            </div>
 
-            <label for="birth_date">Data de Nascimento</label>
-            <input id="birth_date" v-model="form.birth_date" type="date" required />
+            <div class="form-group full-width">
+              <label for="birth_date" class="form-label">Data de Nascimento*</label>
+              <input id="birth_date" v-model="form.birth_date" type="date" class="input" required />
+            </div>
 
-            <label for="observations">Observações</label>
-            <textarea id="observations" v-model="form.observations"></textarea>
+            <div class="form-group full-width">
+              <label for="observations" class="form-label">Observações</label>
+              <textarea id="observations" v-model="form.observations" class="textarea" rows="3"></textarea>
+            </div>
 
-            <div class="form-actions">
-              <button type="submit" class="button-primary">
-                {{ editing ? 'Atualizar' : 'Cadastrar' }}
+            <div class="form-actions full-width">
+              <button type="submit" class="button button-primary">
+                {{ editing ? 'Atualizar Animal' : 'Cadastrar Animal' }}
               </button>
-              <button type="button" class="button-secondary" @click="closeModal">
+              <button type="button" class="button button-secondary" @click="closeModal">
                 Cancelar
               </button>
             </div>
@@ -129,20 +140,24 @@
         </div>
       </div>
 
-      <!-- Modal de Novo Grupo -->
       <div v-if="showGroupModal" class="modal-overlay" @click.self="closeGroupModal">
-        <div class="modal-content">
-          <h3 class="modal-title">Cadastrar Novo Grupo</h3>
-          <form @submit.prevent="saveNewGroup" class="form-group">
-            <label for="new-group-name">Nome do Grupo</label>
-            <input id="new-group-name" v-model="newGroup.name" type="text" required />
-
-            <label for="new-group-desc">Descrição</label>
-            <input id="new-group-desc" v-model="newGroup.description" type="text" />
-
+        <div class="modal-content card">
+          <div class="modal-header">
+            <h3 class="modal-title-text">Cadastrar Novo Grupo/Lote</h3>
+            <button @click="closeGroupModal" class="button-close" aria-label="Fechar modal">&times;</button>
+          </div>
+          <form @submit.prevent="saveNewGroup" class="modal-form">
+            <div class="form-group">
+              <label for="new-group-name" class="form-label">Nome do Grupo*</label>
+              <input id="new-group-name" v-model="newGroup.name" type="text" class="input" required />
+            </div>
+            <div class="form-group">
+              <label for="new-group-desc" class="form-label">Descrição</label>
+              <input id="new-group-desc" v-model="newGroup.description" type="text" class="input" />
+            </div>
             <div class="form-actions">
-              <button type="submit" class="button-primary">Salvar Grupo</button>
-              <button type="button" class="button-secondary" @click="closeGroupModal">
+              <button type="submit" class="button button-primary">Salvar Grupo</button>
+              <button type="button" class="button button-secondary" @click="closeGroupModal">
                 Cancelar
               </button>
             </div>
@@ -151,8 +166,14 @@
       </div>
     </section>
 
-    <!-- Tela de Lotes -->
-    <LotContent v-else @back="closeGroupManager" />
+    <LotContent v-else @back="closeGroupManager" :key="lotContentKey" />
+
+    <NotificationModal
+      :show="notification.show"
+      :message="notification.message"
+      :type="notification.type"
+      @close="closeNotification"
+    />
   </div>
 </template>
 
@@ -162,7 +183,7 @@ import {
   getAnimals,
   updateAnimal,
   deleteAnimal
-} from '@/services/animalService'
+} from '@/services/animalService';
 import {
   getSpecies,
   getBreeds,
@@ -171,29 +192,40 @@ import {
   getStatuses,
   getIdentificationTypes,
   registerAnimalGroup
-} from '@/services/lookupService'
-import LotContent from '@/components/LotContent.vue'
+} from '@/services/lookupService';
+import LotContent from '@/components/LotContent.vue';
+import NotificationModal from '@/components/NotificationModal.vue';
+
+const DEFAULT_STATUS_NAME_LOWER = 'ativo';
 
 export default {
   name: 'AnimalContent',
-  components: { LotContent },
+  components: { LotContent, NotificationModal },
+  props: {
+    searchQueryProp: {
+      type: [Number, String],
+      default: null
+    }
+  },
   data() {
+    const nullPlaceholder = null; 
     return {
       showGroupManager: false,
       animals: [],
+      isLoadingAnimals: true,
       form: {
         identification: '',
-        specie: '',
-        breed: '',
-        group: '',
-        gender: '',
-        status: 1,
-        identification_type: '',
+        specie: nullPlaceholder, 
+        breed: nullPlaceholder,   
+        group: nullPlaceholder,
+        gender: nullPlaceholder,
+        status: nullPlaceholder,
+        identification_type: nullPlaceholder,
         birth_date: '',
         observations: ''
       },
-      species: [],
-      breeds: [],
+      species: [], 
+      breeds: [],  
       animalGroups: [],
       genders: [],
       statuses: [],
@@ -202,287 +234,468 @@ export default {
       editingId: null,
       showModal: false,
       newGroup: { name: '', description: '' },
-      showGroupModal: false
-    }
-  },
-  async created() {
-    await this.loadLookups()
-    await this.loadAnimals()
+      showGroupModal: false,
+      lotContentKey: 0,
+      notification: { show: false, message: '', type: 'success' },
+      null_placeholder_specie: nullPlaceholder,
+      null_placeholder_breed: nullPlaceholder,
+      null_placeholder_group: nullPlaceholder,
+      null_placeholder_gender: nullPlaceholder,
+      null_placeholder_status: nullPlaceholder,
+      null_placeholder_id_type: nullPlaceholder,
+    };
   },
   computed: {
     filteredBreeds() {
-      return this.breeds.filter(b =>
-        b.specie === this.form.specie || b.specie_id === this.form.specie
-      )
+      // console.log("[DEBUG] Recalculando filteredBreeds...");
+      // console.log("[DEBUG] form.specie atual:", this.form.specie, "(tipo:", typeof this.form.specie, ")");
+      // console.log("[DEBUG] Lista this.breeds (primeiros 5):", JSON.parse(JSON.stringify(this.breeds.slice(0,5))));
+
+      if (this.form.specie === this.null_placeholder_specie || this.form.specie === null || !this.breeds.length) {
+        // console.log("[DEBUG] filteredBreeds: Retornando array vazio (sem espécie selecionada ou sem raças carregadas)");
+        return [];
+      }
+      const currentSpecieId = Number(this.form.specie);
+      const filtered = this.breeds.filter(breed => {
+        // *** CORREÇÃO APLICADA AQUI ***
+        // Acessa o ID da espécie dentro do objeto aninhado 'breed.specie.id'
+        const breedSpecieFkObject = breed.specie; 
+
+        // console.log(`[DEBUG] Filtrando Raça: '${breed.name}' (ID: ${breed.id}). Objeto specie da raça:`, JSON.parse(JSON.stringify(breedSpecieFkObject)), `Comparando com ID de espécie selecionada: ${currentSpecieId}`);
+        
+        // Verifica se breedSpecieFkObject existe e tem a propriedade 'id'
+        if (breedSpecieFkObject && typeof breedSpecieFkObject === 'object' && breedSpecieFkObject.hasOwnProperty('id')) {
+          return Number(breedSpecieFkObject.id) === currentSpecieId;
+        }
+        // Se a estrutura for diferente (ex: breed.specie já é o ID), descomente o log acima para ver e ajuste aqui.
+        // console.warn(`[DEBUG] Raça '${breed.name}' não possui 'specie.id' esperado. Objeto specie:`, breedSpecieFkObject);
+        return false; 
+      });
+      // console.log("[DEBUG] filteredBreeds resultado para espécie ID " + currentSpecieId + ":", JSON.parse(JSON.stringify(filtered)));
+      return filtered;
+    },
+    defaultStatusName() {
+      const activeStatus = this.statuses.find(s => s.name && s.name.toLowerCase() === DEFAULT_STATUS_NAME_LOWER);
+      return activeStatus ? activeStatus.name : 'Ativo (Padrão)';
+    },
+    defaultStatusId() {
+      const activeStatus = this.statuses.find(s => s.name && s.name.toLowerCase() === DEFAULT_STATUS_NAME_LOWER);
+      return activeStatus ? activeStatus.id : null;
     }
   },
+  watch: {
+      searchQueryProp(newVal) {
+          if (newVal && this.animals.length > 0) { 
+              this.findAndOpenAnimal(newVal);
+          }
+      },
+      // 'form.breed'(newVal, oldVal) {
+      //   console.log(`[DEBUG] form.breed (v-model) mudou de ${oldVal} para ${newVal}`);
+      // }
+  },
+  async created() {
+    // console.log("[DEBUG] Componente AnimalContent - CREATED hook iniciado.");
+    await this.loadLookups(); 
+    this.setDefaultStatusInForm(); 
+    await this.loadAnimals();    
+
+    if (this.searchQueryProp) {
+        this.findAndOpenAnimal(this.searchQueryProp);
+    }
+    // console.log("[DEBUG] Componente AnimalContent - CREATED hook finalizado.");
+  },
   methods: {
+    findAndOpenAnimal(query) {
+        const animalToEdit = this.animals.find(a => String(a.id) === String(query) || a.identification === query);
+        if (animalToEdit) {
+            this.openModalForEdit(animalToEdit);
+        } else {
+            // this.showAppNotification(`Animal com ID/Identificação "${query}" não encontrado na lista atual.`, 'info');
+            // console.warn(`[DEBUG] Animal com ID/Identificação "${query}" não encontrado na lista atual para edição via prop.`);
+        }
+    },
+    showAppNotification(message, type = 'success', duration = 3000) {
+      this.notification.message = message;
+      this.notification.type = type;
+      this.notification.show = true;
+      if (duration) {
+        setTimeout(() => { this.notification.show = false; }, duration);
+      }
+    },
+    closeNotification() { this.notification.show = false; },
+    formatDate(dateString) {
+        if (!dateString) return null;
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
+            return dateString;
+        }
+        const dateParts = dateString.split('-');
+        if (dateParts.length === 3) {
+            return `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+        }
+        return dateString; 
+    },
+    getStatusClass(statusName) {
+        if (!statusName) return 'status-default';
+        const nameLower = statusName.toLowerCase();
+        if (nameLower === 'ativo') return 'status-badge status-active';
+        if (nameLower === 'vendido') return 'status-badge status-sold';
+        if (nameLower === 'abatido') return 'status-badge status-slaughtered';
+        if (nameLower === 'morto') return 'status-badge status-dead';
+        return 'status-badge status-default';
+    },
     openGroupManager() {
-      this.showGroupManager = true
+      this.showGroupManager = true;
+      this.lotContentKey++;
     },
     closeGroupManager() {
-      this.showGroupManager = false
+      this.showGroupManager = false;
+      this.loadAnimals(); 
+      this.loadLookups();
     },
     async loadLookups() {
-      this.species = await getSpecies()
-      this.breeds = await getBreeds()
-      this.animalGroups = await getAnimalGroups()
-      this.genders = await getGenders()
-      this.statuses = await getStatuses()
-      this.identificationTypes = await getIdentificationTypes()
+      // console.log("[DEBUG] loadLookups: Iniciando carregamento de dados de referência...");
+      try {
+        const [species, breeds, animalGroups, genders, statuses, identificationTypes] = await Promise.all([
+          getSpecies(), getBreeds(), getAnimalGroups(),
+          getGenders(), getStatuses(), getIdentificationTypes()
+        ]);
+        this.species = species.sort((a,b) => a.name.localeCompare(b.name));
+        this.breeds = breeds.sort((a,b) => a.name.localeCompare(b.name)); 
+        this.animalGroups = animalGroups.sort((a,b) => a.name.localeCompare(b.name));
+        this.genders = genders.sort((a,b) => a.name.localeCompare(b.name));
+        this.statuses = statuses.sort((a,b) => a.name.localeCompare(b.name));
+        this.identificationTypes = identificationTypes.sort((a,b) => a.name.localeCompare(b.name));
+
+        // console.log("[DEBUG] loadLookups: Espécies carregadas:", JSON.parse(JSON.stringify(this.species)));
+        // console.log("[DEBUG] loadLookups: TODAS as Raças carregadas (this.breeds) - primeiros 5:", JSON.parse(JSON.stringify(this.breeds.slice(0,5))));
+        // if (this.breeds.length > 0) {
+        //     console.log("[DEBUG] loadLookups: Exemplo de objeto de Raça (primeiro item de this.breeds):", JSON.parse(JSON.stringify(this.breeds[0])));
+        // }
+
+      } catch (error) {
+          this.showAppNotification('Erro ao carregar dados de referência.', 'error');
+          console.error("Erro em loadLookups (AnimalContent):", error);
+      }
+      // console.log("[DEBUG] loadLookups: Finalizado.");
+    },
+    setDefaultStatusInForm() {
+      this.form.status = this.defaultStatusId || this.null_placeholder_status;
     },
     async loadAnimals() {
+      this.isLoadingAnimals = true;
+      // console.log("[DEBUG] loadAnimals: Iniciando carregamento de animais...");
       try {
-        // A chamada getAnimals() agora será filtrada por owner no backend (se você aplicou as mudanças no AnimalViewSet)
-        // Se EventContent precisa de animais com status específico, animalService.getAnimals({ status: 1 }) ainda é válido
-        // e o backend AnimalViewSet.get (list) precisa tratar esse parâmetro 'status'.
-        const list = await getAnimals(); // Se AnimalContent só precisa dos animais do usuário, não são necessários filtros aqui.
-                                        // Se EventContent chama getAnimals({ status: 1}), o backend (AnimalViewSet.get) precisa lidar com isso.
-
+        const list = await getAnimals();
         this.animals = list.map(a => ({
           ...a,
-          // Se o serializer já fornece _name, os fallbacks com .find são menos críticos
-          // mas podem ser mantidos para robustez ou se o _name for opcional no serializer
-          specie_name: a.specie_name || 'N/D', // Agora a.specie_name deve vir da API
-          breed_name: a.breed_name || 'N/D',   // Agora a.breed_name deve vir da API
-          group_name: a.group_name || 'N/D',   // Agora a.group_name deve vir da API
-          gender_name: a.gender_name || 'N/D',
-          status_name: a.status_name || 'N/D',
-          identification_type_name: a.identification_type_name || 'N/D'
-          // o a.specie (ID) agora será chamado de a.specie_id no payload da API
-        }));
+          specie_name: a.specie_name || this.species.find(s => s.id === a.specie_id)?.name || 'N/D',
+          breed_name: a.breed_name || this.breeds.find(b => b.id === a.breed)?.name || 'N/D',
+          group_name: a.group_name || this.animalGroups.find(g => g.id === a.group)?.name || 'Nenhum',
+          status_name: a.status_name || this.statuses.find(s => s.id === a.status)?.name || 'N/D',
+        })).sort((a, b) => a.identification.localeCompare(b.identification));
+        // console.log("[DEBUG] loadAnimals: Animais carregados e mapeados (primeiro):", this.animals.length > 0 ? JSON.parse(JSON.stringify(this.animals[0])) : "Nenhum animal");
       } catch (error) {
           this.showAppNotification('Erro ao carregar lista de animais.', 'error');
-          console.error("Erro em loadAnimals:", error);
+          console.error("Erro em loadAnimals (AnimalContent):", error);
+      } finally {
+          this.isLoadingAnimals = false;
+          // console.log("[DEBUG] loadAnimals: Finalizado.");
       }
     },
     openModalForAdd() {
-      this.editing = false
-      this.editingId = null
-      this.resetForm()
-      this.showModal = true
+      // console.log("[DEBUG] openModalForAdd: Abrindo modal para adicionar.");
+      this.editing = false;
+      this.editingId = null;
+      this.resetForm();
+      this.showModal = true;
+      // console.log("[DEBUG] openModalForAdd: Estado inicial do form:", JSON.parse(JSON.stringify(this.form)));
     },
     openModalForEdit(animal) {
-      this.editing = true
-      this.editingId = animal.id
+      this.editing = true;
+      this.editingId = animal.id;
+
+      // console.log("[DEBUG] openModalForEdit: Abrindo modal para editar animal:", JSON.parse(JSON.stringify(animal)));
+      // console.log("[DEBUG] openModalForEdit: animal.specie_id:", animal.specie_id, "(tipo:", typeof animal.specie_id, ")");
+      // console.log("[DEBUG] openModalForEdit: animal.breed (ID da raça):", animal.breed, "(tipo:", typeof animal.breed, ")");
+
       this.form = {
         identification: animal.identification,
-        // IMPORTANTE: o serializer agora envia 'specie_id' em vez de 'specie' para o ID da espécie
-        specie: animal.specie_id || this.null_placeholder_specie,
-        breed: animal.breed || this.null_placeholder_breed, // 'breed' é o ID da raça
-        group: animal.group || this.null_placeholder_group,
-        gender: animal.gender || this.null_placeholder_gender,
-        status: animal.status || this.null_placeholder_status,
-        identification_type: animal.identification_type || this.null_placeholder_id_type,
+        specie: animal.specie_id !== undefined && animal.specie_id !== null ? Number(animal.specie_id) : this.null_placeholder_specie,
+        breed: animal.breed !== undefined && animal.breed !== null ? Number(animal.breed) : this.null_placeholder_breed,
+        group: animal.group !== undefined && animal.group !== null ? Number(animal.group) : this.null_placeholder_group,
+        gender: animal.gender !== undefined && animal.gender !== null ? Number(animal.gender) : this.null_placeholder_gender,
+        status: animal.status !== undefined && animal.status !== null ? Number(animal.status) : this.null_placeholder_status,
+        identification_type: animal.identification_type !== undefined && animal.identification_type !== null ? Number(animal.identification_type) : this.null_placeholder_id_type,
         birth_date: animal.birth_date,
-        observations: animal.observations
+        observations: animal.observations || ''
       };
-      this.showModal = true
+      
+      // console.log("[DEBUG] openModalForEdit: Form após atribuição inicial:", JSON.parse(JSON.stringify(this.form)));
+      
+      this.$nextTick(() => {
+        // console.log("[DEBUG] openModalForEdit ($nextTick): form.specie:", this.form.specie);
+        const breedsForCurrentSpecie = this.filteredBreeds; 
+        // console.log("[DEBUG] openModalForEdit ($nextTick): filteredBreeds recalculada:", JSON.parse(JSON.stringify(breedsForCurrentSpecie)));
+        
+        const targetBreedId = animal.breed !== undefined && animal.breed !== null ? Number(animal.breed) : this.null_placeholder_breed;
+        // console.log("[DEBUG] openModalForEdit ($nextTick): Tentando selecionar breed ID:", targetBreedId);
+
+        if (breedsForCurrentSpecie.some(b => b.id === targetBreedId)) {
+            this.form.breed = targetBreedId; 
+            // console.log("[DEBUG] openModalForEdit ($nextTick): Raça ID", targetBreedId, "encontrada e atribuída ao form.breed.");
+        } else {
+            this.form.breed = this.null_placeholder_breed; 
+            // console.warn("[DEBUG] openModalForEdit ($nextTick): Raça ID", targetBreedId, "NÃO encontrada na lista filteredBreeds. Definindo form.breed como placeholder.");
+        }
+        // console.log("[DEBUG] openModalForEdit ($nextTick): Form APÓS tentativa de ajuste da raça:", JSON.parse(JSON.stringify(this.form)));
+      });
+
+      this.showModal = true;
     },
     closeModal() {
-      this.showModal = false
+      this.showModal = false;
     },
     onSpecieChange() {
-      this.form.breed = ''
+      // console.log("[DEBUG] onSpecieChange - form.specie selecionado:", this.form.specie, "(tipo:", typeof this.form.specie, ")");
+      this.form.breed = this.null_placeholder_breed; 
     },
     async handleSubmit() {
-      if (this.editing) {
-        const updated = await updateAnimal(this.editingId, this.form)
-        const idx = this.animals.findIndex(a => a.id === this.editingId)
-        this.animals.splice(idx, 1, {
-          ...updated,
-          specie_name: this.species.find(s => s.id === updated.specie)?.name || '',
-          breed_name: this.breeds.find(b => b.id === updated.breed)?.name || '',
-          group_name: this.animalGroups.find(g => g.id === updated.group)?.name || ''
-        })
-        alert('Animal atualizado com sucesso.')
-      } else {
-        const created = await registerAnimal(this.form)
-        this.animals.push({
-          ...created,
-          specie_name: this.species.find(s => s.id === created.specie)?.name || '',
-          breed_name: this.breeds.find(b => b.id === created.breed)?.name || '',
-          group_name: this.animalGroups.find(g => g.id === created.group)?.name || ''
-        })
-        alert('Animal cadastrado com sucesso.')
+      if (!this.form.identification || this.form.specie === this.null_placeholder_specie || this.form.breed === this.null_placeholder_breed || this.form.gender === this.null_placeholder_gender || this.form.status === this.null_placeholder_status || this.form.identification_type === this.null_placeholder_id_type || !this.form.birth_date) {
+          this.showAppNotification('Preencha todos os campos obrigatórios (*).', 'error');
+          return;
       }
-      this.closeModal()
+      const payload = { ...this.form };
+      
+      // console.log("[DEBUG] handleSubmit: Payload a ser enviado:", JSON.parse(JSON.stringify(payload)));
+
+      try {
+        let apiResponse;
+        if (this.editing) {
+          apiResponse = await updateAnimal(this.editingId, payload);
+          this.showAppNotification('Animal atualizado com sucesso!', 'success');
+        } else {
+          apiResponse = await registerAnimal(payload);
+          this.showAppNotification('Animal cadastrado com sucesso!', 'success');
+        }
+        this.closeModal(); 
+        await this.loadAnimals();
+      } catch (error) {
+        console.error("Erro ao salvar animal:", error.response?.data || error);
+        let errorMessage = (this.editing ? 'Erro ao atualizar animal: ' : 'Erro ao cadastrar animal: ');
+        if (error.response && error.response.data && typeof error.response.data === 'object') {
+            const errors = error.response.data;
+            errorMessage += Object.entries(errors)
+                .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
+                .join('; ');
+        } else if (error.response && error.response.data) {
+            errorMessage += error.response.data;
+        } else {
+            errorMessage += error.message || 'Erro desconhecido.';
+        }
+        this.showAppNotification(errorMessage, 'error');
+      }
     },
     async handleDelete(id) {
-      if (!confirm('Deseja realmente deletar este animal?')) return
-      await deleteAnimal(id)
-      this.animals = this.animals.filter(a => a.id !== id)
-      alert('Animal deletado com sucesso.')
+      if (!confirm('Deseja realmente deletar este animal? Esta ação não pode ser desfeita e deletará também todos os eventos associados.')) return;
+      try {
+        await deleteAnimal(id);
+        await this.loadAnimals(); 
+        this.showAppNotification('Animal deletado com sucesso.', 'success');
+      } catch (error) {
+          this.showAppNotification('Erro ao deletar animal.', 'error');
+          console.error("Erro ao deletar animal:", error.response?.data || error);
+      }
     },
-    handleGroupChange(e) {
-      if (e.target.value === 'new') {
-        this.showGroupModal = true
-        this.newGroup = { name: '', description: '' }
+    handleGroupChange(event) {
+      const selectedValue = event.target.value;
+      if (selectedValue === 'new') {
+        this.showGroupModal = true;
+        this.newGroup = { name: '', description: '' };
+      } else if (selectedValue === String(this.null_placeholder_group) || selectedValue === "") {
+        this.form.group = this.null_placeholder_group;
+      } else {
+        this.form.group = parseInt(selectedValue, 10);
       }
     },
     async saveNewGroup() {
-      const created = await registerAnimalGroup(this.newGroup)
-      this.animalGroups.push(created)
-      this.form.group = created.id
-      this.closeGroupModal()
-      alert('Grupo cadastrado com sucesso.')
+      if (!this.newGroup.name || !this.newGroup.name.trim()) {
+          this.showAppNotification('O nome do grupo é obrigatório.', 'error');
+          return;
+      }
+      try {
+        const createdGroup = await registerAnimalGroup(this.newGroup);
+        this.animalGroups.push(createdGroup);
+        this.animalGroups.sort((a,b) => a.name.localeCompare(b.name));
+        this.form.group = createdGroup.id; 
+        this.closeGroupModal();
+        this.showAppNotification('Grupo cadastrado com sucesso.', 'success');
+      } catch (error) {
+        this.showAppNotification('Erro ao salvar novo grupo.', 'error');
+        console.error("Erro ao salvar novo grupo:", error.response?.data || error);
+      }
     },
     closeGroupModal() {
-      this.showGroupModal = false
-      if (!this.editing) this.form.group = ''
+      this.showGroupModal = false;
+      if (String(this.form.group) === 'new') { 
+          this.form.group = this.null_placeholder_group;
+      }
     },
     resetForm() {
       this.form = {
         identification: '',
-        specie: '',
-        breed: '',
-        group: '',
-        gender: '',
-        status: 1,
-        identification_type: '',
+        specie: this.null_placeholder_specie,
+        breed: this.null_placeholder_breed,
+        group: this.null_placeholder_group,
+        gender: this.null_placeholder_gender,
+        status: this.defaultStatusId || this.null_placeholder_status,
+        identification_type: this.null_placeholder_id_type,
         birth_date: '',
         observations: ''
-      }
+      };
+      // console.log("[DEBUG] resetForm: Form resetado para:", JSON.parse(JSON.stringify(this.form)));
     }
   }
 }
 </script>
 
 <style scoped>
-.content-panel {
-  background: var(--color-white);
-  padding: var(--sp-lg);
-  border-radius: var(--sp-sm);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  margin-bottom: var(--sp-xl);
+/* Seu CSS Scoped Existente */
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--sp-md);
+    padding-bottom: var(--sp-md);
+    border-bottom: var(--border-width) solid var(--color-border-light);
 }
-.panel-title {
-  text-align: center;
+.panel-title-text {
   font-family: var(--font-heading);
-  color: var(--color-primary);
-  margin-bottom: var(--sp-xs);
+  color: var(--color-text-primary);
+  font-size: var(--fs-h3);
+  margin: 0;
+  text-align: left;
 }
-.panel-description {
-  text-align: center;
-  color: var(--color-dark-gray);
-  margin-bottom: var(--sp-md);
-  font-size: var(--font-size-base);
-}
-.add-button-wrapper {
+.panel-actions {
   display: flex;
-  justify-content: flex-end;
   gap: var(--sp-sm);
-  margin-bottom: var(--sp-md);
 }
-.list-group ul {
+.panel-actions .button {
+    font-size: var(--fs-small);
+    padding: var(--sp-xs) var(--sp-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--sp-xs);
+}
+.panel-actions .button svg {
+    margin-right: 0;
+}
+
+.panel-description {
+  text-align: left;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--sp-lg);
+  font-size: var(--fs-base);
+  max-width: none;
+}
+
+.animal-list {
   list-style: none;
   padding: 0;
+  margin: 0;
 }
 .list-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--sp-md) 0;
-  border-bottom: 1px solid var(--color-light-gray);
+  padding: var(--sp-md);
+  border: var(--border-width) solid var(--color-border-light);
+  border-radius: var(--border-radius);
+  margin-bottom: var(--sp-sm);
+  background-color: var(--color-bg-component);
+  transition: var(--transition-base);
+  cursor: pointer;
 }
+.list-item.card-hover:hover, .list-item.card-hover:focus-within {
+    border-color: var(--color-primary-light);
+    box-shadow: var(--shadow);
+    transform: translateY(-2px);
+}
+
 .item-info {
   flex: 1;
-}
-.item-actions button {
-  margin-left: var(--sp-sm);
-}
-.empty-state {
-  text-align: center;
-  color: var(--color-dark-gray);
-  padding: var(--sp-lg) 0;
-}
-/* Modal */
-.modal-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.4);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 1000;
-}
-.modal-content {
-  background-color: #ffffff !important;
-  padding: var(--sp-lg);
-  border-radius: var(--sp-sm);
-  width: 100%;
-  max-width: 700px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-  max-height: 90vh;           /* habilita scroll interno se for maior */
-  overflow-y: auto;
-}
-.modal-title {
-  text-align: center;
-  font-family: var(--font-heading);
-  margin-bottom: var(--sp-md);
-}
-.form-group {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-md);
+  gap: var(--sp-xxs);
 }
-.form-group label {
-  font-weight: 500;
+.animal-identification {
+    font-size: var(--fs-large);
+    font-weight: var(--fw-semibold);
+    color: var(--color-primary);
+    margin-bottom: var(--sp-xs);
 }
-.form-group input,
-.form-group select,
-.form-group textarea {
-  padding: var(--sp-sm);
-  border: 1px solid var(--color-border);
-  border-radius: var(--sp-sm);
+.animal-detail {
+    font-size: var(--fs-small);
+    color: var(--color-text-secondary);
 }
-.form-actions {
+.animal-detail .status-badge {
+    font-size: var(--fs-smaller);
+    padding: calc(var(--sp-xxs) / 2) var(--sp-xs);
+    border-radius: var(--border-radius-pill);
+    font-weight: var(--fw-medium);
+    color: var(--color-text-inverted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-block; 
+    line-height: 1.2; 
+}
+.status-active { background-color: var(--color-success); }
+.status-sold { background-color: var(--color-danger); }
+.status-slaughtered { background-color: var(--color-info); }
+.status-dead { background-color: var(--color-text-muted); }
+.status-default { background-color: var(--color-secondary); }
+
+
+.item-actions {
   display: flex;
-  justify-content: flex-end;
-  gap: var(--sp-sm);
-  margin-top: var(--sp-md);
+  gap: var(--sp-xs);
 }
-.button-primary {
-  background-color: var(--color-bg);
-  color: var(--color-accent);
-  border: 2px solid var(--color-accent);
-  padding: var(--sp-sm) var(--sp-lg);
-  border-radius: var(--sp-sm);
-  cursor: pointer;
-  transition: background 0.3s, transform 0.2s;
+.item-actions .button {
+    font-size: var(--fs-small);
+    padding: var(--sp-xs) var(--sp-sm);
 }
-.button-primary:hover,
-.button-primary:focus {
-  background-color: var(--color-accent);
-  color: var(--color-bg);
-  outline: none;
+
+.empty-state {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: var(--sp-xl) var(--sp-md);
+  background-color: var(--color-bg-muted);
+  border-radius: var(--border-radius);
+  font-size: var(--fs-base);
 }
-.button-secondary {
-  background-color: var(--color-bg);
-  color: var(--color-accent);
-  border: 2px solid var(--color-accent);
-  padding: var(--sp-sm) var(--sp-lg);
-  border-radius: var(--sp-sm);
-  cursor: pointer;
-  transition: background 0.3s, transform 0.2s;
+.empty-state p .link {
+    font-weight: var(--fw-medium);
 }
-.button-secondary:hover,
-.button-secondary:focus {
-  background-color: var(--color-accent);
-  color: var(--color-bg);
-  outline: none;
+
+.modal-content.large-modal {
+    max-width: 800px;
 }
-.button-danger {
-  background: #e74c3c;
-  color: #fff;
-  border: 2px solid #e74c3c;
-  padding: var(--sp-sm) var(--sp-md);
-  border-radius: var(--sp-sm);
-  cursor: pointer;
-  transition: background 0.3s, transform 0.2s;
+
+.status-default-display {
+    background-color: var(--color-bg-disabled);
+    color: var(--color-text-muted);
+    padding: var(--sp-sm) var(--sp-md);
+    border-radius: var(--border-radius);
+    border: var(--border-width) solid var(--color-border);
+    cursor: not-allowed;
+    font-size: var(--fs-base); 
+    line-height: var(--lh-base); 
+    width: 100%;
+    display: block;
 }
-.button-danger:hover,
-.button-danger:focus {
-  background-color: var(--color-bg);
-  color: #e74c3c;
-  outline: none;
+.loading-state {
+    text-align: center;
+    padding: var(--sp-xl);
+    color: var(--color-text-muted);
+    font-size: var(--fs-large);
 }
 </style>
