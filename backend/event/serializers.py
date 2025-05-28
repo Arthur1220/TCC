@@ -1,7 +1,46 @@
+# event/serializers.py
 from rest_framework import serializers
 from .models import Movement, Weighing, Vacine, Medicine, Reproduction, Slaughter, SpecialOccurrences, EventType, Event
-from animal.models import Animal
+from animal.models import Animal, AnimalGroup, Status # Importe AnimalGroup e Status
 
+# --- Serializers de Detalhes Específicos para Lote (sem o campo 'event') ---
+class BatchMovementDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Movement
+        exclude = ['event']
+
+class BatchWeighingDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Weighing
+        exclude = ['event']
+
+class BatchVacineDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Vacine
+        exclude = ['event']
+
+class BatchMedicineDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Medicine
+        exclude = ['event']
+
+class BatchReproductionDetailSerializer(serializers.ModelSerializer):
+    male_id = serializers.PrimaryKeyRelatedField(queryset=Animal.objects.all(), allow_null=True, required=False)
+    class Meta:
+        model = Reproduction
+        exclude = ['event', 'female_id'] 
+
+class BatchSlaughterDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Slaughter
+        exclude = ['event']
+
+class BatchSpecialOccurrencesDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SpecialOccurrences
+        exclude = ['event']
+
+# --- Serializers Originais ---
 class MovementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movement
@@ -43,18 +82,22 @@ class EventTypeSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class EventSerializer(serializers.ModelSerializer):
+    # Você pode adicionar campos _name aqui para enriquecer a resposta do GET
+    # Ex: event_type_name = serializers.CharField(source='event_type.name', read_only=True)
+    #     animal_identification = serializers.CharField(source='animal.identification', read_only=True)
+    #     recorded_by_username = serializers.CharField(source='recorded_by.username', read_only=True)
     class Meta:
         model = Event
-        fields = '__all__'
+        fields = '__all__' # Ou liste os campos específicos se adicionar os _name acima
 
+# --- Serializer para Registro de Evento em Lote ---
 class BatchEventRegisterSerializer(serializers.Serializer):
-    animal_ids = serializers.ListField(
-        child=serializers.IntegerField(),
-        min_length=1,
-        help_text="Lista de IDs dos animais para os quais o evento será registrado."
+    animal_group_id = serializers.IntegerField(
+        help_text="ID do grupo de animais (lote) para o qual o evento será registrado."
     )
-    event_type = serializers.IntegerField(
-        help_text="ID do tipo de evento (e.g., Vacina, Pesagem)."
+    event_type = serializers.PrimaryKeyRelatedField( 
+        queryset=EventType.objects.all(),
+        help_text="ID do tipo de evento."
     )
     date = serializers.DateTimeField(
         help_text="Data e hora do evento."
@@ -68,127 +111,135 @@ class BatchEventRegisterSerializer(serializers.Serializer):
         help_text="Observações gerais sobre o evento."
     )
 
-    # Campos específicos para cada tipo de evento (opcional, dependendo do event_type)
-    # Estes campos serão validados e usados para criar as instâncias filhas de Event
-    movement_details = MovementSerializer(required=False, allow_null=True)
-    weighing_details = WeighingSerializer(required=False, allow_null=True)
-    vacine_details = VacineSerializer(required=False, allow_null=True)
-    medicine_details = MedicineSerializer(required=False, allow_null=True)
-    reproduction_details = ReproductionSerializer(required=False, allow_null=True)
-    slaughter_details = SlaughterSerializer(required=False, allow_null=True)
-    special_occurrences_details = SpecialOccurrencesSerializer(required=False, allow_null=True)
+    movement_details = BatchMovementDetailSerializer(required=False, allow_null=True)
+    weighing_details = BatchWeighingDetailSerializer(required=False, allow_null=True)
+    vacine_details = BatchVacineDetailSerializer(required=False, allow_null=True)
+    medicine_details = BatchMedicineDetailSerializer(required=False, allow_null=True)
+    reproduction_details = BatchReproductionDetailSerializer(required=False, allow_null=True)
+    slaughter_details = BatchSlaughterDetailSerializer(required=False, allow_null=True)
+    special_occurrences_details = BatchSpecialOccurrencesDetailSerializer(required=False, allow_null=True)
+
+    def validate_animal_group_id(self, value):
+        request_user = self.context['request'].user
+        try:
+            # Assumindo que AnimalGroup tem um campo 'owner' que é um FK para User
+            group = AnimalGroup.objects.prefetch_related('animals__status').get(id=value, owner=request_user) 
+            
+            try:
+                # CORREÇÃO DO FieldError: usa o modelo Status para filtrar por nome "Ativo"
+                active_status = Status.objects.get(name__iexact='Ativo')
+            except Status.DoesNotExist:
+                raise serializers.ValidationError({"animal_group_id": "Configuração de Status 'Ativo' não encontrada no sistema."})
+
+            active_animals_in_group = group.animals.filter(status=active_status, owner=request_user)
+            
+            if not active_animals_in_group.exists():
+                raise serializers.ValidationError({"animal_group_id": "O grupo de animais selecionado não possui animais com status 'Ativo' pertencentes a você."})
+            return group 
+        except AnimalGroup.DoesNotExist:
+            raise serializers.ValidationError({"animal_group_id": "Grupo de animais (lote) não encontrado ou não pertence a você."})
 
     def validate(self, data):
-        event_type_id = data.get('event_type')
-        try:
-            event_type = EventType.objects.get(id=event_type_id)
-        except EventType.DoesNotExist:
-            raise serializers.ValidationError({"event_type": "Tipo de evento não encontrado."})
+        event_type_object = data.get('event_type') # Já é o objeto EventType
+        if not event_type_object:
+             raise serializers.ValidationError({"event_type": "Tipo de evento é obrigatório."})
 
-        # Validação condicional baseada no tipo de evento
-        if event_type.name.lower() == 'movimento':
-            if not data.get('movement_details'):
-                raise serializers.ValidationError({"movement_details": "Detalhes de movimento são necessários para este tipo de evento."})
-        elif event_type.name.lower() == 'pesagem':
-            if not data.get('weighing_details'):
-                raise serializers.ValidationError({"weighing_details": "Detalhes de pesagem são necessários para este tipo de evento."})
-        # Adicione validações para outros tipos de eventos se eles tiverem campos obrigatórios específicos
-        elif event_type.name.lower() == 'vacina':
-             if not data.get('vacine_details'):
-                raise serializers.ValidationError({"vacine_details": "Detalhes de vacina são necessários para este tipo de evento."})
-        elif event_type.name.lower() == 'medicamento':
-            if not data.get('medicine_details'):
-                raise serializers.ValidationError({"medicine_details": "Detalhes de medicamento são necessários para este tipo de evento."})
-        elif event_type.name.lower() == 'reproducao':
-            if not data.get('reproduction_details'):
-                raise serializers.ValidationError({"reproduction_details": "Detalhes de reprodução são necessários para este tipo de evento."})
-        elif event_type.name.lower() == 'abate':
-            if not data.get('slaughter_details'):
-                raise serializers.ValidationError({"slaughter_details": "Detalhes de abate são necessários para este tipo de evento."})
-        elif event_type.name.lower() == 'ocorrencia especial': # Certifique-se de usar o nome exato do EventType
-            if not data.get('special_occurrences_details'):
-                raise serializers.ValidationError({"special_occurrences_details": "Detalhes de ocorrência especial são necessários para este tipo de evento."})
-
-
-        # Valida que todos os animal_ids existem
-        animal_ids = data.get('animal_ids', [])
-        if not animal_ids:
-            raise serializers.ValidationError({"animal_ids": "Pelo menos um ID de animal é necessário."})
+        event_type_name_lower = event_type_object.name.lower()
+        detail_field_map = {
+            'movimento': 'movement_details', 'movimentação': 'movement_details',
+            'pesagem': 'weighing_details',
+            'vacinação': 'vacine_details', 'vacina': 'vacine_details',   
+            'medicação': 'medicine_details', 'medicamento': 'medicine_details',
+            'reprodução': 'reproduction_details', 'reproducao': 'reproduction_details',
+            'abate': 'slaughter_details',
+            'ocorrência especial': 'special_occurrences_details', 'ocorrencia especial': 'special_occurrences_details',
+        }
         
-        for animal_id in animal_ids:
-            try:
-                Animal.objects.get(id=animal_id)
-            except Animal.DoesNotExist:
-                raise serializers.ValidationError(f"Animal com ID {animal_id} não encontrado.")
-
-        data['event_type_object'] = event_type # Passa o objeto EventType validado
+        required_detail_field = detail_field_map.get(event_type_name_lower)
+        
+        if required_detail_field and not data.get(required_detail_field):
+            raise serializers.ValidationError({required_detail_field: f"Detalhes de '{event_type_object.name}' são necessários."})
+        
+        for type_name_key in detail_field_map.keys():
+            current_detail_key = detail_field_map[type_name_key]
+            if event_type_name_lower != type_name_key and current_detail_key != required_detail_field :
+                if current_detail_key in data:
+                    data.pop(current_detail_key)
         return data
 
     def create(self, validated_data):
-        animal_ids = validated_data.pop('animal_ids')
-        event_type_object = validated_data.pop('event_type_object') # Pega o objeto EventType
-        recorded_by = self.context['request'].user # Obtém o usuário logado
+        animal_group = validated_data.pop('animal_group_id')
+        event_type_object = validated_data.pop('event_type')
+        recorded_by = self.context['request'].user
 
-        event_specific_data = {}
-        if event_type_object.name.lower() == 'movimento':
-            event_specific_data['movement_details'] = validated_data.pop('movement_details', None)
-        elif event_type_object.name.lower() == 'pesagem':
-            event_specific_data['weighing_details'] = validated_data.pop('weighing_details', None)
-        elif event_type_object.name.lower() == 'vacina':
-            event_specific_data['vacine_details'] = validated_data.pop('vacine_details', None)
-        elif event_type_object.name.lower() == 'medicamento':
-            event_specific_data['medicine_details'] = validated_data.pop('medicine_details', None)
-        elif event_type_object.name.lower() == 'reproducao':
-            event_specific_data['reproduction_details'] = validated_data.pop('reproduction_details', None)
-        elif event_type_object.name.lower() == 'abate':
-            event_specific_data['slaughter_details'] = validated_data.pop('slaughter_details', None)
-        elif event_type_object.name.lower() == 'ocorrencia especial':
-            event_specific_data['special_occurrences_details'] = validated_data.pop('special_occurrences_details', None)
+        try:
+            active_status = Status.objects.get(name__iexact='Ativo')
+        except Status.DoesNotExist:
+            raise serializers.ValidationError({"internal_error": "Status 'Ativo' não encontrado para filtrar animais do lote."})
 
+        # CORREÇÃO DO FieldError: usa o objeto active_status para filtrar
+        animal_instances = list(animal_group.animals.filter(status=active_status, owner=recorded_by))
+        
+        if not animal_instances:
+             raise serializers.ValidationError({"animal_group_id": "Nenhum animal com status 'Ativo' aplicável encontrado neste grupo para o usuário."})
 
-        created_events = []
-        for animal_id in animal_ids:
-            animal = Animal.objects.get(id=animal_id) # Já validado que existe
-
-            # Cria o Evento principal para o animal
-            event = Event.objects.create(
+        event_type_name_lower = event_type_object.name.lower()
+        details_payload = None
+        detail_key_map = { # Mapa para pegar a chave correta dos detalhes
+            'movimento': 'movement_details', 'movimentação': 'movement_details',
+            'pesagem': 'weighing_details',
+            'vacinação': 'vacine_details', 'vacina': 'vacine_details',
+            'medicação': 'medicine_details', 'medicamento': 'medicine_details',
+            'reprodução': 'reproduction_details', 'reproducao': 'reproduction_details',
+            'abate': 'slaughter_details',
+            'ocorrência especial': 'special_occurrences_details', 'ocorrencia especial': 'special_occurrences_details',
+        }
+        relevant_detail_key = detail_key_map.get(event_type_name_lower)
+        if relevant_detail_key and relevant_detail_key in validated_data:
+            details_payload = validated_data.pop(relevant_detail_key)
+        
+        # Remove outros *_details que possam ter vindo no payload
+        for key_to_check in list(validated_data.keys()):
+            if key_to_check.endswith('_details'):
+                validated_data.pop(key_to_check, None)
+        
+        created_events_batch = []
+        for animal_instance in animal_instances:
+            event_instance = Event.objects.create(
                 recorded_by=recorded_by,
-                animal=animal,
+                animal=animal_instance,
                 event_type=event_type_object,
                 date=validated_data['date'],
                 location=validated_data.get('location'),
                 observations=validated_data.get('observations')
             )
-            created_events.append(event)
+            created_events_batch.append(event_instance)
 
-            # Cria a instância do evento específico
-            if event_type_object.name.lower() == 'movimento' and event_specific_data.get('movement_details'):
-                Movement.objects.create(event=event, **event_specific_data['movement_details'])
-            elif event_type_object.name.lower() == 'pesagem' and event_specific_data.get('weighing_details'):
-                Weighing.objects.create(event=event, **event_specific_data['weighing_details'])
-            elif event_type_object.name.lower() == 'vacina' and event_specific_data.get('vacine_details'):
-                Vacine.objects.create(event=event, **event_specific_data['vacine_details'])
-            elif event_type_object.name.lower() == 'medicamento' and event_specific_data.get('medicine_details'):
-                Medicine.objects.create(event=event, **event_specific_data['medicine_details'])
-            elif event_type_object.name.lower() == 'reproducao' and event_specific_data.get('reproduction_details'):
-                # Para reprodução, male_id e female_id são ForeignKeys para Animal.
-                # O serializer aninhado pode já ter resolvido isso para IDs,
-                # mas se ele receber IDs, precisamos buscar os objetos Animal.
-                repro_details = event_specific_data['reproduction_details']
-                male_animal = Animal.objects.get(id=repro_details['male_id'])
-                female_animal = Animal.objects.get(id=repro_details['female_id'])
-                Reproduction.objects.create(
-                    event=event,
-                    reproduction_type=repro_details['reproduction_type'],
-                    male_id=male_animal,
-                    female_id=female_animal,
-                    date=repro_details['date'],
-                    result=repro_details.get('result')
-                )
-            elif event_type_object.name.lower() == 'abate' and event_specific_data.get('slaughter_details'):
-                Slaughter.objects.create(event=event, **event_specific_data['slaughter_details'])
-            elif event_type_object.name.lower() == 'ocorrencia especial' and event_specific_data.get('special_occurrences_details'):
-                SpecialOccurrences.objects.create(event=event, **event_specific_data['special_occurrences_details'])
+            if details_payload:
+                current_detail_data_for_model = details_payload.copy() 
+                # Não precisamos mais setar 'date' aqui, pois os Batch...DetailSerializers
+                # devem cuidar dos seus próprios campos de data se os tiverem (como Reproduction, Movement)
+                # e o BatchVacineDetailSerializer não espera 'date'.
 
-
-        return created_events # Retorna a lista de eventos criados
+                if event_type_name_lower in ['movimento', 'movimentação']:
+                    Movement.objects.create(event=event_instance, **current_detail_data_for_model)
+                elif event_type_name_lower == 'pesagem':
+                    Weighing.objects.create(event=event_instance, **current_detail_data_for_model)
+                elif event_type_name_lower in ['vacinação', 'vacina']:
+                    Vacine.objects.create(event=event_instance, **current_detail_data_for_model)
+                elif event_type_name_lower in ['medicação', 'medicamento']:
+                    Medicine.objects.create(event=event_instance, **current_detail_data_for_model)
+                elif event_type_name_lower in ['reprodução', 'reproducao']:
+                    male_animal_instance = current_detail_data_for_model.pop('male_id', None) 
+                    Reproduction.objects.create(
+                        event=event_instance,
+                        female_id=animal_instance, 
+                        male_id=male_animal_instance, 
+                        **current_detail_data_for_model
+                    )
+                elif event_type_name_lower == 'abate':
+                    Slaughter.objects.create(event=event_instance, **current_detail_data_for_model)
+                elif event_type_name_lower in ['ocorrência especial', 'ocorrencia especial']:
+                    SpecialOccurrences.objects.create(event=event_instance, **current_detail_data_for_model)
+        
+        return created_events_batch

@@ -86,22 +86,40 @@ export async function getContractEvent(animalId, index = 0) {
 }
 
 /**
- * Lista todos os eventos de um animal.
- * @param {number} animalId - ID do animal.
+ * Lista todos os eventos de um animal diretamente do contrato.
+ * @param {number} animalId - ID do animal (conforme registrado no contrato).
  */
-export async function listContractEvents(animalId) {
-  //console.log(`DEBUG - listContractEvents: Chamando /contract/list-events/${animalId}/`);
+export async function listContractEventsByAnimalId(animalId) { // Renomeado para clareza
   try {
     const response = await axiosInstance.get(
       `contract/list-events/${animalId}/`
     );
-    //console.log("DEBUG - listContractEvents: Resposta recebida:", response.data);
-    return response.data.events;
+    return response.data.events; // Assume que o backend retorna { events: [...] }
   } catch (error) {
-    console.error('ERRO - listContractEvents: Erro ao listar eventos do contrato:', error.response ? error.response.data : error);
+    console.error('ERRO - listContractEventsByAnimalId: Erro ao listar eventos do contrato:', error.response ? error.response.data : error);
     throw error;
   }
 }
+
+/**
+ * Busca um registro de blockchain no banco de dados Django pelo hash da transação.
+ * @param {string} txHash - O hash da transação da blockchain.
+ * @returns {Promise<Array>} - Uma lista de registros da blockchain (geralmente 1).
+ */
+export async function findBlockchainEntryByTxHash(txHash) {
+  try {
+    // Este endpoint deve apontar para BlockchainViewSet.filter_get no seu backend
+    const response = await axiosInstance.get('blockchain/blockchain-filter/', {
+      params: { transaction_hash__icontains: txHash } // Usa icontains para busca flexível
+    });
+    // O BlockchainSerializer do backend já deve incluir event_details e animal_details
+    return response.data; 
+  } catch (error) {
+    console.error('ERRO - findBlockchainEntryByTxHash: Erro ao buscar registro da blockchain por hash:', error.response ? error.response.data : error);
+    throw error;
+  }
+}
+
 
 /**
  * Obtém o número de eventos para um animal.

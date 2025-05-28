@@ -18,19 +18,26 @@ export async function registerEvent(data) {
 }
 
 /**
- * Obtém os dados de um evento pelo ID.
- * @param {number} id - ID do evento.
- * @returns {Promise<Object>} - Dados do evento.
+ * Obtém os dados de um evento pelo ID ou uma lista de eventos com base em parâmetros.
+ * @param {number|Object} [identifierOrParams] - Pode ser um ID numérico para um evento específico
+ * ou um objeto de parâmetros para listar/filtrar eventos. Se undefined, lista eventos.
+ * @returns {Promise<Object|Array>} - Dados do evento ou lista de eventos.
  */
-export async function getEvents(id) {
+export async function getEvents(identifierOrParams) {
   try {
-    // Se um ID específico for passado, busca apenas aquele evento
-    // Caso contrário, busca todos os eventos do usuário logado (assumindo que o backend já faz essa filtragem)
-    const url = id ? `event/event-get/${id}/` : `event/event-get/`;
-    const response = await axiosInstance.get(url);
+    let url = 'event/event-get/';
+    let config = {};
+
+    if (typeof identifierOrParams === 'number') {
+      url = `event/event-get/${identifierOrParams}/`;
+    } else if (typeof identifierOrParams === 'object' && identifierOrParams !== null) {
+      config = { params: identifierOrParams };
+    }
+    // console.log(`[eventService] getEvents - URL: ${url}, Config: ${JSON.stringify(config)}`);
+    const response = await axiosInstance.get(url, config);
     return response.data;
   } catch (error) {
-    console.error("Erro ao obter evento:", error);
+    console.error("Erro ao obter evento(s):", error.response?.data || error.message, error.config?.url);
     throw error.response ? error.response.data : error;
   }
 }

@@ -69,7 +69,7 @@ export default {
 .login-page-wrapper {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  min-height: 130vh;
   background-color: var(--color-bg-body);
 }
 

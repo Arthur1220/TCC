@@ -46,6 +46,24 @@ export async function getAnimals(filters = {}) {
 }
 
 /**
+ * Busca animais pela string de identificação (busca parcial, case-insensitive).
+ * @param {string} identificationString - A string de identificação para buscar.
+ * @returns {Promise<Array>} - Lista de animais que correspondem à busca.
+ */
+export async function searchAnimalsByIdentification(identificationString) {
+  try {
+    // O backend deve ter um endpoint que suporte ?identification__icontains=valor
+    const response = await axiosInstance.get('animal/animal-filter/', { // Ou o endpoint correto de filtro de animais
+      params: { identification__icontains: identificationString }
+    });
+    return response.data; // Espera-se uma lista de objetos de animais [{id, identification, ...}]
+  } catch (error) {
+    console.error('Erro ao buscar animais por identificação:', error.response ? error.response.data : error);
+    throw error;
+  }
+}
+
+/**
  * Atualiza um animal.
  * @param {number} id - ID do animal a ser atualizado.
  * @param {Object} data - Dados para atualização.

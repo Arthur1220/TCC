@@ -29,7 +29,6 @@
             <th>Data</th>
             <th>Localização</th>
             <th class="th-observations">Observações</th>
-            <th class="text-right">Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -39,16 +38,6 @@
             <td data-label="Data">{{ formatDateTime(eventItem.date) }}</td>
             <td data-label="Localização">{{ eventItem.location || 'N/A' }}</td>
             <td data-label="Observações" class="truncate-text" :title="eventItem.observations || ''">{{ eventItem.observations || 'N/A' }}</td>
-            <td data-label="Ações" class="actions-cell">
-              <button class="button button-outline-primary button-sm" @click="editEvent(eventItem)" title="Editar Evento">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-                Editar
-              </button>
-              <button class="button button-danger button-sm" @click="confirmDelete(eventItem.id)" title="Deletar Evento">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-                Deletar
-              </button>
-            </td>
           </tr>
         </tbody>
       </table>
@@ -123,21 +112,31 @@
             </div>
           </div>
           <div v-else-if="selectedEventTypeName === 'vacinação'" class="dynamic-form-section card full-width">
-                <h4 class="dynamic-form-title">Detalhes da Vacinação</h4>
-                <div class="form-grid nested-grid">
-                    <div class="form-group"><label for="vacine-name" class="form-label">Nome da Vacina*</label><input id="vacine-name" v-model="vaccine.name" type="text" class="input" required /></div>
-                    <div class="form-group"><label for="vacine-dose" class="form-label">Dose (ex: mL, Un)*</label><input id="vacine-dose" v-model="vaccine.dose" type="text" class="input" required /></div>
-                    <div class="form-group"><label for="vacine-manufacturer" class="form-label">Fabricante</label><input id="vacine-manufacturer" v-model="vaccine.manufacturer" type="text" class="input" /></div>
-                    <div class="form-group"><label for="vacine-batch" class="form-label">Lote</label><input id="vacine-batch" v-model="vaccine.batch" type="text" class="input" /></div>
-                    <div class="form-group"><label for="vacine-validity" class="form-label">Validade da Vacina*</label><input id="vacine-validity" v-model="vaccine.validity" type="date" class="input" required /></div>
-                    <div class="form-group"><label for="vacine-next" class="form-label">Próxima Dose</label><input id="vacine-next" v-model="vaccine.next_dose_date" type="datetime-local" class="input" /></div>
-                </div>
-            </div>
-          <div v-else-if="selectedEventTypeName === 'medicação'" class="dynamic-form-section card full-width">
+              <h4 class="dynamic-form-title">Detalhes da Vacinação</h4>
+              <div class="form-grid nested-grid">
+                  <div class="form-group"><label for="vacine-name" class="form-label">Nome da Vacina*</label><input id="vacine-name" v-model="vaccine.name" type="text" class="input" required /></div>
+                  
+                  <div class="form-group">
+                      <label for="vacine-dose" class="form-label">Dose (Valor Numérico)*</label>
+                      <input id="vacine-dose" v-model.number="vaccine.dose" type="number" step="any" class="input" placeholder="Ex: 0.5" required />
+                      </div>
+
+                  <div class="form-group"><label for="vacine-manufacturer" class="form-label">Fabricante</label><input id="vacine-manufacturer" v-model="vaccine.manufacturer" type="text" class="input" /></div>
+                  <div class="form-group"><label for="vacine-batch" class="form-label">Lote</label><input id="vacine-batch" v-model="vaccine.batch" type="text" class="input" /></div>
+                  <div class="form-group"><label for="vacine-validity" class="form-label">Validade da Vacina*</label><input id="vacine-validity" v-model="vaccine.validity" type="date" class="input" required /></div>
+                  <div class="form-group"><label for="vacine-next" class="form-label">Próxima Dose</label><input id="vacine-next" v-model="vaccine.next_dose_date" type="datetime-local" class="input" /></div>
+              </div>
+          </div>
+            <div v-else-if="selectedEventTypeName === 'medicação'" class="dynamic-form-section card full-width">
                 <h4 class="dynamic-form-title">Detalhes da Medicação</h4>
                 <div class="form-grid nested-grid">
                     <div class="form-group"><label for="med-name" class="form-label">Nome do Medicamento*</label><input id="med-name" v-model="medicine.name" type="text" class="input" required /></div>
-                    <div class="form-group"><label for="med-dose" class="form-label">Dose Administrada*</label><input id="med-dose" v-model="medicine.dose" type="text" class="input" required placeholder="Ex: 10mL, 1 comprimido"/></div>
+                    
+                    <div class="form-group">
+                        <label for="med-dose" class="form-label">Dose Administrada (Valor Numérico)*</label>
+                        <input id="med-dose" v-model.number="medicine.dose" type="number" step="any" class="input" required placeholder="Ex: 10"/>
+                        </div>
+
                     <div class="form-group"><label for="med-manufacturer" class="form-label">Fabricante</label><input id="med-manufacturer" v-model="medicine.manufacturer" type="text" class="input" /></div>
                     <div class="form-group"><label for="med-batch" class="form-label">Lote</label><input id="med-batch" v-model="medicine.batch" type="text" class="input" /></div>
                     <div class="form-group"><label for="med-validity" class="form-label">Validade do Medicamento*</label><input id="med-validity" v-model="medicine.validity" type="date" class="input" required /></div>
@@ -330,6 +329,7 @@
                   </div>
               </div>
           </div>
+
           <div class="form-actions full-width">
             <button type="submit" class="button button-primary" :disabled="!batchEventForm.animal_group_id || !batchEventForm.event_type">
               Registrar Eventos em Lote
@@ -353,15 +353,10 @@
 
 <script>
 import {
+  // Removidas as importações diretas de registerMovement, registerWeighing, etc., pois não serão mais chamadas assim
+  // Elas ainda existem no eventService.js caso você precise delas para outros contextos.
   registerEvent, updateEvent, getEvents, deleteEvent, getEventDetails,
-  registerMovement, updateMovement,
-  registerWeighing, updateWeighing,
-  registerVacine, updateVacine,
-  registerMedicine, updateMedicine,
-  registerReproduction, updateReproduction,
-  registerSlaughter, updateSlaughter,
-  registerSpecialOccurrence, updateSpecialOccurrence,
-  registerBatchEvent
+  registerBatchEvent 
 } from '@/services/eventService';
 import { getEventTypes, getProperties, getAnimalGroups } from '@/services/lookupService';
 import { getUserProfile } from '@/services/userService';
@@ -379,7 +374,8 @@ export default {
       showModal: false,
       showBatchEventModal: false,
       editing: false,
-      editingId: null,
+      editingId: null, // Para o ID do Evento principal
+      editingDetailId: null, // Para o ID do detalhe específico (Movement, Weighing etc.)
       user: null,
       animals: [],
       animalGroups: [],
@@ -395,24 +391,25 @@ export default {
           animal_group: nullPlaceholderVal,
       },
 
-      form: {
+      form: { // Dados gerais do evento
         animal: nullPlaceholderVal,
         date: '',
         location: '',
         observations: '',
         event_type: nullPlaceholderVal
       },
-      movement: { event: null, origin_property: nullPlaceholderVal, destination_property: nullPlaceholderVal, reason: '', date: '' },
-      weighing: { event: null, weight: null, date: '' },
-      vaccine: { event: null, name: '', manufacturer: '', batch: '', validity: '', dose: '', next_dose_date: '', date: '' },
-      medicine: { event: null, name: '', manufacturer: '', batch: '', validity: '', dose: '', next_dose_date: '', reason: '', withdrawal_time: null, date: '' },
-      reproduction: { event: null, reproduction_type: '', male_id: nullPlaceholderVal, female_id: nullPlaceholderVal, result: null, date: '' },
-      slaughter: { event: null, location: '', final_weight: null, inspection_result: null, date: '' },
-      occurrence: { event: null, occurrence_type: '', description: '', actions_taken: '', date: '' },
+      // Objetos para os detalhes específicos de cada tipo de evento
+      movement: { origin_property: nullPlaceholderVal, destination_property: nullPlaceholderVal, reason: '', date: '' },
+      weighing: { weight: null, date: '' },
+      vaccine: { name: '', manufacturer: '', batch: '', validity: '', dose: null, next_dose_date: '', date: '' },
+      medicine: { name: '', manufacturer: '', batch: '', validity: '', dose: null, next_dose_date: '', reason: '', withdrawal_time: null, date: '' },
+      reproduction: { reproduction_type: '', male_id: nullPlaceholderVal, female_id: nullPlaceholderVal, result: null, date: '' },
+      slaughter: { location: '', final_weight: null, inspection_result: null, date: '' },
+      occurrence: { occurrence_type: '', description: '', actions_taken: '', date: '' },
       
       eventTypes: [], 
 
-      batchEventForm: {
+      batchEventForm: { /* ... (sem alterações aqui, já estava correto para lote) ... */
         animal_group_id: nullPlaceholderVal,
         event_type: nullPlaceholderVal,
         event_type_name: '', 
@@ -420,15 +417,14 @@ export default {
         location: '',
         observations: '',
         movement_details: { origin_property: nullPlaceholderVal, destination_property: nullPlaceholderVal, reason: '', date: '' },
-        vacine_details: { name: '', manufacturer: '', batch: '', validity: '', dose: '', next_dose_date: '', date: '' },
-        medicine_details: { name: '', manufacturer: '', batch: '', validity: '', dose: '', next_dose_date: '', reason: '', withdrawal_time: null, date: '' },
+        vacine_details: { name: '', manufacturer: '', batch: '', validity: '', dose: null, next_dose_date: '', date: '' },
+        medicine_details: { name: '', manufacturer: '', batch: '', validity: '', dose: null, next_dose_date: '', reason: '', withdrawal_time: null, date: '' },
         special_occurrences_details: { occurrence_type: '', description: '', actions_taken: '', date: '' },
-        // reproduction_details e slaughter_details removidos daqui pois não estão em batchAllowedEventTypes
       },
       notification: { show: false, message: '', type: 'success' }
     };
   },
-  computed: {
+  computed: { /* ... (sem alterações nas computadas) ... */
     sortedEvents() {
         return [...this.events].sort((a, b) => new Date(b.date) - new Date(a.date));
     },
@@ -444,25 +440,21 @@ export default {
     },
     batchAllowedEventTypes() {
       if (!this.eventTypes || this.eventTypes.length === 0) return [];
-      // CORREÇÃO APLICADA AQUI: Lista de nomes permitidos para lote
       const allowedNames = ['medicação', 'movimentação', 'ocorrência especial', 'vacinação'];
       return this.eventTypes.filter(type => type && type.name && allowedNames.includes(type.name.toLowerCase()));
     }
   },
-  watch: {
+  watch: { /* ... (sem alterações nos watchers) ... */
     'batchEventForm.event_type'(newVal) {
       if (newVal) {
         const selectedType = this.eventTypes.find(type => type.id === newVal);
-        // Certifica-se que o tipo selecionado está entre os permitidos para lote
         const isAllowed = this.batchAllowedEventTypes.some(allowedType => allowedType.id === newVal);
         if (selectedType && isAllowed) {
             this.batchEventForm.event_type_name = selectedType.name.toLowerCase();
         } else {
-            // Se por algum motivo um tipo não permitido for setado, limpa o nome
-            // e talvez até o event_type em si para evitar inconsistências.
             this.batchEventForm.event_type_name = '';
             if(!isAllowed && newVal !== this.nullPlaceholder.event_type) {
-                this.batchEventForm.event_type = this.nullPlaceholder.event_type; // Força reset
+                this.batchEventForm.event_type = this.nullPlaceholder.event_type; 
                  this.showAppNotification('Tipo de evento inválido para operação em lote.', 'warning');
             }
         }
@@ -494,7 +486,7 @@ export default {
     },
     closeNotification() { this.notification.show = false; },
     
-    async loadUserAndAnimals() {
+    async loadUserAndAnimals() { /* ... (sem alterações) ... */
       try {
         this.user = await getUserProfile();
         const list = await getAnimals({ owner: this.user.id, is_active: true });
@@ -504,7 +496,7 @@ export default {
         this.showAppNotification('Erro ao carregar dados de usuário/animais.', 'error');
       }
     },
-    async loadAnimalGroups() {
+    async loadAnimalGroups() { /* ... (sem alterações) ... */
         this.isLoadingAnimalGroups = true;
         try {
             this.animalGroups = await getAnimalGroups();
@@ -515,7 +507,7 @@ export default {
             this.isLoadingAnimalGroups = false;
         }
     },
-    async loadEventData() {
+    async loadEventData() { /* ... (sem alterações) ... */
         this.isLoadingEvents = true;
         try {
             if (this.user && this.user.id) {
@@ -531,7 +523,7 @@ export default {
             this.isLoadingEvents = false;
         }
     },
-    async loadEventTypesAndProperties() {
+    async loadEventTypesAndProperties() { /* ... (sem alterações) ... */
       try {
         [this.eventTypes, this.properties] = await Promise.all([
             getEventTypes(),
@@ -542,21 +534,22 @@ export default {
         this.showAppNotification('Erro ao carregar tipos de evento ou propriedades.', 'error');
       }
     },
-    openModal() {
+    openModal() { /* ... (sem alterações) ... */
       this.resetIndividualForm();
       this.editing = false;
       this.editingId = null;
+      this.editingDetailId = null; // Resetar ID do detalhe também
       this.form.date = new Date().toISOString().slice(0, 16);
       this.showModal = true;
     },
-    closeModal() {
+    closeModal() { /* ... (sem alterações) ... */
       this.showModal = false;
       this.resetIndividualForm(); 
     },
     async editEvent(eventItem) {
         this.resetIndividualForm(); 
         this.editing = true;
-        this.editingId = eventItem.id;
+        this.editingId = eventItem.id; 
         try {
             const fullEventDetails = await getEventDetails(eventItem.id, eventItem.event_type);
             if (!fullEventDetails) {
@@ -573,9 +566,11 @@ export default {
             
             const details = fullEventDetails.details;
             if (details) {
+                this.editingDetailId = details.id; // Guarda o ID do detalhe para atualização
                 const eventTypeName = this.eventTypes.find(type => type.id === fullEventDetails.event_type)?.name.toLowerCase();
                 const detailDateToUse = details.date ? new Date(details.date).toISOString().slice(0,16) : this.form.date;
 
+                // Preenche os respectivos objetos de detalhes
                 if (eventTypeName === 'movimentação' || eventTypeName === 'movimento') this.movement = { ...this.movement, ...details, date: detailDateToUse };
                 else if (eventTypeName === 'pesagem') this.weighing = { ...this.weighing, ...details, date: detailDateToUse };
                 else if (eventTypeName === 'vacinação') this.vaccine = { ...this.vaccine, ...details, validity: details.validity ? new Date(details.validity).toISOString().slice(0, 10) : '', next_dose_date: details.next_dose_date ? new Date(details.next_dose_date).toISOString().slice(0, 16) : '', date: detailDateToUse };
@@ -583,6 +578,8 @@ export default {
                 else if (eventTypeName === 'reprodução') this.reproduction = { ...this.reproduction, ...details, date: details.date ? new Date(details.date).toISOString().slice(0,16) : this.form.date };
                 else if (eventTypeName === 'abate') this.slaughter = { ...this.slaughter, ...details, date: detailDateToUse };
                 else if (eventTypeName === 'ocorrência especial') this.occurrence = { ...this.occurrence, ...details, date: detailDateToUse };
+            } else {
+                this.editingDetailId = null; // Não há detalhe para editar
             }
             this.showModal = true;
         } catch (e) {
@@ -590,78 +587,90 @@ export default {
             this.showAppNotification('Erro ao carregar evento para edição.', 'error');
         }
     },
-    handleEventTypeChange() { this.resetIndividualSpecificDetails(); },
+    handleEventTypeChange() { 
+        this.editingDetailId = null; // Reseta o ID do detalhe ao mudar o tipo
+        this.resetIndividualSpecificDetails(); 
+    },
+
+    // MÉTODO handleSubmit AJUSTADO
     async handleSubmit() {
         if (this.form.animal === this.nullPlaceholder.animal || !this.form.date || this.form.event_type === this.nullPlaceholder.event_type) {
             this.showAppNotification('Por favor, preencha animal, tipo de evento e data.', 'warning'); return;
         }
-        let eventData = { ...this.form, recorded_by: this.user.id };
-        const eventTypeName = this.selectedEventTypeName;
-        let specificEventPayload = null;
-        let specificServiceRegister = null;
-        let specificServiceUpdate = null;
-        let detailIdToUpdate = null;
-        const detailDate = this.form.date;
 
+        // Monta o payload principal
+        let payload = { 
+            ...this.form, 
+            recorded_by: this.user.id,
+            details: null // Inicializa o campo de detalhes
+        };
+        
+        const eventTypeName = this.selectedEventTypeName;
+        const detailDate = this.form.date; // Data base para os detalhes
+
+        // Adiciona os detalhes específicos ao payload, se aplicável
         if (eventTypeName === 'movimentação' || eventTypeName === 'movimento') {
             if (this.movement.origin_property === this.nullPlaceholder.property || this.movement.destination_property === this.nullPlaceholder.property) { this.showAppNotification('Preencha origem e destino do movimento.', 'warning'); return; }
-            specificEventPayload = { ...this.movement, date: detailDate }; specificServiceRegister = registerMovement; specificServiceUpdate = updateMovement;
+            payload.details = { ...this.movement, date: this.movement.date || detailDate };
         } else if (eventTypeName === 'pesagem') {
             if (this.weighing.weight === null || String(this.weighing.weight).trim() === '') { this.showAppNotification('Preencha o peso.', 'warning'); return; }
-            specificEventPayload = { ...this.weighing, date: detailDate }; specificServiceRegister = registerWeighing; specificServiceUpdate = updateWeighing;
+            payload.details = { ...this.weighing, date: this.weighing.date || detailDate };
         } else if (eventTypeName === 'vacinação') {
             if (!this.vaccine.name || !this.vaccine.validity || !this.vaccine.dose) { this.showAppNotification('Preencha nome, validade e dose da vacina.', 'warning'); return; }
-            specificEventPayload = { ...this.vaccine, date: detailDate }; specificServiceRegister = registerVacine; specificServiceUpdate = updateVacine;
+            payload.details = { ...this.vaccine, date: this.vaccine.date || detailDate };
         } else if (eventTypeName === 'medicação') {
             if (!this.medicine.name || !this.medicine.validity || !this.medicine.dose) { this.showAppNotification('Preencha nome, validade e dose do medicamento.', 'warning'); return; }
-            specificEventPayload = { ...this.medicine, date: detailDate }; specificServiceRegister = registerMedicine; specificServiceUpdate = updateMedicine;
+            payload.details = { ...this.medicine, date: this.medicine.date || detailDate };
         } else if (eventTypeName === 'reprodução') {
-            if (!this.reproduction.reproduction_type || this.reproduction.female_id === this.nullPlaceholder.animal) { this.showAppNotification('Preencha tipo de reprodução e fêmea (animal principal do evento).', 'warning'); return; }
-            specificEventPayload = { ...this.reproduction, date: this.reproduction.date || detailDate }; 
-            specificServiceRegister = registerReproduction; specificServiceUpdate = updateReproduction;
+            if (!this.reproduction.reproduction_type || this.reproduction.female_id === this.nullPlaceholder.animal) { this.showAppNotification('Preencha tipo de reprodução e fêmea.', 'warning'); return; }
+            payload.details = { ...this.reproduction, date: this.reproduction.date || detailDate };
         } else if (eventTypeName === 'abate') {
             if (!this.slaughter.location || this.slaughter.final_weight === null || String(this.slaughter.final_weight).trim() === '') { this.showAppNotification('Preencha local e peso final do abate.', 'warning'); return; }
-            specificEventPayload = { ...this.slaughter, date: detailDate }; specificServiceRegister = registerSlaughter; specificServiceUpdate = updateSlaughter;
+            payload.details = { ...this.slaughter, date: this.slaughter.date || detailDate };
         } else if (eventTypeName === 'ocorrência especial') {
             if (!this.occurrence.occurrence_type) { this.showAppNotification('Preencha o tipo de ocorrência especial.', 'warning'); return; }
-            specificEventPayload = { ...this.occurrence, date: detailDate }; specificServiceRegister = registerSpecialOccurrence; specificServiceUpdate = updateSpecialOccurrence;
+            payload.details = { ...this.occurrence, date: this.occurrence.date || detailDate };
+        }
+        // Se o evento não tiver detalhes específicos, payload.details permanecerá null (o backend deve lidar com isso)
+
+        // Remove o campo 'event' dos sub-objetos de detalhes, pois ele será criado no backend.
+        // O backend espera os dados dos detalhes, e ele mesmo fará a associação com o Evento principal.
+        if (payload.details && payload.details.hasOwnProperty('event')) {
+            delete payload.details.event;
         }
         
         try {
-            let resEvent;
+            let apiResponse;
             if (this.editing) {
-                resEvent = await updateEvent(this.editingId, eventData);
-                if (specificEventPayload && specificServiceUpdate) {
-                    const fullEventDetails = await getEventDetails(resEvent.id, resEvent.event_type);
-                    detailIdToUpdate = fullEventDetails.details ? fullEventDetails.details.id : null;
-                    if (detailIdToUpdate) {
-                        specificEventPayload.event = resEvent.id;
-                        await specificServiceUpdate(detailIdToUpdate, specificEventPayload);
-                    } else if (specificServiceRegister) { 
-                        specificEventPayload.event = resEvent.id;
-                        await specificServiceRegister(specificEventPayload);
-                    }
+                // Na edição, o backend `EventViewSet.update` também espera 'details' aninhado
+                // e o ID do detalhe específico se já existir para atualização.
+                // Adicionamos `editingDetailId` ao payload se estivermos editando um detalhe existente.
+                if (this.editingDetailId && payload.details) {
+                    payload.details.id = this.editingDetailId;
                 }
+                apiResponse = await updateEvent(this.editingId, payload);
                 this.showAppNotification('Evento atualizado com sucesso!', 'success');
-            } else { 
-                resEvent = await registerEvent(eventData);
-                if (specificEventPayload && specificServiceRegister) {
-                    specificEventPayload.event = resEvent.id;
-                    await specificServiceRegister(specificEventPayload);
-                }
+            } else { // Criando novo evento
+                apiResponse = await registerEvent(payload);
                 this.showAppNotification('Evento registrado com sucesso!', 'success');
             }
-            this.closeModal(); await this.loadEventData();
+            this.closeModal(); 
+            await this.loadEventData();
         } catch (e) {
             console.error('Erro ao salvar evento:', e.response?.data || e);
             let errorMessage = 'Erro ao salvar evento.';
             if (e.response?.data && typeof e.response.data === 'object') {
-                errorMessage += ' Detalhes: ' + Object.entries(e.response.data).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`).join('; ');
+                errorMessage += ' Detalhes: ' + Object.entries(e.response.data).map(([k, v]) => {
+                    if (k === 'details' && typeof v === 'object') {
+                        return 'Detalhes: ' + Object.entries(v).map(([dk, dv]) => `${dk}: ${Array.isArray(dv) ? dv.join(', ') : dv}`).join(', ');
+                    }
+                    return `${k}: ${Array.isArray(v) ? v.join(', ') : v}`;
+                }).join('; ');
             } else if (e.response?.data) { errorMessage += ` ${e.response.data}`; }
             this.showAppNotification(errorMessage, 'error');
         }
     },
-    async confirmDelete(id) {
+    async confirmDelete(id) { /* ... (sem alterações) ... */
         if (confirm('Tem certeza que deseja deletar este evento? Esta ação não pode ser desfeita.')) {
             try { await deleteEvent(id); this.showAppNotification('Evento deletado!', 'success'); await this.loadEventData(); }
             catch (e) { console.error('Erro ao deletar evento:', e.response?.data || e); this.showAppNotification('Erro ao deletar evento.', 'error'); }
@@ -670,7 +679,7 @@ export default {
     openBatchEventRegistrationModal() { this.resetBatchForm(); this.batchEventForm.date = new Date().toISOString().slice(0, 16); this.showBatchEventModal = true; },
     closeBatchEventRegistrationModal() { this.showBatchEventModal = false; this.resetBatchForm(); },
     handleBatchEventTypeChange() { this.resetBatchEventSpecificDetails(); },
-    async handleBatchEventSubmit() {
+    async handleBatchEventSubmit() { 
       if (this.batchEventForm.animal_group_id === this.nullPlaceholder.animal_group) { this.showAppNotification('Selecione um lote/grupo de animais.', 'warning'); return; }
       if (this.batchEventForm.event_type === this.nullPlaceholder.event_type || !this.batchEventForm.date) { this.showAppNotification('Preencha tipo de evento e data para o lote.', 'warning'); return; }
       
@@ -698,7 +707,6 @@ export default {
           if (!this.batchEventForm.special_occurrences_details.occurrence_type) { this.showAppNotification('Preencha o tipo de ocorrência especial para o lote.', 'warning'); return; }
           payload.special_occurrences_details = { ...this.batchEventForm.special_occurrences_details, date: detailDate };
       }
-      // Não é necessário adicionar 'abate' e 'reprodução' aqui, pois eles não estão em batchAllowedEventTypes
 
       try {
           const response = await registerBatchEvent(payload);
@@ -714,22 +722,23 @@ export default {
           this.showAppNotification(errorMessage, 'error');
       }
     },
-    resetIndividualForm() {
+    resetIndividualForm() { /* ... (sem alterações) ... */
         const currentDate = new Date().toISOString().slice(0, 16);
         this.form = { animal: this.nullPlaceholder.animal, date: currentDate, location: '', observations: '', event_type: this.nullPlaceholder.event_type };
+        this.editingDetailId = null; // Limpa o ID do detalhe também
         this.resetIndividualSpecificDetails(currentDate);
     },
-    resetIndividualSpecificDetails(dateToUse) {
+    resetIndividualSpecificDetails(dateToUse) { /* ... (sem alterações) ... */
         const eventDate = dateToUse || new Date().toISOString().slice(0, 16);
-        this.movement = { event: null, origin_property: this.nullPlaceholder.property, destination_property: this.nullPlaceholder.property, reason: '', date: eventDate };
-        this.weighing = { event: null, weight: null, date: eventDate };
-        this.vaccine = { event: null, name: '', manufacturer: '', batch: '', validity: '', dose: '', next_dose_date: '', date: eventDate };
-        this.medicine = { event: null, name: '', manufacturer: '', batch: '', validity: '', dose: '', next_dose_date: '', reason: '', withdrawal_time: null, date: eventDate };
-        this.reproduction = { event: null, reproduction_type: '', male_id: this.nullPlaceholder.animal, female_id: this.nullPlaceholder.animal, result: null, date: eventDate };
-        this.slaughter = { event: null, location: '', final_weight: null, inspection_result: null, date: eventDate };
-        this.occurrence = { event: null, occurrence_type: '', description: '', actions_taken: '', date: eventDate };
+        this.movement = { origin_property: this.nullPlaceholder.property, destination_property: this.nullPlaceholder.property, reason: '', date: eventDate };
+        this.weighing = { weight: null, date: eventDate };
+        this.vaccine = { name: '', manufacturer: '', batch: '', validity: '', dose: null, next_dose_date: '', date: eventDate /*, dose_unit: '' */ };
+        this.medicine = { name: '', manufacturer: '', batch: '', validity: '', dose: null, next_dose_date: '', reason: '', withdrawal_time: null, date: eventDate /*, dose_unit: '' */ };
+        this.reproduction = { reproduction_type: '', male_id: this.nullPlaceholder.animal, female_id: this.nullPlaceholder.animal, result: null, date: eventDate };
+        this.slaughter = { location: '', final_weight: null, inspection_result: null, date: eventDate };
+        this.occurrence = { occurrence_type: '', description: '', actions_taken: '', date: eventDate };
     },
-    resetBatchForm() {
+    resetBatchForm() { /* ... (sem alterações) ... */
         const currentDate = new Date().toISOString().slice(0, 16);
         this.batchEventForm = {
             animal_group_id: this.nullPlaceholder.animal_group, 
@@ -738,16 +747,14 @@ export default {
             date: currentDate, 
             location: '', 
             observations: '',
-            // Reset details objects
             movement_details: { origin_property: this.nullPlaceholder.property, destination_property: this.nullPlaceholder.property, reason: '', date: currentDate },
             vacine_details: { name: '', manufacturer: '', batch: '', validity: '', dose: '', next_dose_date: '', date: currentDate },
             medicine_details: { name: '', manufacturer: '', batch: '', validity: '', dose: '', next_dose_date: '', reason: '', withdrawal_time: null, date: currentDate },
             special_occurrences_details: { occurrence_type: '', description: '', actions_taken: '', date: currentDate },
         };
     },
-    resetBatchEventSpecificDetails(dateToUse) { // Chamado quando o tipo de evento em lote muda
+    resetBatchEventSpecificDetails(dateToUse) { /* ... (sem alterações) ... */
         const eventDate = dateToUse || this.batchEventForm.date || new Date().toISOString().slice(0, 16);
-        // Apenas reseta os detalhes dos tipos permitidos
         this.batchEventForm.movement_details = { origin_property: this.nullPlaceholder.property, destination_property: this.nullPlaceholder.property, reason: '', date: eventDate };
         this.batchEventForm.vacine_details = { name: '', manufacturer: '', batch: '', validity: '', dose: '', next_dose_date: '', date: eventDate };
         this.batchEventForm.medicine_details = { name: '', manufacturer: '', batch: '', validity: '', dose: '', next_dose_date: '', reason: '', withdrawal_time: null, date: eventDate };
@@ -755,7 +762,7 @@ export default {
     },
     getAnimalIdentification(animalId) { return this.animalIdToIdentificationMap[animalId] || 'N/D'; },
     getEventTypeName(eventTypeId) { const type = this.eventTypes.find(t => t.id === eventTypeId); return type ? type.name : 'N/D'; },
-    formatDateTime(dateTimeString) {
+    formatDateTime(dateTimeString) { /* ... (sem alterações) ... */
         if (!dateTimeString) return 'N/A';
         try {
             const date = new Date(dateTimeString);
@@ -764,7 +771,7 @@ export default {
         } catch (e) { return "Data Inválida"; }
     }
   },
-  async mounted() {
+  async mounted() { /* ... (sem alterações) ... */
     this.isLoadingEvents = true;
     await this.loadUserAndAnimals();
     await this.loadEventTypesAndProperties();
@@ -779,6 +786,7 @@ export default {
 </script>
 
 <style scoped>
+/* Seu CSS Scoped Existente ... */
 .form-text.text-warning {
   color: var(--color-warning); 
   font-weight: var(--fw-medium);
@@ -896,7 +904,7 @@ export default {
   margin-top: var(--sp-md);
   padding: var(--sp-md);
   background-color: var(--color-bg-muted);
-  border-radius: var(--border-radius); /* Adicionado para consistência */
+  border-radius: var(--border-radius);
 }
 .dynamic-form-title {
   grid-column: 1 / -1;
