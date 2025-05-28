@@ -4,6 +4,7 @@
     <main role="main">
       <section class="hero section text-center">
         <div class="container">
+          <h1 class="title">AnimalTracking</h1>
           <h1 class="hero-title">Rastreabilidade Completa para Seu Rebanho</h1>
           <p class="hero-subtitle">Transparência, segurança e auditabilidade em blockchain de segunda camada.</p>
           <button class="button button-primary button-lg" @click="goToSignup">Experimente Grátis</button>
@@ -233,6 +234,14 @@ export default {
     margin: var(--sp-sm) auto 0;
 }
 
+/* Titulo Principal */
+.title{
+  font-size: var(--fs-h1-2); /* Usa variável global */
+  font-weight: var(--fw-bold);
+  color: var(--color-primary);
+  text-align: center;
+  margin-bottom: var(--sp-lg);
+}
 
 /* Hero Section */
 .hero {
@@ -549,7 +558,7 @@ export default {
 
 /* Footer CTA Section */
 .gradient-bg {
-  background: linear-gradient(to bottom, var(--color-bg-muted) 0%, var(--color-primary-light) 100%); /* Gradiente mais suave */
+  background: linear-gradient(to bottom, var(--color-bg-component) 0%, var(--color-primary-light) 100%); /* Gradiente começa com a cor da seção anterior */
 }
 .footer-cta-container {
   display: flex;

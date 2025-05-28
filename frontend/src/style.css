@@ -68,6 +68,7 @@
   --fs-large: 1.125rem; /* 18px */
   
   /* Tamanhos de Fonte para Títulos (H1-H6) */
+  --fs-h1-2: 3.5rem;   /* 40px */
   --fs-h1: 2.25rem;   /* 36px */
   --fs-h2: 1.875rem; /* 30px */
   --fs-h3: 1.5rem;   /* 24px */
