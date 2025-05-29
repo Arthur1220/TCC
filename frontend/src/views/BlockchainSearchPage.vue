@@ -111,101 +111,17 @@
     </main>
     <AppFooter />
 
-    <div v-if="showDetailsModal" class="modal-overlay" @click.self="closeDetailsModal">
-        <div class="modal-content card large-modal">
-            <div class="modal-header">
-                <h3 class="modal-title-text">Detalhes do Evento Auditado</h3>
-                <button @click="closeDetailsModal" class="button-close" aria-label="Fechar modal">&times;</button>
-            </div>
-            <div v-if="selectedEventForModal" class="modal-body event-details-modal-body">
-                <div v-if="selectedEventForModal.animalIdentificationDisplay && searchedByType === 'identification'" class="details-section">
-                    <h4>Animal da Busca</h4>
-                    <p><strong>Identificação:</strong> {{ selectedEventForModal.animalIdentificationDisplay }}</p>
-                    <p><strong>ID:</strong> {{ selectedEventForModal.animalIdForContext }}</p>
-                     <hr class="my-1">
-                </div>
-
-                <h4>Dados do Banco de Dados do Evento</h4>
-                <div v-if="selectedEventForModal.dbEventDetails" class="details-section">
-                    <p><strong>ID do Evento (BD):</strong> {{ selectedEventForModal.dbEventDetails.id }}</p>
-                    <p><strong>Animal (BD):</strong> {{ selectedEventForModal.dbEventDetails.animal_identification }} (ID: {{ selectedEventForModal.dbEventDetails.animal }})</p>
-                    <p><strong>Tipo (BD):</strong> {{ selectedEventForModal.dbEventDetails.event_type_name }} (ID: {{ selectedEventForModal.dbEventDetails.event_type }})</p>
-                    <p><strong>Data (BD):</strong> {{ formatDbTimestamp(selectedEventForModal.dbEventDetails.date) }}</p>
-                    <p><strong>Localização (BD):</strong> {{ selectedEventForModal.dbEventDetails.location || 'N/A' }}</p>
-                    <p><strong>Observações (BD):</strong> {{ selectedEventForModal.dbEventDetails.observations || 'N/A' }}</p>
-                    <p><strong>Registrado por (BD):</strong> {{ selectedEventForModal.dbEventDetails.recorded_by_username || 'N/A' }}</p>
-                    
-                    <div v-if="selectedEventForModal.dbEventDetails.details" class="specific-details mt-1 card">
-                        <h5 class="details-subtitle">Detalhes Específicos ({{selectedEventForModal.dbEventDetails.event_type_name}}):</h5>
-                        <div v-if="selectedEventForModal.dbEventDetails.event_type_name?.toLowerCase().includes('pesagem')">
-                            <p><strong>Peso:</strong> {{ selectedEventForModal.dbEventDetails.details.weight }} kg</p>
-                        </div>
-                        <div v-else-if="selectedEventForModal.dbEventDetails.event_type_name?.toLowerCase().includes('movimento')">
-                            <p><strong>Origem:</strong> {{ getPropertyName(selectedEventForModal.dbEventDetails.details.origin_property) }}</p>
-                            <p><strong>Destino:</strong> {{ getPropertyName(selectedEventForModal.dbEventDetails.details.destination_property) }}</p>
-                            <p><strong>Motivo:</strong> {{ selectedEventForModal.dbEventDetails.details.reason || 'N/A' }}</p>
-                        </div>
-                        <div v-else-if="selectedEventForModal.dbEventDetails.event_type_name?.toLowerCase().includes('vacina')">
-                            <p><strong>Vacina:</strong> {{ selectedEventForModal.dbEventDetails.details.name }}</p>
-                            <p><strong>Dose:</strong> {{ selectedEventForModal.dbEventDetails.details.dose }} {{ selectedEventForModal.dbEventDetails.details.dose_unit || '' }}</p>
-                            <p><strong>Fabricante:</strong> {{ selectedEventForModal.dbEventDetails.details.manufacturer || 'N/A' }}</p>
-                            <p><strong>Lote:</strong> {{ selectedEventForModal.dbEventDetails.details.batch || 'N/A' }}</p>
-                            <p><strong>Validade:</strong> {{ formatDate(selectedEventForModal.dbEventDetails.details.validity) }}</p>
-                        </div>
-                         <div v-else-if="selectedEventForModal.dbEventDetails.event_type_name?.toLowerCase().includes('medica')"> {/* 'medicação' ou 'medicamento' */}
-                            <p><strong>Medicamento:</strong> {{ selectedEventForModal.dbEventDetails.details.name }}</p>
-                            <p><strong>Dose:</strong> {{ selectedEventForModal.dbEventDetails.details.dose }} {{ selectedEventForModal.dbEventDetails.details.dose_unit || '' }}</p>
-                            <p><strong>Motivo:</strong> {{ selectedEventForModal.dbEventDetails.details.reason || 'N/A' }}</p>
-                        </div>
-                        <div v-else-if="selectedEventForModal.dbEventDetails.event_type_name?.toLowerCase().includes('reprodu')"> {/* 'reprodução' */}
-                            <p><strong>Tipo Reprodução:</strong> {{ selectedEventForModal.dbEventDetails.details.reproduction_type }}</p>
-                            <p><strong>Macho:</strong> {{ getAnimalIdentificationFromList(selectedEventForModal.dbEventDetails.details.male_id) }}</p>
-                            <p><strong>Fêmea:</strong> {{ getAnimalIdentificationFromList(selectedEventForModal.dbEventDetails.details.female_id) }}</p>
-                            <p><strong>Resultado:</strong> {{ selectedEventForModal.dbEventDetails.details.result || 'N/A' }}</p>
-                        </div>
-                         <div v-else-if="selectedEventForModal.dbEventDetails.event_type_name?.toLowerCase().includes('abate')">
-                            <p><strong>Local Abate:</strong> {{ selectedEventForModal.dbEventDetails.details.location }}</p>
-                            <p><strong>Peso Final:</strong> {{ selectedEventForModal.dbEventDetails.details.final_weight }} kg</p>
-                            <p><strong>Inspeção:</strong> {{ selectedEventForModal.dbEventDetails.details.inspection_result || 'N/A' }}</p>
-                        </div>
-                         <div v-else-if="selectedEventForModal.dbEventDetails.event_type_name?.toLowerCase().includes('ocorrência especial')">
-                            <p><strong>Tipo Ocorrência:</strong> {{ selectedEventForModal.dbEventDetails.details.occurrence_type }}</p>
-                            <p><strong>Descrição:</strong> {{ selectedEventForModal.dbEventDetails.details.description || 'N/A' }}</p>
-                            <p><strong>Ações Tomadas:</strong> {{ selectedEventForModal.dbEventDetails.details.actions_taken || 'N/A' }}</p>
-                        </div>
-                        <pre v-else-if="typeof selectedEventForModal.dbEventDetails.details === 'object'">{{ JSON.stringify(selectedEventForModal.dbEventDetails.details, null, 2) }}</pre>
-                        <p v-else>Nenhum detalhe específico disponível.</p>
-                    </div>
-                     <p v-else-if="!selectedEventForModal.dbEventDetails.details && selectedEventForModal.dbEventDetails.event_type_name !== 'Geral'">
-                        Este tipo de evento não possui detalhes específicos adicionais registrados no banco de dados.
-                    </p>
-                </div>
-                <p v-else>Detalhes do evento no banco de dados não disponíveis.</p>
-
-                <hr class="my-1">
-                <h4>Dados da Blockchain</h4>
-                <div v-if="selectedEventForModal.blockchainData" class="details-section">
-                    <p><strong>ID do Evento (BC):</strong> {{ selectedEventForModal.blockchainData.eventId }}</p>
-                    <p><strong>ID do Animal (BC):</strong> {{ selectedEventForModal.blockchainData.animalId }}</p>
-                    <p><strong>Tipo de Evento ID (BC):</strong> {{ selectedEventForModal.blockchainData.eventType }}</p>
-                    <p><strong>Hash dos Dados (BC):</strong> <span class="data-hash">{{ selectedEventForModal.blockchainData.dataHash }}</span></p>
-                    <p><strong>Registrado por (Endereço BC):</strong> <span class="registrant-address">{{ selectedEventForModal.blockchainData.registrant }}</span></p>
-                    <p><strong>Hash do Usuário (BC):</strong> <span class="data-hash">{{ selectedEventForModal.blockchainData.userHash }}</span></p>
-                    <p><strong>Timestamp (BC):</strong> {{ formatBlockchainTimestamp(selectedEventForModal.blockchainData.timestamp) }}</p>
-                </div>
-                 <div v-else-if="selectedEventForModal.dbBlockchainEntry" class="details-section">
-                    <p><strong>Hash da Transação (BC):</strong> <span class="data-hash">{{ selectedEventForModal.dbBlockchainEntry.transaction_hash }}</span></p>
-                    <p><strong>Data de Registro (BC no DB):</strong> {{ formatDbTimestamp(selectedEventForModal.dbBlockchainEntry.registration_date) }}</p>
-                    <p><strong>Status (BC no DB):</strong> {{ selectedEventForModal.dbBlockchainEntry.status_details?.name || 'N/D' }}</p>
-                 </div>
-                <p v-else>Dados da blockchain não disponíveis para este registro.</p>
-            </div>
-             <div class="form-actions full-width">
-                <button type="button" class="button button-secondary" @click="closeDetailsModal">Fechar</button>
-            </div>
-        </div>
+    <div v-if="showDetailsModal && selectedEventForModal" class="modal-overlay" @click.self="closeDetailsModal">
+      <EventDetailViewer
+        :event-data="selectedEventForModal"
+        :animals-list="animalsListForLookup"
+        :properties-list="properties"
+        :event-types-list="eventTypes" 
+        title="Detalhes Completos do Evento Auditado"
+        :show-close-button-in-header="true" 
+        @close="closeDetailsModal"
+      />
     </div>
-
     <NotificationModal
       :show="notification.show"
       :message="notification.message"
@@ -219,6 +135,7 @@
 import AppHeader from '@/components/AppHeader.vue';
 import AppFooter from '@/components/AppFooter.vue';
 import NotificationModal from '@/components/NotificationModal.vue';
+import EventDetailViewer from '@/components/EventDetailViewer.vue'; 
 import { listContractEventsByAnimalId, findBlockchainEntryByTxHash } from '@/services/contractService'; 
 import { getEventDetails } from '@/services/eventService';
 import { getAnimals, searchAnimalsByIdentification } from '@/services/animalService'; // Importar searchAnimalsByIdentification
@@ -226,7 +143,7 @@ import { getProperties, getEventTypes } from '@/services/lookupService';
 
 export default {
   name: 'BlockchainSearchPage',
-  components: { AppHeader, AppFooter, NotificationModal },
+  components: { AppHeader, AppFooter, NotificationModal, EventDetailViewer },
   data() {
     return {
       searchQuery: '',
@@ -268,7 +185,7 @@ export default {
     }
   },
   methods: {
-    showAppNotification(message, type = 'error', duration = 3000) { /* ... */ 
+    showAppNotification(message, type = 'error', duration = 3000) { 
       this.notification.message = message;
       this.notification.type = type;
       this.notification.show = true;
@@ -309,13 +226,18 @@ export default {
             for (const entry of blockchainEntries) {
               let fullDbEventDetails = entry.event_details; 
               if (entry.event && entry.event_details?.event_type) {
-                 fullDbEventDetails = await getEventDetails(entry.event, entry.event_details.event_type);
+                try {
+                  fullDbEventDetails = await getEventDetails(entry.event, entry.event_details.event_type);
+                } catch (dbError) {
+                  console.warn(`Não foi possível buscar detalhes completos do DB para evento ${entry.event}:`, dbError);
+                }
               }
               this.processedResults.push({
-                uniqueKey: entry.transaction_hash,
+                uniqueKey: entry.transaction_hash + (entry.event || Date.now()), // Chave mais única
                 dbBlockchainEntry: entry, 
                 dbEventDetails: this.mapDbEventDetails(fullDbEventDetails),
-                blockchainData: null 
+                blockchainData: null,
+                contextualAnimalInfo: entry.animal_details ? { identification: entry.animal_details.identification, id: entry.animal_id } : null,
               });
             }
           }
@@ -323,6 +245,8 @@ export default {
           this.searchTypeMessage = 'ID do Animal';
           this.searchedByType = 'animalId';
           const animalId = Number(this.searchedQueryDisplay);
+          const animalInfo = this.animalsListForLookup.find(a => a.id === animalId);
+          const animalContext = animalInfo ? { identification: animalInfo.identification, id: animalInfo.id } : { identification: `ID ${animalId}`, id: animalId };
           const contractEvents = await listContractEventsByAnimalId(animalId);
           await this.processContractEvents(contractEvents, String(animalId));
 
@@ -335,8 +259,10 @@ export default {
                  this.showAppNotification(`Muitos animais encontrados (${matchedAnimals.length}). Mostrando eventos para os primeiros 5. Refine sua busca.`, "info");
             }
             for (const animal of matchedAnimals.slice(0, 5)) { // Processa até 5 animais
+              const animalContext = { identification: animal.identification, id: animal.id };
               const contractEvents = await listContractEventsByAnimalId(animal.id);
-              await this.processContractEvents(contractEvents, animal.identification, animal.id);
+              await this.processContractEvents(contractEvents, animalContext);
+
             }
           }
         }
@@ -346,33 +272,50 @@ export default {
         this.showAppNotification(err.message || 'Erro ao buscar dados.', 'error');
       } finally {
         this.isSearching = false;
+          if (this.processedResults.length === 0 && this.hasSearched) {
+            // A mensagem de "nenhum resultado" já é tratada pelo v-else-if
+          }
       }
     },
 
-    async processContractEvents(contractEvents, animalIdentifier, animalIdForContext = null) {
+    
+    async processContractEvents(contractEvents, animalContextInfo) {
         if (contractEvents && contractEvents.length > 0) {
             for (const bcEvent of contractEvents) {
-                const dbEventDetailsData = await getEventDetails(bcEvent.eventId, bcEvent.eventType);
+                let dbEventDetailsData = null;
+                try {
+                    if(bcEvent.eventId && bcEvent.eventType !== undefined){ // Certifica que eventId e eventType existem
+                         dbEventDetailsData = await getEventDetails(Number(bcEvent.eventId), Number(bcEvent.eventType));
+                    } else {
+                        console.warn("Evento da blockchain sem eventId ou eventType válidos:", bcEvent);
+                    }
+                } catch (dbError) {
+                    console.warn(`Não foi possível buscar detalhes completos do DB para evento blockchain (ID Contrato: ${bcEvent.eventId}):`, dbError);
+                }
+                
                 this.processedResults.push({
-                    uniqueKey: `${animalIdentifier}-${bcEvent.dataHash || bcEvent.eventId}-${bcEvent.timestamp}`,
-                    animalIdentificationDisplay: this.searchedByType === 'identification' ? animalIdentifier : null, // Só mostra se buscou por identificação
-                    animalIdForContext: animalIdForContext || bcEvent.animalId,
+                    uniqueKey: `${animalContextInfo.id}-${bcEvent.dataHash || bcEvent.eventId}-${bcEvent.timestamp}`,
+                    contextualAnimalInfo: animalContextInfo, 
                     blockchainData: bcEvent,
-                    dbEventDetails: this.mapDbEventDetails(dbEventDetailsData)
+                    dbEventDetails: this.mapDbEventDetails(dbEventDetailsData), // Mapeia com lookups
+                    dbBlockchainEntry: null // Neste fluxo, os dados da blockchain vêm direto do contrato
                 });
             }
         }
-        // Ordenar resultados gerais no final de performSearch, se necessário, ou manter agrupado por animal
-        this.processedResults.sort((a,b) => (b.blockchainData?.timestamp || b.dbBlockchainEntry?.registration_date || 0) - (a.blockchainData?.timestamp || a.dbBlockchainEntry?.registration_date || 0));
+        this.processedResults.sort((a,b) => 
+            (b.blockchainData?.timestamp || new Date(b.dbBlockchainEntry?.registration_date).getTime()/1000 || 0) - 
+            (a.blockchainData?.timestamp || new Date(a.dbBlockchainEntry?.registration_date).getTime()/1000 || 0)
+        );
     },
-
     mapDbEventDetails(dbEventData) {
         if (!dbEventData) return null;
         return {
             ...dbEventData,
             animal_identification: this.getAnimalIdentificationFromList(dbEventData.animal),
             event_type_name: this.getEventTypeName(dbEventData.event_type),
-            recorded_by_username: dbEventData.recorded_by_username || (dbEventData.recorded_by ? `Usuário ID ${dbEventData.recorded_by}` : 'N/D'),
+            recorded_by_username: dbEventData.recorded_by_username || (dbEventData.recorded_by ? `Usuário ID ${dbEventData.recorded_by}` : 'N/A'),
+            // Garante que 'details' seja um objeto, mesmo que vazio, se for null/undefined
+            details: dbEventData.details || {} 
         };
     },
 
@@ -412,13 +355,14 @@ export default {
             });
         } catch (e) { return "Data Inválida"; }
     },
-     formatDate(dateString) {
+     formatDate(dateString) { /* ... (como antes, mas certifique-se que a lógica de timezone está correta para 'validity') ... */ 
         if (!dateString) return 'N/A';
         try {
-            const date = new Date(dateString + 'T00:00:00'); 
+            // Para datas como 'YYYY-MM-DD', adicionar T00:00:00Z para interpretar como UTC e evitar problemas de fuso.
+            const date = new Date(dateString.length === 10 && dateString.includes('-') ? dateString + 'T00:00:00Z' : dateString);
             if (isNaN(date.getTime())) return 'Data Inválida';
             return date.toLocaleDateString('pt-BR', {
-                day: '2-digit', month: '2-digit', year: 'numeric'
+              day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' // Exibe a data como está, sem conversão de fuso
             });
         } catch (e) { return "Data Inválida"; }
     },
@@ -430,9 +374,16 @@ export default {
         }));
     },
 
-    openDetailsModal(result) {
-        this.selectedEventForModal = result;
-        this.showDetailsModal = true;
+    openDetailsModal(result) { // Este método agora apenas define os dados para o modal
+      this.selectedEventForModal = { // Monta o objeto eventData esperado por EventDetailViewer
+        dbEventDetails: result.dbEventDetails,
+        blockchainData: result.blockchainData,
+        dbBlockchainEntry: result.dbBlockchainEntry,
+        contextualAnimalInfo: result.animalIdentificationDisplay 
+                                ? { identification: result.animalIdentificationDisplay, id: result.animalIdForContext } 
+                                : (result.dbEventDetails ? {identification: this.getAnimalIdentificationFromList(result.dbEventDetails.animal), id: result.dbEventDetails.animal } : null )
+      };
+      this.showDetailsModal = true;
     },
     closeDetailsModal() {
         this.showDetailsModal = false;

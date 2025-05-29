@@ -28,8 +28,7 @@
             <th>Data</th>
             <th>Localização</th>
             <th class="th-observations">Observações</th>
-            <th class="text-right">Ações</th>
-          </tr>
+            <th class="text-right">Ações</th> </tr>
         </thead>
         <tbody>
           <tr v-for="eventItem in sortedEvents" 
@@ -49,7 +48,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 4C7.31 4 3.07 6.9 1 11.5C3.07 16.1 7.31 19 12 19s8.93-2.9 11-7.5C20.93 6.9 16.69 4 12 4zm0 12.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8C10.62 9 9.5 10.12 9.5 11.5S10.62 14 12 14s2.5-1.12 2.5-2.5S13.38 9 12 9z"/></svg>
                     Detalhes
                 </button>
-            </td>
+                </td>
           </tr>
         </tbody>
       </table>
@@ -63,21 +62,21 @@
       <div class="modal-content card large-modal">
         <div class="modal-header">
             <h3 class="modal-title-text">
-                {{ isReadOnlyMode ? 'Visualizar Detalhes do Evento' : 'Registrar Novo Evento Individual' }}
+                {{ isReadOnlyMode ? 'Visualizar Detalhes do Evento' : (editing ? 'Editar Evento Individual' : 'Registrar Novo Evento Individual') }}
             </h3>
             <button @click="closeModal" class="button-close" aria-label="Fechar modal">&times;</button>
         </div>
         <form @submit.prevent="handleSubmit" class="modal-form form-grid" :key="formKey">
           <div class="form-group">
             <label for="event-animal" class="form-label">Animal*</label>
-            <select id="event-animal" v-model.number="form.animal" class="select" :disabled="isReadOnlyMode" required>
+            <select id="event-animal" v-model.number="form.animal" class="select" :disabled="isReadOnlyMode || (editing && !isReadOnlyMode)" required>
               <option disabled :value="nullPlaceholder.animal">Selecione um animal</option>
               <option v-for="a in animals" :key="a.id" :value="a.id">{{ a.identification }}</option>
             </select>
           </div>
           <div class="form-group">
             <label for="event-type" class="form-label">Tipo de Evento*</label>
-            <select id="event-type" v-model.number="form.event_type" @change="handleEventTypeChange" class="select" :disabled="isReadOnlyMode" required>
+            <select id="event-type" v-model.number="form.event_type" @change="handleEventTypeChange" class="select" :disabled="isReadOnlyMode || (editing && !isReadOnlyMode)" required>
               <option disabled :value="nullPlaceholder.event_type">Selecione um tipo</option>
               <option v-for="o in eventTypes" :key="o.id" :value="o.id">{{ o.name }}</option>
             </select>
@@ -227,7 +226,8 @@
 
           <div class="form-actions full-width">
             <button v-if="!isReadOnlyMode" type="submit" class="button button-primary">
-              {{ editing ? 'Atualizar Evento' : 'Salvar Evento' }} </button>
+              {{ editing ? 'Atualizar Evento' : 'Salvar Evento' }}
+            </button>
             <button type="button" class="button button-secondary" @click="closeModal">
               {{ isReadOnlyMode ? 'Fechar' : 'Cancelar' }}
             </button>
@@ -237,121 +237,150 @@
     </div>
 
     <div v-if="showBatchEventModal" class="modal-overlay" @click.self="closeBatchEventRegistrationModal">
-        <div class="modal-content card large-modal">
-           <div class="modal-header">
-             <h3 class="modal-title-text">Registrar Evento em Lote</h3>
-             <button @click="closeBatchEventRegistrationModal" class="button-close" aria-label="Fechar modal">&times;</button>
-           </div>
-           <p class="modal-description panel-description">Selecione o lote (grupo de animais) e defina os detalhes do evento que será aplicado a todos eles.</p>
+      <div class="modal-content card large-modal">
+          <div class="modal-header">
+            <h3 class="modal-title-text">Registrar Evento em Lote</h3>
+            <button @click="closeBatchEventRegistrationModal" class="button-close" aria-label="Fechar modal">&times;</button>
+      </div>
+      <p class="modal-description panel-description">Selecione o lote (grupo de animais) e defina os detalhes do evento que será aplicado a todos eles.</p>
+
+      <form @submit.prevent="handleBatchEventSubmit" class="modal-form form-grid">
+        <div class="form-group full-width">
+          <label for="batch-animal-group" class="form-label">Lote (Grupo de Animais)*</label>
+          <select id="batch-animal-group" v-model.number="batchEventForm.animal_group_id" class="select" required>
+            <option disabled :value="nullPlaceholder.animal_group">Selecione um lote/grupo</option>
+            <option v-for="group in animalGroups" :key="group.id" :value="group.id">{{ group.name }}</option>
+          </select>
+          <p v-if="!animalGroups.length && !isLoadingAnimalGroups" class="form-text text-warning">Nenhum grupo de animais disponível. Cadastre grupos primeiro.</p>
+          <p v-if="isLoadingAnimalGroups" class="form-text">Carregando grupos...</p>
+        </div>
+
+        <div class="form-group">
+          <label for="batch-event-type" class="form-label">Tipo de Evento*</label>
+          <select id="batch-event-type" v-model.number="batchEventForm.event_type" @change="handleBatchEventTypeChange" class="select" required>
+            <option disabled :value="nullPlaceholder.event_type">Selecione um tipo</option>
+            <option v-for="type in batchAllowedEventTypes" :key="type.id" :value="type.id">{{ type.name }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="batch-event-date" class="form-label">Data e Hora*</label>
+          <input type="datetime-local" id="batch-event-date" v-model="batchEventForm.date" class="input" required />
+        </div>
+        <div class="form-group">
+          <label for="batch-event-location" class="form-label">Localização</label>
+          <input type="text" id="batch-event-location" v-model="batchEventForm.location" class="input" />
+        </div>
+        <div class="form-group full-width">
+          <label for="batch-event-observations" class="form-label">Observações Gerais</label>
+          <textarea id="batch-event-observations" v-model="batchEventForm.observations" class="textarea" rows="3"></textarea>
+        </div>
+
+        <div v-if="batchEventForm.event_type_name === 'movimentação' || batchEventForm.event_type_name === 'movimento'" class="dynamic-form-section card full-width">
+          <h4 class="dynamic-form-title">Detalhes do Movimento em Lote</h4>
+              <div class="form-grid nested-grid">
+              <div class="form-group">
+                  <label for="batch-origin-property" class="form-label">Propriedade Origem*</label>
+                  <select id="batch-origin-property" v-model.number="batchEventForm.movement_details.origin_property" class="select" required>
+                      <option disabled :value="nullPlaceholder.property">Selecione a origem</option>
+                      <option v-for="prop in properties" :key="`batch-orig-${prop.id}`" :value="prop.id">{{ prop.name }}</option>
+                  </select>
+              </div>
+              <div class="form-group">
+                  <label for="batch-destination-property" class="form-label">Propriedade Destino*</label>
+                  <select id="batch-destination-property" v-model.number="batchEventForm.movement_details.destination_property" class="select" required>
+                      <option disabled :value="nullPlaceholder.property">Selecione o destino</option>
+                      <option v-for="prop in properties" :key="`batch-dest-${prop.id}`" :value="prop.id">{{ prop.name }}</option>
+                  </select>
+              </div>
+              <div class="form-group full-width">
+                  <label for="batch-movement-reason" class="form-label">Razão/Motivo</label>
+                  <textarea id="batch-movement-reason" v-model="batchEventForm.movement_details.reason" class="textarea" rows="2"></textarea>
+              </div>
+          </div>
+        </div>
+        <div v-else-if="batchEventForm.event_type_name === 'vacinação'" class="dynamic-form-section card full-width">
+              <h4 class="dynamic-form-title">Detalhes da Vacinação em Lote</h4>
+              <div class="form-grid nested-grid">
+                  <div class="form-group"><label for="batch-vacine-name" class="form-label">Nome da Vacina*</label><input id="batch-vacine-name" v-model="batchEventForm.vacine_details.name" type="text" class="input" required /></div>
+                  <div class="form-group"><label for="batch-vacine-dose" class="form-label">Dose (Valor Numérico)*</label><input id="batch-vacine-dose" v-model.number="batchEventForm.vacine_details.dose" type="number" step="any" class="input" required /></div>
+                  <div class="form-group"><label for="batch-vacine-manufacturer" class="form-label">Fabricante</label><input id="batch-vacine-manufacturer" v-model="batchEventForm.vacine_details.manufacturer" type="text" class="input" /></div>
+                  <div class="form-group"><label for="batch-vacine-batch" class="form-label">Lote</label><input id="batch-vacine-batch" v-model="batchEventForm.vacine_details.batch" type="text" class="input" /></div>
+                  <div class="form-group"><label for="batch-vacine-validity" class="form-label">Validade da Vacina*</label><input id="batch-vacine-validity" v-model="batchEventForm.vacine_details.validity" type="date" class="input" required /></div>
+                  <div class="form-group"><label for="batch-vacine-next" class="form-label">Próxima Dose</label><input id="batch-vacine-next" v-model="batchEventForm.vacine_details.next_dose_date" type="datetime-local" class="input" /></div>
+              </div>
+          </div>
+        <div v-else-if="batchEventForm.event_type_name === 'medicação'" class="dynamic-form-section card full-width">
+            <h4 class="dynamic-form-title">Detalhes da Medicação em Lote</h4>
+            <div class="form-grid nested-grid">
+                <div class="form-group"><label for="batch-med-name" class="form-label">Nome do Medicamento*</label><input id="batch-med-name" v-model="batchEventForm.medicine_details.name" type="text" class="input" required /></div>
+                <div class="form-group"><label for="batch-med-dose" class="form-label">Dose Administrada (Valor Numérico)*</label><input id="batch-med-dose" v-model.number="batchEventForm.medicine_details.dose" type="number" step="any" class="input" required placeholder="Ex: 10"/></div>
+                <div class="form-group"><label for="batch-med-manufacturer" class="form-label">Fabricante</label><input id="batch-med-manufacturer" v-model="batchEventForm.medicine_details.manufacturer" type="text" class="input" /></div>
+                <div class="form-group"><label for="batch-med-batch" class="form-label">Lote</label><input id="batch-med-batch" v-model="batchEventForm.medicine_details.batch" type="text" class="input" /></div>
+                <div class="form-group"><label for="batch-med-validity" class="form-label">Validade do Medic.*</label><input id="batch-med-validity" v-model="batchEventForm.medicine_details.validity" type="date" class="input" required /></div>
+                <div class="form-group"><label for="batch-med-next" class="form-label">Próxima Dose</label><input id="batch-med-next" v-model="batchEventForm.medicine_details.next_dose_date" type="datetime-local" class="input" /></div>
+                <div class="form-group full-width"><label for="batch-med-reason" class="form-label">Motivo/Indicação</label><textarea id="batch-med-reason" v-model="batchEventForm.medicine_details.reason" class="textarea" rows="2"></textarea></div>
+                <div class="form-group"><label for="batch-med-withdrawal" class="form-label">Período de Carência (dias)</label><input id="batch-med-withdrawal" v-model.number="batchEventForm.medicine_details.withdrawal_time" type="number" class="input" min="0" /></div>
+            </div>
+        </div>
+        <div v-else-if="batchEventForm.event_type_name === 'ocorrência especial'" class="dynamic-form-section card full-width">
+            <h4 class="dynamic-form-title">Detalhes da Ocorrência Especial em Lote</h4>
+            <div class="form-grid nested-grid">
+                <div class="form-group">
+                    <label for="batch-occurrence-type" class="form-label">Tipo da Ocorrência*</label>
+                    <input id="batch-occurrence-type" v-model="batchEventForm.special_occurrences_details.occurrence_type" type="text" class="input" placeholder="Ex: Surto de doença, Evento climático" required />
+                </div>
+                <div class="form-group full-width">
+                    <label for="batch-occurrence-description" class="form-label">Descrição Detalhada</label>
+                    <textarea id="batch-occurrence-description" v-model="batchEventForm.special_occurrences_details.description" class="textarea" rows="3"></textarea>
+                </div>
+                <div class="form-group full-width">
+                    <label for="batch-occurrence-actions" class="form-label">Ações Tomadas</label>
+                    <textarea id="batch-occurrence-actions" v-model="batchEventForm.special_occurrences_details.actions_taken" class="textarea" rows="2"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions full-width">
+          <button type="submit" class="button button-primary" :disabled="!batchEventForm.animal_group_id || !batchEventForm.event_type">
+            Registrar Eventos em Lote
+          </button>
+          <button type="button" class="button button-secondary" @click="closeBatchEventRegistrationModal">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
     
-           <form @submit.prevent="handleBatchEventSubmit" class="modal-form form-grid">
-             <div class="form-group full-width">
-               <label for="batch-animal-group" class="form-label">Lote (Grupo de Animais)*</label>
-               <select id="batch-animal-group" v-model.number="batchEventForm.animal_group_id" class="select" required>
-                 <option disabled :value="nullPlaceholder.animal_group">Selecione um lote/grupo</option>
-                 <option v-for="group in animalGroups" :key="group.id" :value="group.id">{{ group.name }}</option>
-               </select>
-               <p v-if="!animalGroups.length && !isLoadingAnimalGroups" class="form-text text-warning">Nenhum grupo de animais disponível. Cadastre grupos primeiro.</p>
-               <p v-if="isLoadingAnimalGroups" class="form-text">Carregando grupos...</p>
-             </div>
-    
-             <div class="form-group">
-               <label for="batch-event-type" class="form-label">Tipo de Evento*</label>
-               <select id="batch-event-type" v-model.number="batchEventForm.event_type" @change="handleBatchEventTypeChange" class="select" required>
-                 <option disabled :value="nullPlaceholder.event_type">Selecione um tipo</option>
-                 <option v-for="type in batchAllowedEventTypes" :key="type.id" :value="type.id">{{ type.name }}</option>
-               </select>
-             </div>
-             <div class="form-group">
-               <label for="batch-event-date" class="form-label">Data e Hora*</label>
-               <input type="datetime-local" id="batch-event-date" v-model="batchEventForm.date" class="input" required />
-             </div>
-             <div class="form-group">
-               <label for="batch-event-location" class="form-label">Localização</label>
-               <input type="text" id="batch-event-location" v-model="batchEventForm.location" class="input" />
-             </div>
-             <div class="form-group full-width">
-               <label for="batch-event-observations" class="form-label">Observações Gerais</label>
-               <textarea id="batch-event-observations" v-model="batchEventForm.observations" class="textarea" rows="3"></textarea>
-             </div>
-    
-             <div v-if="batchEventForm.event_type_name === 'movimentação' || batchEventForm.event_type_name === 'movimento'" class="dynamic-form-section card full-width">
-               <h4 class="dynamic-form-title">Detalhes do Movimento em Lote</h4>
-                  <div class="form-grid nested-grid">
-                   <div class="form-group">
-                       <label for="batch-origin-property" class="form-label">Propriedade Origem*</label>
-                       <select id="batch-origin-property" v-model.number="batchEventForm.movement_details.origin_property" class="select" required>
-                           <option disabled :value="nullPlaceholder.property">Selecione a origem</option>
-                           <option v-for="prop in properties" :key="`batch-orig-${prop.id}`" :value="prop.id">{{ prop.name }}</option>
-                       </select>
-                   </div>
-                   <div class="form-group">
-                       <label for="batch-destination-property" class="form-label">Propriedade Destino*</label>
-                       <select id="batch-destination-property" v-model.number="batchEventForm.movement_details.destination_property" class="select" required>
-                           <option disabled :value="nullPlaceholder.property">Selecione o destino</option>
-                           <option v-for="prop in properties" :key="`batch-dest-${prop.id}`" :value="prop.id">{{ prop.name }}</option>
-                       </select>
-                   </div>
-                   <div class="form-group full-width">
-                       <label for="batch-movement-reason" class="form-label">Razão/Motivo</label>
-                       <textarea id="batch-movement-reason" v-model="batchEventForm.movement_details.reason" class="textarea" rows="2"></textarea>
-                   </div>
-               </div>
-             </div>
-             <div v-else-if="batchEventForm.event_type_name === 'vacinação'" class="dynamic-form-section card full-width">
-                   <h4 class="dynamic-form-title">Detalhes da Vacinação em Lote</h4>
-                   <div class="form-grid nested-grid">
-                       <div class="form-group"><label for="batch-vacine-name" class="form-label">Nome da Vacina*</label><input id="batch-vacine-name" v-model="batchEventForm.vacine_details.name" type="text" class="input" required /></div>
-                       <div class="form-group"><label for="batch-vacine-dose" class="form-label">Dose (Valor Numérico)*</label><input id="batch-vacine-dose" v-model.number="batchEventForm.vacine_details.dose" type="number" step="any" class="input" required /></div>
-                       <div class="form-group"><label for="batch-vacine-manufacturer" class="form-label">Fabricante</label><input id="batch-vacine-manufacturer" v-model="batchEventForm.vacine_details.manufacturer" type="text" class="input" /></div>
-                       <div class="form-group"><label for="batch-vacine-batch" class="form-label">Lote</label><input id="batch-vacine-batch" v-model="batchEventForm.vacine_details.batch" type="text" class="input" /></div>
-                       <div class="form-group"><label for="batch-vacine-validity" class="form-label">Validade da Vacina*</label><input id="batch-vacine-validity" v-model="batchEventForm.vacine_details.validity" type="date" class="input" required /></div>
-                       <div class="form-group"><label for="batch-vacine-next" class="form-label">Próxima Dose</label><input id="batch-vacine-next" v-model="batchEventForm.vacine_details.next_dose_date" type="datetime-local" class="input" /></div>
-                   </div>
-               </div>
-             <div v-else-if="batchEventForm.event_type_name === 'medicação'" class="dynamic-form-section card full-width">
-                 <h4 class="dynamic-form-title">Detalhes da Medicação em Lote</h4>
-                 <div class="form-grid nested-grid">
-                     <div class="form-group"><label for="batch-med-name" class="form-label">Nome do Medicamento*</label><input id="batch-med-name" v-model="batchEventForm.medicine_details.name" type="text" class="input" required /></div>
-                     <div class="form-group"><label for="batch-med-dose" class="form-label">Dose Administrada (Valor Numérico)*</label><input id="batch-med-dose" v-model.number="batchEventForm.medicine_details.dose" type="number" step="any" class="input" required placeholder="Ex: 10"/></div>
-                     <div class="form-group"><label for="batch-med-manufacturer" class="form-label">Fabricante</label><input id="batch-med-manufacturer" v-model="batchEventForm.medicine_details.manufacturer" type="text" class="input" /></div>
-                     <div class="form-group"><label for="batch-med-batch" class="form-label">Lote</label><input id="batch-med-batch" v-model="batchEventForm.medicine_details.batch" type="text" class="input" /></div>
-                     <div class="form-group"><label for="batch-med-validity" class="form-label">Validade do Medic.*</label><input id="batch-med-validity" v-model="batchEventForm.medicine_details.validity" type="date" class="input" required /></div>
-                     <div class="form-group"><label for="batch-med-next" class="form-label">Próxima Dose</label><input id="batch-med-next" v-model="batchEventForm.medicine_details.next_dose_date" type="datetime-local" class="input" /></div>
-                     <div class="form-group full-width"><label for="batch-med-reason" class="form-label">Motivo/Indicação</label><textarea id="batch-med-reason" v-model="batchEventForm.medicine_details.reason" class="textarea" rows="2"></textarea></div>
-                     <div class="form-group"><label for="batch-med-withdrawal" class="form-label">Período de Carência (dias)</label><input id="batch-med-withdrawal" v-model.number="batchEventForm.medicine_details.withdrawal_time" type="number" class="input" min="0" /></div>
-                 </div>
-             </div>
-             <div v-else-if="batchEventForm.event_type_name === 'ocorrência especial'" class="dynamic-form-section card full-width">
-                 <h4 class="dynamic-form-title">Detalhes da Ocorrência Especial em Lote</h4>
-                 <div class="form-grid nested-grid">
-                     <div class="form-group">
-                         <label for="batch-occurrence-type" class="form-label">Tipo da Ocorrência*</label>
-                         <input id="batch-occurrence-type" v-model="batchEventForm.special_occurrences_details.occurrence_type" type="text" class="input" placeholder="Ex: Surto de doença, Evento climático" required />
-                     </div>
-                     <div class="form-group full-width">
-                         <label for="batch-occurrence-description" class="form-label">Descrição Detalhada</label>
-                         <textarea id="batch-occurrence-description" v-model="batchEventForm.special_occurrences_details.description" class="textarea" rows="3"></textarea>
-                     </div>
-                     <div class="form-group full-width">
-                         <label for="batch-occurrence-actions" class="form-label">Ações Tomadas</label>
-                         <textarea id="batch-occurrence-actions" v-model="batchEventForm.special_occurrences_details.actions_taken" class="textarea" rows="2"></textarea>
-                     </div>
-                 </div>
-             </div>
-    
-             <div class="form-actions full-width">
-               <button type="submit" class="button button-primary" :disabled="!batchEventForm.animal_group_id || !batchEventForm.event_type">
-                 Registrar Eventos em Lote
-               </button>
-               <button type="button" class="button button-secondary" @click="closeBatchEventRegistrationModal">
-                 Cancelar
-               </button>
-             </div>
-           </form>
-         </div>
-       </div>
-    
+  <div v-if="showDetailViewerModal" class="modal-overlay" @click.self="closeDetailViewerModal">
+  <EventDetailViewer
+    v-if="selectedEventForViewer && !isLoadingEventDetailsForViewer"
+    class="modal-content card large-modal" 
+    :event-data="selectedEventForViewer"
+    :animals-list="animals"        
+    :properties-list="properties" 
+    :event-types-list="eventTypes"  
+    title="Detalhes Completos do Evento"
+    :show-close-button-in-header="true" 
+    @close="closeDetailViewerModal"
+  />
+  <div v-else-if="isLoadingEventDetailsForViewer" class="modal-content card large-modal loading-state" style="display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 200px;">
+      <svg class="spinner" viewBox="0 0 50 50" style="width: 50px; height: 50px; margin-bottom: 1rem;"><circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle></svg>
+      <p>Carregando detalhes do evento...</p>
+  </div>
+   <div v-else class="modal-content card large-modal">
+      <div class="modal-header">
+          <h3 class="modal-title-text">Erro ao Carregar</h3>
+          <button @click="closeDetailViewerModal" class="button-close" aria-label="Fechar modal">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 20px; text-align: center;">
+          <p class="text-danger">Não foi possível carregar os detalhes completos do evento.</p>
+      </div>
+       <div class="modal-actions form-actions" style="padding: 1rem; border-top: 1px solid #eee; text-align: right;">
+          <button class="button button-secondary" @click="closeDetailViewerModal">Fechar</button>
+      </div>
+  </div>
+</div>
     <NotificationModal
       :show="notification.show"
       :message="notification.message"
@@ -362,29 +391,35 @@
 </template>
 
 <script>
+import EventDetailViewer from '@/components/EventDetailViewer.vue';
 import {
-  registerEvent, getEvents, getEventDetails, registerBatchEvent 
+  registerEvent, 
+  getEvents, 
+  getEventDetails,
+  registerBatchEvent 
 } from '@/services/eventService';
 import { getEventTypes, getProperties, getAnimalGroups } from '@/services/lookupService';
 import { getUserProfile } from '@/services/userService';
 import { getAnimals } from '@/services/animalService';
+import { filterBlockchain } from '@/services/blockchainService';
 import NotificationModal from '@/components/NotificationModal.vue';
 
 export default {
   name: 'EventContent',
   components: {
-    NotificationModal
+    NotificationModal,
+    EventDetailViewer
   },
   data() {
     const nullPlaceholderVal = null;
     return {
+      isReadOnlyMode: false, // <<< ADICIONADO
+      formKey: 0,          // <<< ADICIONADO
       showModal: false,
       showBatchEventModal: false,
-      editing: false,
-      editingId: null, 
-      editingDetailId: null, 
-      isReadOnlyMode: false, 
-      formKey: 0, 
+      editing: false, // Controla se o modal é para editar um evento existente ou registrar um novo
+      editingId: null,
+      editingDetailId: null,
       user: null,
       animals: [],
       animalGroups: [],
@@ -392,22 +427,25 @@ export default {
       events: [],
       isLoadingEvents: true,
       isLoadingAnimalGroups: false,
+      showViewDetailsModal: false,
+      eventForDetailViewer: null,
+      showDetailViewerModal: false,      // Para controlar o modal do EventDetailViewer
+      selectedEventForViewer: null,    // Para guardar os dados formatados para o EventDetailViewer
+      isLoadingEventDetailsForViewer: false,
 
       nullPlaceholder: { 
-          animal: nullPlaceholderVal,
-          event_type: nullPlaceholderVal,
-          property: nullPlaceholderVal,
-          animal_group: nullPlaceholderVal,
+        animal: nullPlaceholderVal,
+        event_type: nullPlaceholderVal,
+        property: nullPlaceholderVal,
+        animal_group: nullPlaceholderVal,
       },
-
-      form: { // Dados gerais do evento
+      form: { 
         animal: nullPlaceholderVal,
         date: '',
         location: '',
         observations: '',
         event_type: nullPlaceholderVal
       },
-      // Objetos para os detalhes específicos de cada tipo de evento
       movement: { origin_property: nullPlaceholderVal, destination_property: nullPlaceholderVal, reason: '', date: '' },
       weighing: { weight: null, date: '' },
       vaccine: { name: '', manufacturer: '', batch: '', validity: '', dose: null, next_dose_date: '', date: '' },
@@ -415,10 +453,8 @@ export default {
       reproduction: { reproduction_type: '', male_id: nullPlaceholderVal, female_id: nullPlaceholderVal, result: null, date: '' },
       slaughter: { location: '', final_weight: null, inspection_result: null, date: '' },
       occurrence: { occurrence_type: '', description: '', actions_taken: '', date: '' },
-      
       eventTypes: [], 
-
-      batchEventForm: { 
+      batchEventForm: {
         animal_group_id: nullPlaceholderVal,
         event_type: nullPlaceholderVal,
         event_type_name: '', 
@@ -464,7 +500,7 @@ export default {
             this.batchEventForm.event_type_name = '';
             if(!isAllowed && newVal !== this.nullPlaceholder.event_type) {
                 this.batchEventForm.event_type = this.nullPlaceholder.event_type; 
-                 this.showAppNotification('Tipo de evento inválido para operação em lote.', 'warning');
+                this.showAppNotification('Tipo de evento inválido para operação em lote.', 'warning');
             }
         }
       } else {
@@ -549,68 +585,87 @@ export default {
     },
 
     openModalForAdd() {
-      this.resetIndividualForm(); // Garante que o form esteja limpo
-      this.editing = false;       // Não está editando um existente
-      this.isReadOnlyMode = false;  // Não está em modo de leitura
-      this.editingId = null;      // Nenhum ID de evento existente
-      this.form.date = new Date().toISOString().slice(0, 16); // Data atual
-      this.formKey++;             // Força o formulário a recarregar
-      this.showModal = true;
-    },
-
-    async viewEventDetails(eventItem) {
-        this.resetIndividualForm();
-        this.editing = false; // Não estamos "editando" para salvar, mas carregando um evento existente
-        this.isReadOnlyMode = true; // Habilita o modo somente leitura
-        this.editingId = eventItem.id; // Para referência e para getEventDetails
-
-        try {
-            // console.log(`Visualizando evento ID: ${eventItem.id}, Tipo ID: ${eventItem.event_type}`);
-            const fullEventDetails = await getEventDetails(eventItem.id, eventItem.event_type);
-            // console.log("Detalhes recebidos do serviço:", fullEventDetails);
-            
-            if (!fullEventDetails) {
-                this.showAppNotification('Erro: Detalhes do evento não encontrados.', 'error');
-                this.closeModal();
-                return;
-            }
-            
-            // Preenche o formulário principal
-            this.form.animal = fullEventDetails.animal;
-            this.form.date = fullEventDetails.date ? new Date(fullEventDetails.date).toISOString().slice(0, 16) : '';
-            this.form.location = fullEventDetails.location || '';
-            this.form.observations = fullEventDetails.observations || '';
-            this.form.event_type = fullEventDetails.event_type;
-            
-            // Preenche os detalhes específicos
-            const details = fullEventDetails.details;
-            if (details) {
-                const eventTypeName = this.eventTypes.find(type => type.id === fullEventDetails.event_type)?.name.toLowerCase();
-                const detailDateToUse = details.date ? new Date(details.date).toISOString().slice(0,16) : this.form.date;
-
-                if (eventTypeName === 'movimentação' || eventTypeName === 'movimento') this.movement = { ...this.movement, ...details, date: detailDateToUse };
-                else if (eventTypeName === 'pesagem') this.weighing = { ...this.weighing, ...details, date: detailDateToUse };
-                else if (eventTypeName === 'vacinação') this.vaccine = { ...this.vaccine, ...details, validity: details.validity ? new Date(details.validity).toISOString().slice(0, 10) : '', next_dose_date: details.next_dose_date ? new Date(details.next_dose_date).toISOString().slice(0, 16) : '', date: detailDateToUse };
-                else if (eventTypeName === 'medicação') this.medicine = { ...this.medicine, ...details, validity: details.validity ? new Date(details.validity).toISOString().slice(0, 10) : '', next_dose_date: details.next_dose_date ? new Date(details.next_dose_date).toISOString().slice(0, 16) : '', date: detailDateToUse };
-                else if (eventTypeName === 'reprodução') this.reproduction = { ...this.reproduction, ...details, date: details.date ? new Date(details.date).toISOString().slice(0,16) : this.form.date };
-                else if (eventTypeName === 'abate') this.slaughter = { ...this.slaughter, ...details, date: detailDateToUse };
-                else if (eventTypeName === 'ocorrência especial') this.occurrence = { ...this.occurrence, ...details, date: detailDateToUse };
-            }
-            this.formKey++;
-            this.showModal = true;
-        } catch (e) {
-            console.error('Erro ao carregar evento para visualização:', e.response?.data || e);
-            this.showAppNotification('Erro ao carregar dados do evento.', 'error');
-        }
-    },
-
-    openModal() { 
       this.resetIndividualForm();
-      this.editing = false;
+      this.editing = false;        // Não está editando, é um novo registro
+      //this.isReadOnlyMode = false;   // Campos devem estar habilitados
       this.editingId = null;
       this.editingDetailId = null; // Resetar ID do detalhe também
       this.form.date = new Date().toISOString().slice(0, 16);
-      this.showModal = true;
+      //this.formKey++; // Para resetar visualmente o formulário, se necessário
+      this.showModal = true; // Mostra o modal de formulário (o original)
+    },
+
+    async viewEventDetails(eventItem) {
+    if (!eventItem || eventItem.id == null || eventItem.event_type == null) {
+        this.showAppNotification("Dados do evento inválidos para visualização.", "error");
+        return;
+    }
+
+    this.isLoadingEventDetailsForViewer = true;
+    this.selectedEventForViewer = null;
+    this.showDetailViewerModal = true; // Abre o NOVO modal que usa EventDetailViewer
+
+    try {
+        const fullEventDetailsFromDB = await getEventDetails(eventItem.id, eventItem.event_type);
+
+        if (!fullEventDetailsFromDB) {
+            this.showAppNotification('Erro: Detalhes do evento não encontrados no banco de dados.', 'error');
+            this.closeDetailViewerModal();
+            return;
+        }
+
+        let blockchainEntry = null;
+        try {
+            const blockchainEntries = await filterBlockchain({ event: eventItem.id });
+            if (blockchainEntries && blockchainEntries.length > 0) {
+                blockchainEntry = blockchainEntries[0];
+            } else {
+                console.warn(`[EventContent] viewEventDetails - Nenhum registro blockchain para evento DB ID: ${eventItem.id}`);
+            }
+        } catch (bcError) {
+             console.error(`[EventContent] viewEventDetails - Erro ao buscar registro blockchain para evento ${eventItem.id}:`, bcError);
+             // Não definir uma mensagem de erro aqui, pois o viewer pode mostrar "N/D"
+        }
+
+        this.selectedEventForViewer = {
+            dbEventDetails: {
+                ...fullEventDetailsFromDB, // Inclui o sub-objeto 'details' se existir
+                animal_identification: this.getAnimalIdentification(fullEventDetailsFromDB.animal),
+                event_type_name: this.getEventTypeName(fullEventDetailsFromDB.event_type),
+                recorded_by_username: this.user?.username || (fullEventDetailsFromDB.recorded_by ? `ID Usuário ${fullEventDetailsFromDB.recorded_by}` : 'N/D'),
+                // details já está em fullEventDetailsFromDB
+            },
+            blockchainData: null, // Não temos dados diretos do contrato aqui
+            dbBlockchainEntry: blockchainEntry, // Resultado da busca por filterBlockchain
+            contextualAnimalInfo: {
+                identification: this.getAnimalIdentification(fullEventDetailsFromDB.animal),
+                id: fullEventDetailsFromDB.animal
+            }
+        };
+
+    } catch (e) {
+        console.error('Erro ao carregar todos os detalhes do evento para visualização no EventContent:', e);
+        this.showAppNotification('Erro ao carregar dados completos do evento.', 'error');
+        // Prepara um objeto de erro para o viewer, caso ele saiba como lidar
+        this.selectedEventForViewer = { 
+            dbEventDetails: null, // Indica que os detalhes do DB falharam
+            dbBlockchainEntry: null, // Indica que os detalhes da BC falharam
+            error_message: 'Falha ao carregar dados do evento.'
+        };
+    } finally {
+        this.isLoadingEventDetailsForViewer = false;
+    }
+},
+
+    closeDetailViewerModal() {
+        this.showDetailViewerModal = false;
+        this.selectedEventForViewer = null;
+        this.isLoadingEventDetailsForViewer = false;
+    },
+
+    closeViewDetailsModal() {
+      this.showViewDetailsModal = false;
+      this.eventForDetailViewer = null;
     },
 
     closeModal() { 
@@ -671,19 +726,11 @@ export default {
         
         try {
             let apiResponse;
-            if (this.editing) {
-                // Na edição, o backend `EventViewSet.update` também espera 'details' aninhado
-                // e o ID do detalhe específico se já existir para atualização.
-                // Adicionamos `editingDetailId` ao payload se estivermos editando um detalhe existente.
-                if (this.editingDetailId && payload.details) {
-                    payload.details.id = this.editingDetailId;
-                }
-                apiResponse = await updateEvent(this.editingId, payload);
-                this.showAppNotification('Evento atualizado com sucesso!', 'success');
-            } else { // Criando novo evento
-                apiResponse = await registerEvent(payload);
-                this.showAppNotification('Evento registrado com sucesso!', 'success');
-            }
+            
+             // Criando novo evento
+            apiResponse = await registerEvent(payload);
+            this.showAppNotification('Evento registrado com sucesso!', 'success');
+    
             this.closeModal(); 
             await this.loadEventData();
         } catch (e) {
@@ -753,7 +800,7 @@ export default {
         this.editing = false; 
         this.editingId = null; 
         this.editingDetailId = null;
-        this.isReadOnlyMode = false; 
+        //this.isReadOnlyMode = false; 
         this.resetIndividualSpecificDetails(currentDate);
     },
 
@@ -851,20 +898,10 @@ export default {
         }
         
         try {
-            // Se this.editing for true (e !isReadOnlyMode), seria updateEvent.
-            // Mas como viewEventDetails define editing = false, este handleSubmit
-            // só será chamado para registro de novo evento.
-            // A flag 'editing' no título do modal é controlada por como o modal foi aberto.
-            if (this.editing && !this.isReadOnlyMode) { // Este bloco é para o caso de você reintroduzir a edição
-                 if (this.editingDetailId && payload.details) {
-                    payload.details.id = this.editingDetailId;
-                }
-                await updateEvent(this.editingId, payload); // Mantido caso você queira reativar a edição
-                this.showAppNotification('Evento atualizado com sucesso!', 'success');
-            } else { // Registrando novo evento
-                await registerEvent(payload);
-                this.showAppNotification('Evento registrado com sucesso!', 'success');
-            }
+            
+            await registerEvent(payload);
+            this.showAppNotification('Evento registrado com sucesso!', 'success');
+            
             this.closeModal(); 
             await this.loadEventData();
         } catch (e) {

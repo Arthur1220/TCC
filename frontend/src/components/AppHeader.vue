@@ -123,13 +123,7 @@
 import { getUserProfile, updateUserProfile } from '@/services/userService';
 import { logout as userLogout } from '@/services/authService';
 import NotificationModal from '@/components/NotificationModal.vue';
-
-// Ajuste este mapa conforme os IDs e nomes exatos do seu backend
-const ROLE_ID_MAP = {
-  1: 'administrador',
-  2: 'gerente',
-  3: 'usuario',
-};
+import { ROLE_ID_MAP } from '@/utils/constants';
 
 export default {
   name: 'AppHeader',
@@ -162,29 +156,28 @@ export default {
     };
   },
   computed: {
-    currentUserRoleNames() {
+    userRoles() {
       if (!this.isAuthenticated || !this.userProfile.roles || !Array.isArray(this.userProfile.roles)) {
         return [];
       }
-      return this.userProfile.roles.map(userRoleObject => {
-        const roleName = ROLE_ID_MAP[userRoleObject.role];
-        return roleName ? roleName.charAt(0).toUpperCase() + roleName.slice(1) : `Role ID ${userRoleObject.role}`;
-      }).filter(name => name !== null);
+      return this.userProfile.roles
+        .map(userRoleObject => ROLE_ID_MAP[userRoleObject.role])
+        .filter(name => name); // Filtra quaisquer nomes undefined
     },
-    _currentUserRoleNamesLower() {
-        if (!this.isAuthenticated || !this.userProfile.roles || !Array.isArray(this.userProfile.roles)) {
-            return [];
-        }
-        return this.userProfile.roles.map(userRoleObject => ROLE_ID_MAP[userRoleObject.role])
-                                  .filter(name => name !== undefined);
+    currentUserRoleNames() {
+      // Esta propriedade computada é usada apenas para exibir os nomes no perfil, pode continuar
+      if (!this.userRoles.length) return [];
+      return this.userRoles.map(name => name.charAt(0).toUpperCase() + name.slice(1));
     },
     showUserDashboardLink() {
       if (!this.isAuthenticated) return false;
-      return this._currentUserRoleNamesLower.includes('usuario') || this._currentUserRoleNamesLower.includes('administrador');
+      // Mostra o botão do Dashboard APENAS se o perfil for 'Usuário'
+      return this.userRoles.includes('Usuário');
     },
     showAdminPageLink() {
       if (!this.isAuthenticated) return false;
-      return this._currentUserRoleNamesLower.includes('gerente') || this._currentUserRoleNamesLower.includes('administrador');
+      // Mostra o botão da Admin Page se o perfil for 'Administrador' OU 'Gerente'
+      return this.userRoles.includes('Administrador') || this.userRoles.includes('Gerente');
     }
   },
   methods: {
@@ -330,11 +323,8 @@ export default {
       } catch (error) {
         console.error('Erro no logout no servidor, limpando localmente:', error);
       } finally {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userProfile');
         this.isAuthenticated = false;
         this.userProfile = {};
-        // this.showMenu = false; // Já tratado
         this.closeUserModal();
         if (this.$route.path !== '/') {
             this.navigateTo('/');

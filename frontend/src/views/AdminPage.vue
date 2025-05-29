@@ -97,7 +97,7 @@
             </section>
 
             <VisualizacaoContent v-else-if="activeSection === 'events'" />
-            <BlockchainViewer v-else-if="activeSection === 'blockchain'" />
+            <BlockchainViewer v-else-if="activeSection === 'blockchain'" mode="admin" />
             <RoleManager v-else-if="activeSection === 'users'" />
         </div>
       </main>

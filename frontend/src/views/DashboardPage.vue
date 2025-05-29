@@ -89,9 +89,11 @@
             v-if="activeContent === 'events'"
             ref="eventComp"
             />
-            <UserBlockchainRecords
+            <BlockchainViewer
             v-if="activeContent === 'userBlockchain'"
-            :key="'userBlockchainRecords_' + user.id" />
+            mode="user"
+            :key="'BlockchainViewer' + user.id" 
+            />
         </div>
       </main>
     </div>
@@ -149,7 +151,7 @@ import AppFooter from '@/components/AppFooter.vue';
 import AnimalContent from '@/components/AnimalContent.vue';
 import PropertyContent from '@/components/PropertyContent.vue';
 import EventContent from '@/components/EventContent.vue';
-import UserBlockchainRecords from '@/components/UserBlockchainRecords.vue';
+import BlockchainViewer from '@/components/BlockchainViewer.vue';
 import NotificationModal from '@/components/NotificationModal.vue';
 
 
@@ -167,7 +169,7 @@ export default {
     AnimalContent,
     PropertyContent,
     EventContent,
-    UserBlockchainRecords,
+    BlockchainViewer,
     NotificationModal,
   },
   data() {
