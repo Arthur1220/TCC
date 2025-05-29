@@ -80,101 +80,34 @@
     </div>
 
     <div v-if="showDetailsModal" class="modal-overlay" @click.self="closeDetailsModal">
-        <div class="modal-content card large-modal">
-            <div class="modal-header">
-                <h3 class="modal-title-text">Detalhes do Evento Registrado na Blockchain</h3>
+        <div v-if="isLoadingModalDetails" class="modal-content card large-modal loading-state" style="display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 200px;">
+            <svg class="spinner" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle></svg>
+            <p>Carregando detalhes completos do evento...</p>
+        </div>
+        <EventDetailViewer
+            v-else-if="selectedRecordForModal && preparedEventDataForViewer"
+            class="modal-content card large-modal"
+            :event-data="preparedEventDataForViewer"
+            :animals-list="animalsListForLookup"
+            :properties-list="properties"
+            :event-types-list="eventTypes"
+            title="Detalhes Completos do Evento Auditado"
+            :show-close-button-in-header="true"
+            @close="closeDetailsModal"
+        />
+        <div v-else-if="selectedRecordForModal && selectedRecordForModal.error_message_viewer" class="modal-content card large-modal">
+             <div class="modal-header">
+                <h3 class="modal-title-text">Erro</h3>
                 <button @click="closeDetailsModal" class="button-close" aria-label="Fechar modal">&times;</button>
             </div>
-            <div class="modal-body event-details-modal-body">
-                <div v-if="isLoadingModalDetails" class="loading-state modal-loading">
-                    <p>Carregando detalhes completos do evento...</p>
-                </div>
-                <div v-else-if="selectedRecordForModal && modalEventDetails">
-                    
-                    <h4>Dados do Banco de Dados (Evento Original)</h4>
-                    <div v-if="modalEventDetails.id" class="details-section">
-                        <p><strong>ID do Evento (BD):</strong> <span>{{ modalEventDetails.id }}</span></p>
-                        <p><strong>Animal (BD):</strong> <span>{{ modalEventDetails.animal_identification }} (ID: {{ modalEventDetails.animal }})</span></p>
-                        <p><strong>Tipo (BD):</strong> <span>{{ modalEventDetails.event_type_name }} (ID: {{ modalEventDetails.event_type }})</span></p>
-                        <p><strong>Data (BD):</strong> <span>{{ formatEventDate(modalEventDetails.date) }}</span></p>
-                        <p><strong>Localização (BD):</strong> <span>{{ modalEventDetails.location || 'N/A' }}</span></p>
-                        <p><strong>Observações (BD):</strong> <span>{{ modalEventDetails.observations || 'N/A' }}</span></p>
-                        <p><strong>Registrado por (BD):</strong> <span>{{ modalEventDetails.recorded_by_username || 'N/A' }}</span></p>
-                        
-                        <div v-if="modalEventDetails.details" class="specific-details mt-1 card">
-                            <h5 class="details-subtitle">Detalhes Específicos ({{modalEventDetails.event_type_name}}):</h5>
-                            <div v-if="modalEventDetails.event_type_name?.toLowerCase().includes('pesagem')">
-                                <p><strong>Peso:</strong> <span>{{ modalEventDetails.details.weight }} kg</span></p>
-                            </div>
-                            <div v-else-if="modalEventDetails.event_type_name?.toLowerCase().includes('movimento')">
-                                <p><strong>Origem:</strong> <span>{{ getPropertyName(modalEventDetails.details.origin_property) }}</span></p>
-                                <p><strong>Destino:</strong> <span>{{ getPropertyName(modalEventDetails.details.destination_property) }}</span></p>
-                                <p><strong>Motivo:</strong> <span>{{ modalEventDetails.details.reason || 'N/A' }}</span></p>
-                            </div>
-                            <div v-else-if="modalEventDetails.event_type_name?.toLowerCase().includes('vacina')">
-                                <p><strong>Vacina:</strong> <span>{{ modalEventDetails.details.name }}</span></p>
-                                <p><strong>Dose:</strong> <span>{{ modalEventDetails.details.dose }} {{ modalEventDetails.details.dose_unit || '' }}</span></p>
-                                <p><strong>Fabricante:</strong> <span>{{ modalEventDetails.details.manufacturer || 'N/A' }}</span></p>
-                                <p><strong>Lote:</strong> <span>{{ modalEventDetails.details.batch || 'N/A' }}</span></p>
-                                <p><strong>Validade:</strong> <span>{{ formatDate(modalEventDetails.details.validity, true) }}</span></p>
-                            </div>
-                            <div v-else-if="modalEventDetails.event_type_name?.toLowerCase().includes('medica')">
-                                <p><strong>Medicamento:</strong> <span>{{ modalEventDetails.details.name }}</span></p>
-                                <p><strong>Dose:</strong> <span>{{ modalEventDetails.details.dose }} {{ modalEventDetails.details.dose_unit || '' }}</span></p>
-                                <p><strong>Motivo:</strong> <span>{{ modalEventDetails.details.reason || 'N/A' }}</span></p>
-                            </div>
-                            <div v-else-if="modalEventDetails.event_type_name?.toLowerCase().includes('reprodu')">
-                                <p><strong>Tipo Reprodução:</strong> <span>{{ modalEventDetails.details.reproduction_type }}</span></p>
-                                <p><strong>Macho:</strong> <span>{{ getAnimalIdentificationFromList(modalEventDetails.details.male_id) }}</span></p>
-                                <p><strong>Fêmea:</strong> <span>{{ getAnimalIdentificationFromList(modalEventDetails.details.female_id) }}</span></p>
-                                <p><strong>Resultado:</strong> <span>{{ modalEventDetails.details.result || 'N/A' }}</span></p>
-                            </div>
-                            <div v-else-if="modalEventDetails.event_type_name?.toLowerCase().includes('abate')">
-                                <p><strong>Local Abate:</strong> <span>{{ modalEventDetails.details.location }}</span></p>
-                                <p><strong>Peso Final:</strong> <span>{{ modalEventDetails.details.final_weight }} kg</span></p>
-                                <p><strong>Inspeção:</strong> <span>{{ modalEventDetails.details.inspection_result || 'N/A' }}</span></p>
-                            </div>
-                            <div v-else-if="modalEventDetails.event_type_name?.toLowerCase().includes('ocorrência especial')">
-                                <p><strong>Tipo Ocorrência:</strong> <span>{{ modalEventDetails.details.occurrence_type }}</span></p>
-                                <p><strong>Descrição:</strong> <span>{{ modalEventDetails.details.description || 'N/A' }}</span></p>
-                                <p><strong>Ações Tomadas:</strong> <span>{{ modalEventDetails.details.actions_taken || 'N/A' }}</span></p>
-                            </div>
-                            <pre v-else-if="typeof modalEventDetails.details === 'object'">{{ JSON.stringify(modalEventDetails.details, null, 2) }}</pre>
-                            <p v-else>Nenhum detalhe específico adicional registrado.</p>
-                        </div>
-                        <p v-else-if="modalEventDetails.event_type_name !== 'Geral' && modalEventDetails.event_type_name !== undefined" class="mt-1"> 
-                            Este tipo de evento ('{{ modalEventDetails.event_type_name }}') não possui detalhes específicos adicionais registrados.
-                        </p>
-                    </div>
-                    <div v-else-if="modalEventDetails.error" class="alert alert-danger">
-                        <p>{{ modalEventDetails.error }}</p>
-                    </div>
-                    <p v-else> 
-                        Não foi possível carregar os detalhes completos do evento do banco de dados.
-                    </p>
-
-                    <hr class="my-1">
-
-                    <h4>Dados do Registro na Blockchain</h4>
-                    <div v-if="selectedRecordForModal.dbBlockchainEntry" class="details-section">
-                        <p><strong>ID do Registro (BC no DB):</strong> <span>{{ selectedRecordForModal.dbBlockchainEntry.id }}</span></p>
-                        <p><strong>Hash da Transação:</strong> <span class="data-hash">{{ selectedRecordForModal.dbBlockchainEntry.transaction_hash }}</span></p>
-                        <p><strong>Data de Registro (BC no DB):</strong> <span>{{ formatDate(selectedRecordForModal.dbBlockchainEntry.registration_date) }}</span></p>
-                        <p><strong>Status (BC no DB):</strong> <span :class="getBlockchainStatusClass(selectedRecordForModal.dbBlockchainEntry.status_details?.name)" class="status-badge">{{ selectedRecordForModal.dbBlockchainEntry.status_details?.name || 'N/D' }}</span></p>
-                        <p><strong>Proprietário do Registro (BD):</strong> <span>{{ selectedRecordForModal.dbBlockchainEntry.owner_details?.username || 'N/D' }}</span></p>
-                    </div>
-                    <p v-else>Dados da blockchain não disponíveis para este registro (entrada no DB).</p>
-                </div>
-                <div v-else>
-                    <p class="text-center muted-text p-1">Selecione um registro para ver os detalhes ou ocorreu um erro ao carregar as informações.</p>
-                </div>
+            <div class="modal-body" style="padding: 20px; text-align: center;">
+                <p class="text-danger">{{ selectedRecordForModal.error_message_viewer }}</p>
             </div>
-            <div class="form-actions full-width modal-footer-custom">
-                <button type="button" class="button button-secondary" @click="closeDetailsModal">Fechar</button>
+             <div class="modal-actions form-actions" style="padding: 1rem; border-top: 1px solid #eee; text-align: right;">
+                <button class="button button-secondary" @click="closeDetailsModal">Fechar</button>
             </div>
         </div>
     </div>
-
     <NotificationModal
       :show="notification.show"
       :message="notification.message"
@@ -184,19 +117,22 @@
   </div>
 </template>
 
+
 <script>
-import { ref, onMounted } from 'vue'; // Removido computed se não usado diretamente no setup
+import { ref, onMounted, computed } from 'vue'; // Adicionado computed
 import { filterBlockchain } from '@/services/blockchainService';
 import { getUserProfile } from '@/services/userService';
 import { getEventDetails } from '@/services/eventService';
 import { getEventTypes, getProperties } from '@/services/lookupService';
 import { getAnimals } from '@/services/animalService';
 import NotificationModal from '@/components/NotificationModal.vue';
+import EventDetailViewer from '@/components/EventDetailViewer.vue';
 
 export default {
   name: 'UserBlockchainRecords',
   components: {
     NotificationModal,
+    EventDetailViewer 
   },
   setup() {
     const userRecords = ref([]);
@@ -208,12 +144,29 @@ export default {
 
     const showDetailsModal = ref(false);
     const selectedRecordForModal = ref(null);
-    const modalEventDetails = ref(null);
     const isLoadingModalDetails = ref(false);
 
     const eventTypes = ref([]);
     const animalsListForLookup = ref([]);
     const properties = ref([]);
+
+    const preparedEventDataForViewer = computed(() => {
+        if (!selectedRecordForModal.value || !selectedRecordForModal.value.dbEventDetails) {
+            return null;
+        }
+        // O modalEventDetails já contém os dados do DB mapeados, incluindo o sub-objeto 'details'
+        const dbDetails = selectedRecordForModal.value.dbEventDetails;
+        return {
+            dbEventDetails: {
+                ...dbDetails, // Contém id, animal, event_type, date, location, observations, details, etc.
+                // Os _name e _identification já devem estar em dbDetails pelo mapDbEventDetails
+            },
+            dbBlockchainEntry: selectedRecordForModal.value.dbBlockchainEntry, // Já vem de 'record'
+            // blockchainData: null, // A menos que você tenha dados diretos do contrato para passar
+            contextualAnimalInfo: selectedRecordForModal.value.contextualAnimalInfo || 
+                                  (dbDetails ? { identification: getAnimalIdentificationFromList(dbDetails.animal), id: dbDetails.animal } : null)
+        };
+    });
 
     const showAppNotification = (message, type = 'error', duration = 4000) => {
       notification.value.message = message;
@@ -348,37 +301,40 @@ export default {
         return prop ? prop.name : `ID ${propertyId}`;
     };
 
-    const openDetailsModal = async (record) => {
-        selectedRecordForModal.value = {
-            dbBlockchainEntry: record 
-        };
+    const openDetailsModal = async (recordFromList) => {
         isLoadingModalDetails.value = true;
+        selectedRecordForModal.value = { // Inicializa com o que já temos
+            dbBlockchainEntry: recordFromList, // Este é o 'record' da lista, que tem 'event_details' resumido
+            dbEventDetails: null, // Será preenchido abaixo
+            blockchainData: null, // Não temos dados diretos da BC aqui
+            contextualAnimalInfo: recordFromList.animal_details 
+                ? { identification: recordFromList.animal_details.identification, id: recordFromList.animal }
+                : { identification: getAnimalIdentificationFromList(recordFromList.animal), id: recordFromList.animal }
+        };
         showDetailsModal.value = true;
-        modalEventDetails.value = null;
 
-        const eventIdInDb = record.event_details?.id || record.event; // ID do evento no DB
-        const eventTypeIdInDb = record.event_details?.event_type;
+        const eventIdInDb = recordFromList.event_details?.id || recordFromList.event;
+        const eventTypeIdInDb = recordFromList.event_details?.event_type;
 
         if (eventIdInDb && eventTypeIdInDb !== undefined && eventTypeIdInDb !== null) {
             try {
-                // console.log(`UserBlockchainRecords: Buscando detalhes completos para Evento DB ID: ${eventIdInDb}, Tipo ID: ${eventTypeIdInDb}`);
                 const fullDetails = await getEventDetails(eventIdInDb, eventTypeIdInDb);
-                // console.log("UserBlockchainRecords: Detalhes completos recebidos:", fullDetails);
-                modalEventDetails.value = {
+                // Atualiza a parte dbEventDetails do selectedRecordForModal
+                selectedRecordForModal.value.dbEventDetails = {
                     ...fullDetails,
                     animal_identification: getAnimalIdentificationFromList(fullDetails.animal),
                     event_type_name: getEventTypeName(fullDetails.event_type),
                     recorded_by_username: fullDetails.recorded_by_username || (fullDetails.recorded_by ? `Usuário ID ${fullDetails.recorded_by}` : 'N/D'),
+                    details: fullDetails.details || {} // Garante que 'details' seja um objeto
                 };
-
             } catch (error) {
                 console.error("Erro ao buscar detalhes completos do evento para o modal:", error);
                 showAppNotification("Falha ao carregar detalhes completos do evento.", "error");
-                modalEventDetails.value = { error: "Não foi possível carregar os detalhes completos do evento do banco de dados." };
+                selectedRecordForModal.value.dbEventDetails = { error_message: "Não foi possível carregar os detalhes do evento do banco de dados." };
             }
         } else {
-            console.warn("UserBlockchainRecords: Não foi possível buscar detalhes: ID do evento ou tipo do evento ausente.", record);
-            modalEventDetails.value = { error: "Informações insuficientes no registro da blockchain para buscar detalhes completos do evento no banco de dados." };
+            console.warn("UserBlockchainRecords: Informações do evento DB ausentes no registro da blockchain.", recordFromList);
+            selectedRecordForModal.value.dbEventDetails = { error_message: "Informações do evento original não encontradas no registro da blockchain." };
         }
         isLoadingModalDetails.value = false;
     };
@@ -386,44 +342,31 @@ export default {
     const closeDetailsModal = () => {
         showDetailsModal.value = false;
         selectedRecordForModal.value = null;
-        modalEventDetails.value = null;
+        isLoadingModalDetails.value = false; // Garante reset
     };
 
     onMounted(async () => {
-        isLoading.value = true; // Garante que o loading principal seja ativado
+        isLoading.value = true;
         await fetchCurrentUser(); 
         await loadLookupData();   
-        // loadUserRecords só será chamado se fetchCurrentUser for bem-sucedido e tiver ID
         if (currentUser.value && currentUser.value.id) {
             await loadUserRecords();  
         } else {
-            isLoading.value = false; // Se não há usuário, não há o que carregar
+            isLoading.value = false;
         }
     });
 
     return {
-      userRecords,
-      isLoading,
-      errorLoading,
-      errorMessage,
-      loadUserRecords,
-      formatDate,
-      formatEventDate,
-      getBlockchainStatusClass,
-      copyToClipboard,
-      notification,
-      closeNotification,
-      // Modal
-      showDetailsModal,
-      selectedRecordForModal,
-      modalEventDetails,
-      isLoadingModalDetails,
-      openDetailsModal,
-      closeDetailsModal,
-      // Helpers
-      getEventTypeName,
-      getAnimalIdentificationFromList,
-      getPropertyName
+      userRecords, isLoading, errorLoading, errorMessage, loadUserRecords,
+      formatDate, formatEventDate, getBlockchainStatusClass, copyToClipboard,
+      notification, showAppNotification, closeNotification,
+      showDetailsModal, selectedRecordForModal, isLoadingModalDetails, openDetailsModal, closeDetailsModal,
+      getEventTypeName, getAnimalIdentificationFromList, getPropertyName,
+      // Props para EventDetailViewer
+      animalsListForLookup, // Renomeado para clareza, já que é usado para lookup
+      properties,
+      eventTypes,
+      preparedEventDataForViewer // Nova propriedade computada
     };
   }
 };
