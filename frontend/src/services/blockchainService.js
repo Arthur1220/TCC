@@ -99,3 +99,19 @@ export async function fetchUserBlockchainCosts(filters = {}) {
     throw error;
   }
 }
+
+/**
+ * Busca o resumo dos custos de blockchain para o usuário logado.
+ * @returns {Promise<Object>} - Objeto com os custos.
+ */
+export async function fetchUserBlockchainCostsSummary() {
+  try {
+    // Ajuste a URL para corresponder exatamente ao seu endpoint Django
+    // Ex: 'api/blockchain/user-costs-summary/'
+    const response = await axiosInstance.get(`blockchain/user-costs-summary/`); 
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao buscar resumo de custos da blockchain:', error.response ? error.response.data : error);
+    throw error; // Permite que o componente trate o erro
+  }
+}
