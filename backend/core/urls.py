@@ -9,6 +9,7 @@ urlpatterns = [
     path('event/', include('event.urls')),
     path('blockchain/', include('blockchain.urls')),
     path('contract/', include('contract.urls')),
+    path('transfer/', include('transfer.urls')),
 
     path('admin/', admin.site.urls),
 

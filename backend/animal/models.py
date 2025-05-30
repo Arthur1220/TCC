@@ -53,7 +53,7 @@ class IdentificationType(models.Model):
 
 class Animal(models.Model):
     identification = models.CharField(max_length=50, unique=True)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="animals")
+    owner = models.ForeignKey(User, on_delete=models.PROTECT, related_name="animals")
     breed = models.ForeignKey(Breed, on_delete=models.CASCADE, related_name="animals", blank=True, null=True)
     group = models.ForeignKey(AnimalGroup, on_delete=models.CASCADE, related_name="animals", blank=True, null=True)
     gender = models.ForeignKey(Gender, on_delete=models.CASCADE, related_name="animals")

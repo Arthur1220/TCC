@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'blockchain',
     'contract',
     'corsheaders',
+    'transfer',
 ]
 
 AUTH_USER_MODEL = 'user.User'
