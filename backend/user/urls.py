@@ -9,7 +9,8 @@ urlpatterns = [
     path('update/', UserViewSet.update),
     path('refresh/', UserViewSet.refresh),
     path('logout/', UserViewSet.logout),
-    path('all_users/', UserViewSet.list_all_users, name='list_all_users'), # NOVO ENDPOINT
+    path('all_users/', UserViewSet.list_all_users, name='list_all_users'),
+    path('get-by-hash/', UserViewSet.get_user_by_user_hash, name='user-get-by-hash'),
 
     path('roles/', RoleViewSet.get, name='get_roles'),
     path('roles/<int:pk>/', RoleViewSet.get, name='get_role_detail'),

@@ -189,6 +189,38 @@ class UserViewSet(ModelViewSet):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
+    @api_view(['GET'])
+    @permission_classes([IsAuthenticated]) # Apenas usuários autenticados podem buscar outros
+    def get_user_by_user_hash(request):
+        user_hash_query = request.query_params.get('hash', None)
+        if not user_hash_query:
+            return Response({'detail': 'O parâmetro "hash" é obrigatório.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            # Idealmente, user_hash deve ser único. Se não for, use .filter().first()
+            user = User.objects.get(user_hash=user_hash_query) 
+            serializer = UserSerializer(user) # Use seu UserSerializer existente
+            # Retorne apenas os campos necessários para o frontend para esta funcionalidade
+            # ou o serializer completo se preferir.
+            # Exemplo de retorno customizado se UserSerializer for muito grande:
+            # return Response({
+            #     'id': user.id,
+            #     'username': user.username,
+            #     'user_hash': user.user_hash,
+            #     'first_name': user.first_name,
+            #     'last_name': user.last_name
+            # })
+            return Response(serializer.data)
+        except User.DoesNotExist:
+            return Response({'detail': 'Usuário não encontrado com o hash fornecido.'}, status=status.HTTP_404_NOT_FOUND)
+        except User.MultipleObjectsReturned: # Caso user_hash não seja estritamente único
+            return Response({'detail': 'Múltiplos usuários encontrados com este hash. Contate o administrador.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception as e:
+            # Logar o erro e para o administrador
+            print(f"Erro ao buscar usuário por hash: {e}")
+            return Response({'detail': f'Erro interno ao buscar usuário.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        
 class LogoutAPIView(generics.GenericAPIView):
     serializer_class = LogoutSerializer
     permission_classes = [AllowAny]

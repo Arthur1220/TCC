@@ -34,6 +34,12 @@
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2z"/></svg> Meus Registros Blockchain
               </a>
             </li>
+            <li :class="{ 'active-link': activeContent === 'transferOwnership' }">
+              <a href="#" @click.prevent="selectContent('transferOwnership')">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm1-13h-2v6h2V7zm0 8h-2v2h2v-2z"/></svg>
+                Transferir Animal
+              </a>
+            </li>
           </ul>
         </nav>
       </aside>
@@ -94,6 +100,10 @@
             mode="user"
             :key="'BlockchainViewer' + user.id" 
             />
+            <TransferOwnershipContent
+            v-if="activeContent === 'transferOwnership'"
+            ref="transferOwnershipComp"
+            />
         </div>
       </main>
     </div>
@@ -152,6 +162,7 @@ import AnimalContent from '@/components/AnimalContent.vue';
 import PropertyContent from '@/components/PropertyContent.vue';
 import EventContent from '@/components/EventContent.vue';
 import BlockchainViewer from '@/components/BlockchainViewer.vue';
+import TransferOwnershipContent from '@/components/TransferOwnershipContent.vue';
 import NotificationModal from '@/components/NotificationModal.vue';
 
 
@@ -170,6 +181,7 @@ export default {
     PropertyContent,
     EventContent,
     BlockchainViewer,
+    TransferOwnershipContent,
     NotificationModal,
   },
   data() {

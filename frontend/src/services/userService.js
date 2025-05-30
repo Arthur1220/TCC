@@ -71,3 +71,31 @@ export async function getAllUsers() { // Função adicionada
     throw error.response ? error.response.data : error;
   }
 }
+
+/**
+ * Busca um usuário pelo seu user_hash.
+ * @param {string} hash - O user_hash a ser buscado.
+ * @returns {Promise<Object>} - Dados do usuário encontrado (ex: id, username, user_hash).
+ */
+export async function getUserByHash(hash) {
+  if (!hash || typeof hash !== 'string' || hash.trim() === '') {
+    // Validação básica no lado do cliente para evitar chamadas desnecessárias
+    const error = new Error("O hash do usuário não pode ser vazio.");
+    // @ts-ignore
+    error.isClientError = true; // Adiciona uma flag para identificar erro do cliente
+    throw error;
+  }
+  try {
+    // A URL deve corresponder à definida no Django user/urls.py, incluindo o prefixo do app
+    // Ex: se o prefixo do app user no urls.py principal for 'user/', então 'user/get-by-hash/'
+    const response = await axiosInstance.get('user/get-by-hash/', { 
+      params: { hash: hash.trim() } 
+    });
+    return response.data;
+  } catch (error) {
+    console.error(`Erro ao buscar usuário pelo hash "${hash}":`, error.response ? error.response.data : error);
+    // Relança o erro para ser tratado pelo componente chamador
+    // Se o erro for 404, error.response.data pode conter { detail: "Usuário não encontrado..." }
+    throw error.response ? error.response.data : error;
+  }
+}
