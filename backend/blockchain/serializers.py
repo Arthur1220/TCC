@@ -23,8 +23,7 @@ class BlockchainSerializer(serializers.ModelSerializer):
     class Meta:
         model = Blockchain
         fields = (
-            'id', 'animal', 'event', 'transaction_hash', 'registration_date', 'owner', 'status',
-            'animal_details', 'event_details', 'owner_details', 'status_details' # Inclua os campos aninhados aqui
+            'id', 'animal', 'event', 'transaction_hash', 'registration_date', 'owner', 'status', 'animal_details', 'event_details', 'owner_details', 'status_details', 'transaction_cost', 'cost_currency_symbol' 
         )
         read_only_fields = ('registration_date',) # A data de registro é automática
 

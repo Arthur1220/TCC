@@ -20,6 +20,22 @@ class Blockchain(models.Model):
     registration_date = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blockchain_entries_owned', blank=False, null=False)
     status = models.ForeignKey(BlockchainStatus, on_delete=models.CASCADE, related_name='blockchain_entries_by_status', blank=False, null=False)
+    
+    transaction_cost = models.DecimalField(
+        max_digits=30, # Suficiente para valores grandes em Wei/Gwei
+        decimal_places=0, # Armazenar em Wei (menor unidade, inteiro)
+        null=True, 
+        blank=True,
+        help_text="Custo da transação em Wei (gasUsed * effectiveGasPrice)"
+    )
+    cost_currency_symbol = models.CharField(
+        max_length=10, 
+        default="WEI", # Ou a menor unidade da sua L2 (ex: GWEI_MATIC, etc.)
+        null=True,
+        blank=True,
+        help_text="Símbolo da moeda/unidade do custo (ex: WEI, GWEI)"
+    )
+
     history = HistoricalRecords()
 
     def __str__(self):

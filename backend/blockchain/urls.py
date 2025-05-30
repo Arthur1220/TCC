@@ -13,4 +13,8 @@ urlpatterns = [
     path('blockchain-update/<int:id>/', BlockchainViewSet.update, name='blockchain-update'),
     path('blockchain-delete/<int:id>/', BlockchainViewSet.delete, name='blockchain-delete'),
     path('blockchain-filter/', BlockchainViewSet.filter_get, name='blockchain-filter'),
+
+    # Rota para obter custos de blockchain do usuário
+    path('user-costs/', BlockchainViewSet.get_user_blockchain_costs, name='user-blockchain-costs'),
+    path('user-costs-summary/', BlockchainViewSet.get_user_blockchain_costs_summary, name='user_blockchain_costs_summary'),
 ]

@@ -627,13 +627,20 @@ class EventViewSet(ModelViewSet):
             contract_animal_id = event_instance.animal.id
             contract_event_type_id = event_instance.event_type.id
 
-            tx_hash = web3_client.register_event(
+            # Chama web3_client que agora retorna um dicionário com detalhes da tx
+            tx_blockchain_details = web3_client.register_event(
                 event_id=contract_event_id,
                 animal_id=contract_animal_id,
-                event_type=contract_event_type_id, # Enviando o ID do tipo de evento
+                event_type=contract_event_type_id,
                 data_hash=data_hash,
                 user_hash=user_hash_for_blockchain
             )
+
+            # Extrai os detalhes retornados
+            tx_hash = tx_blockchain_details.get("tx_hash")
+            transaction_cost_wei = tx_blockchain_details.get("transaction_cost_wei")
+            # gas_used = tx_blockchain_details.get("gas_used")
+            # effective_gas_price_wei = tx_blockchain_details.get("effective_gas_price_wei")
 
             # Salva o registro da blockchain no DB
             status_confirmado, _ = BlockchainStatus.objects.get_or_create(name="Confirmado")
@@ -642,14 +649,23 @@ class EventViewSet(ModelViewSet):
                 event=event_instance,
                 transaction_hash=tx_hash,
                 owner=request.user,
-                status=status_confirmado
+                status=status_confirmado,
+                # SALVANDO O CUSTO AQUI:
+                transaction_cost=transaction_cost_wei, # Já vem como string, DecimalField aceita
+                cost_currency_symbol="WEI" # Ou a unidade da sua L2
             )
             
             # Prepara a resposta final com todos os dados
             final_response_data = event_serializer.data
             if specific_event_created and specific_serializer: # Adiciona detalhes se foram criados
                 final_response_data['details'] = specific_serializer.data
-            final_response_data['blockchain_tx_hash'] = tx_hash
+
+            final_response_data['blockchain_registration'] = {
+                "tx_hash": tx_hash,
+                "cost_wei": transaction_cost_wei
+                # "gas_used": gas_used, # Opcional
+                # "effective_gas_price_wei": effective_gas_price_wei # Opcional
+            }
             
             return Response(final_response_data, status=status.HTTP_201_CREATED)
 
@@ -692,9 +708,9 @@ class EventViewSet(ModelViewSet):
             # Veja o método .create() do seu BatchEventRegisterSerializer
             events_created_in_db = batch_serializer.save() 
             
-            blockchain_tx_hashes = []
+            blockchain_registrations_summary = []
             status_confirmado, _ = BlockchainStatus.objects.get_or_create(name="Confirmado")
-            status_falhou, _ = BlockchainStatus.objects.get_or_create(name="Falhou")
+            status_falhou, _ = BlockchainStatus.objects.get_or_create(name="Falhou") # Para falhas individuais
 
             user_hash_for_blockchain = request.user.user_hash
             if not user_hash_for_blockchain:
@@ -708,31 +724,48 @@ class EventViewSet(ModelViewSet):
                     contract_animal_id = event_instance.animal.id
                     contract_event_type_id = event_instance.event_type.id
 
-                    tx_hash = web3_client.register_event(
+                    # Chama web3_client que agora retorna um dicionário
+                    tx_blockchain_details = web3_client.register_event(
                         event_id=contract_event_id,
                         animal_id=contract_animal_id,
                         event_type=contract_event_type_id,
                         data_hash=data_hash,
                         user_hash=user_hash_for_blockchain
                     )
+                    tx_hash = tx_blockchain_details.get("tx_hash")
+                    transaction_cost_wei = tx_blockchain_details.get("transaction_cost_wei")
+
                     Blockchain.objects.create(
                         animal=event_instance.animal,
                         event=event_instance,
                         transaction_hash=tx_hash,
                         owner=request.user,
-                        status=status_confirmado
+                        status=status_confirmado,
+                        # SALVANDO O CUSTO AQUI:
+                        transaction_cost=transaction_cost_wei,
+                        cost_currency_symbol="WEI" 
                     )
-                    blockchain_tx_hashes.append({"event_db_id": event_instance.id, "tx_hash": tx_hash, "status": "success"})
+                    blockchain_registrations_summary.append({
+                        "event_db_id": event_instance.id, 
+                        "tx_hash": tx_hash, 
+                        "cost_wei": transaction_cost_wei,
+                        "status": "success"
+                    })
                 except Exception as blockchain_exc:
                     # Registra a falha na blockchain para este evento específico mas continua o lote
                     Blockchain.objects.create(
                         animal=event_instance.animal,
                         event=event_instance,
-                        transaction_hash=f"Falha: {blockchain_exc}", # Log da falha
+                        transaction_hash=f"Falha no registro on-chain: {str(blockchain_exc)[:60]}", # Limita tamanho da msg de erro
                         owner=request.user,
-                        status=status_falhou # Assume que você tem um status "Falhou"
+                        status=status_falhou,
+                        transaction_cost=None # Ou 0, se preferir
                     )
-                    blockchain_tx_hashes.append({"event_db_id": event_instance.id, "error": str(blockchain_exc), "status": "failed"})
+                    blockchain_registrations_summary.append({
+                        "event_db_id": event_instance.id, 
+                        "error": str(blockchain_exc), 
+                        "status": "failed_on_blockchain"
+                    })
                     # Se uma falha na blockchain para UM evento do lote deve reverter TUDO:
                     # transaction.set_rollback(True)
                     # return Response({"error": f"Falha ao registrar evento {event_instance.id} na blockchain: {str(blockchain_exc)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -745,7 +778,7 @@ class EventViewSet(ModelViewSet):
             return Response({
                 "message": f"{len(events_created_in_db)} eventos processados para o lote.",
                 "events_db_ids": [e.id for e in events_created_in_db],
-                "blockchain_registrations": blockchain_tx_hashes
+                "blockchain_registrations": blockchain_registrations_summary
             }, status=status.HTTP_201_CREATED)
 
         except Exception as e:

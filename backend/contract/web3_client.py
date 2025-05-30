@@ -50,12 +50,22 @@ def register_event(event_id: int, animal_id: int, event_type: int, data_hash: st
         function_call = contract.functions.registerEvent(
             event_id, animal_id, event_type, data_hash, user_hash
         )
+        # Valores de gas e gasPrice podem precisar de ajuste fino ou vir do frontend/config
+        gas_estimate = function_call.estimate_gas({'from': account.address})
+        # Adiciona uma margem ao gas estimado para segurança
+        gas_limit_with_margin = int(gas_estimate * 1.2)
+
+        current_gas_price = w3.eth.gas_price 
+        # Para redes EIP-1559, você pode querer usar maxFeePerGas e maxPriorityFeePerGas
+        # current_max_fee = w3.to_wei('50', 'gwei')
+        # current_max_priority_fee = w3.to_wei('2', 'gwei')
+
         # Constrói a transação
         txn = function_call.build_transaction({
             'from': account.address,
             'nonce': w3.eth.get_transaction_count(account.address, "pending"),
             'gas': 3000000,
-            'gasPrice': w3.eth.gas_price,
+            'gasPrice': current_gas_price,
         })
     except Exception as e:
         raise Exception("Erro ao construir a transação: " + str(e))
@@ -63,7 +73,20 @@ def register_event(event_id: int, animal_id: int, event_type: int, data_hash: st
     signed_txn = account.sign_transaction(txn)
     tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
     receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
-    return receipt.transactionHash.hex()
+
+    # Calcular o custo
+    gas_used = receipt.gasUsed
+    effective_gas_price = receipt.effectiveGasPrice # Disponível em recibos de transações EIP-1559
+                                                  # Para transações legadas, effectiveGasPrice == gasPrice da transação
+
+    cost = gas_used * effective_gas_price # Custo em Wei
+
+    return {
+        "tx_hash": receipt.transactionHash.hex(),
+        "transaction_cost_wei": str(cost), # Retorna como string para precisão
+        "gas_used": str(gas_used),
+        "effective_gas_price_wei": str(effective_gas_price)
+    }
 
 def get_number_of_events(animal_id: int):
     return contract.functions.getNumberOfEvents(animal_id).call()

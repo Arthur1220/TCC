@@ -79,3 +79,23 @@ export async function filterBlockchain(filters) {
     throw error;
   }
 }
+
+/**
+ * Obtém os custos de blockchain para o usuário logado, com filtros opcionais.
+ * @param {Object} filters - Filtros opcionais.
+ * Ex: { filter_type: 'last_month' }
+ * Ex: { filter_type: 'specific_month', year: 2025, month: 5 }
+ * Ex: { filter_type: 'by_month_in_year', year: 2025 }
+ * Ex: { filter_type: 'all_months_summary' }
+ * Se nenhum filtro for passado, o backend assume 'all_time'.
+ * @returns {Promise<Object>} - Objeto com os custos.
+ */
+export async function fetchUserBlockchainCosts(filters = {}) {
+  try {
+    const response = await axiosInstance.get('blockchain/user-costs/', { params: filters }); 
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao buscar custos de blockchain do usuário:', error.response ? error.response.data : error);
+    throw error;
+  }
+}

@@ -53,9 +53,8 @@ def get_number_events(request):
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated]) # Ou quem quer que possa chamar isso
 def register_contract_event(request):
-    """Chama registerEvent no contrato."""
     data = request.data
     required = ["event_id", "animal_id", "event_type", "data_hash", "user_hash"]
     if not all(field in data for field in required):
@@ -64,14 +63,16 @@ def register_contract_event(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
     try:
-        txh = web3_client.register_event(
+        # A função web3_client.register_event agora retorna um dicionário
+        tx_details = web3_client.register_event(
             int(data["event_id"]),
             int(data["animal_id"]),
             int(data["event_type"]),
             data["data_hash"],
             data["user_hash"],
         )
-        return Response({"tx_hash": txh}, status=status.HTTP_201_CREATED)
+        # tx_details deve conter: "tx_hash", "transaction_cost_wei", "gas_used", "effective_gas_price_wei"
+        return Response(tx_details, status=status.HTTP_201_CREATED)
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
