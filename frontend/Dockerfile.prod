@@ -1,0 +1,26 @@
+# Estágio 1: Build da aplicação Vue.js
+FROM node:18-alpine as build-stage
+
+WORKDIR /app
+
+# Copia os arquivos de manifesto e instala as dependências
+COPY package.json package-lock.json ./
+RUN npm install
+
+# Copia o resto do código do frontend
+COPY . .
+
+# Gera a build de produção
+RUN npm run build
+
+# Estágio 2: Servir os arquivos com Nginx
+FROM nginx:stable-alpine as production-stage
+
+# Copia os arquivos estáticos da build do estágio anterior
+COPY --from=build-stage /app/dist /usr/share/nginx/html
+
+# Expõe a porta 80
+EXPOSE 80
+
+# Comando para iniciar o Nginx
+CMD ["nginx", "-g", "daemon off;"]
