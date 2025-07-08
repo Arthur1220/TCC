@@ -5,7 +5,6 @@ services:
       dockerfile: Dockerfile
     env_file:
       - ./.env
-    # Sem volumes de código para produção
     ports:
       - "8000:8000"
     environment:
@@ -14,14 +13,14 @@ services:
       - DJANGO_SUPERUSER_PASSWORD=admin # Troque por uma senha segura
     depends_on:
       - blockchain
+      - db # Adicionado dependência do banco de dados
 
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile.prod # Usa o novo Dockerfile de produção
+      dockerfile: Dockerfile.prod
     ports:
-      - "80:80" # Expõe o Nginx na porta 80 (HTTP)
-    # Não precisa de mais nada, a imagem Nginx se auto-gerencia
+      - "80:80"
 
   blockchain:
     build:
@@ -34,5 +33,14 @@ services:
     ports:
       - "8545:8545"
 
+  # SERVIÇO DO BANCO DE DADOS ADICIONADO ABAIXO
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./.env # Garanta que seu .env tenha as variáveis POSTGRES_*
+
 volumes:
   hardhat_data: {}
+  postgres_data: {} # Adicionado volume do postgres

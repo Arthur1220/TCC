@@ -16,4 +16,5 @@ urllib3==2.4.0
 web3==6.20.4
 websockets==13.1
 yarl==1.20.0
-gunicorn==23.1.0
+gunicorn==22.0.0
+dj-database-url==0.5.0
