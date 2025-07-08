@@ -13,7 +13,7 @@ services:
       - DJANGO_SUPERUSER_PASSWORD=admin # Troque por uma senha segura
     depends_on:
       - blockchain
-      - db # Adicionado dependência do banco de dados
+      - db # Garante que o backend só inicie depois do banco
 
   frontend:
     build:
@@ -33,14 +33,14 @@ services:
     ports:
       - "8545:8545"
 
-  # SERVIÇO DO BANCO DE DADOS ADICIONADO ABAIXO
+  # Serviço do banco de dados que estava faltando
   db:
     image: postgres:15
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
-      - ./.env # Garanta que seu .env tenha as variáveis POSTGRES_*
+      - ./.env
 
 volumes:
   hardhat_data: {}
-  postgres_data: {} # Adicionado volume do postgres
+  postgres_data: {}
