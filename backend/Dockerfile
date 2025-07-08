@@ -20,7 +20,7 @@ RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
 # Copie o código do projeto
-#COPY . /code/
+COPY . /code/
 
 # Exponha a porta 8000
 EXPOSE 8000
