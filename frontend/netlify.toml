@@ -8,7 +8,7 @@
 
   # Será redirecionada pelo servidor do Netlify para o seu backend.
   # Substitua o IP pelo da sua instância EC2.
-  to = "http://3.15.29.140:8000/:splat"
+  to = "http://18.116.14.228:8000/:splat"
 
   # O status 200 diz ao Netlify para atuar como um proxy,
   # "espelhando" a resposta do seu backend.
