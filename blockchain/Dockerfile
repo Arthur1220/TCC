@@ -1,5 +1,6 @@
 # Stage 1: build
 FROM node:18-alpine AS builder
+RUN apk add --no-cache curl
 WORKDIR /app
 COPY .env .env
 COPY blockchain/package*.json ./
