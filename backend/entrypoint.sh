@@ -48,7 +48,7 @@ EOF
 fi
 
 echo "Iniciando o servidor Django..."
-exec python manage.py runserver 0.0.0.0:8000
+#exec python manage.py runserver 0.0.0.0:8000
 
 #echo "Iniciando o servidor Gunicorn..."
-#exec gunicorn --bind 0.0.0.0:8000 core.wsgi:application
+exec gunicorn --bind 0.0.0.0:8000 core.wsgi:application

@@ -112,7 +112,6 @@ export default {
       benefits: [
         { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/lock.png', text: 'Imutabilidade de Registos' },
         { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/refund-2.png', text: 'Redução de Custos' },
-        { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/flow-chart.png', text: 'Integração Facilitada' },
         { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/rocket.png', text: 'Alta Performance' },
         { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/shield.png', text: 'Segurança e Conformidade' },
         { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/visible.png', text: 'Transparência Total' },
