@@ -46,7 +46,7 @@ export default {
 }
 
 .welcome-panel {
-  background: linear-gradient(135deg, rgba(26, 115, 232, 0.9), rgba(29, 83, 162, 0.95)), url('@/assets/images/farm-background.jpg') no-repeat center center;
+  background: linear-gradient(135deg, rgba(26, 115, 232, 0.9), rgba(29, 83, 162, 0.95)), url('@/assets/farm-background.jpg') no-repeat center center;
   background-size: cover;
   display: flex;
   flex-direction: column;
