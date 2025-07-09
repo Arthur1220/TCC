@@ -1,5 +1,6 @@
 # core/config.py
-from pydantic import BaseSettings, Field, ValidationError
+from pydantic_settings import BaseSettings
+from pydantic import Field, ValidationError
 
 class EnvSettings(BaseSettings):
     BLOCKCHAIN_PROVIDER: str = Field(
