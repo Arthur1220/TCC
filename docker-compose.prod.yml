@@ -1,8 +1,21 @@
 services:
+
+  nginx:
+    build: ./nginx
+    volumes:
+      - static_data:/app/staticfiles
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    entrypoint: /code/entrypoint.sh
+    volumes:
+      - static_data:/code/staticfiles
     env_file:
       - ./.env
     ports:
@@ -37,3 +50,4 @@ services:
 volumes:
   hardhat_data: {}
   postgres_data: {}
+  static_data: {}

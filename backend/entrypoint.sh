@@ -26,6 +26,9 @@ python manage.py migrate
 echo "Aguardando 5 segundos para garantir que as migrações estejam finalizadas..."
 sleep 5
 
+echo "Recolhendo ficheiros estáticos..."
+python manage.py collectstatic --no-input
+
 echo "Carregando fixtures..."
 /code/load_fixtures.sh
 
