@@ -86,6 +86,10 @@ MIDDLEWARE = [
     'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://tcc-animaltracking.netlify.app',
+]
+
 CORS_ALLOWED_ORIGINS = [
     "https://tcc-animaltracking.netlify.app",
     "http://127.0.0.1:5173",
@@ -93,6 +97,11 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 #CORS_ALLOW_ALL_ORIGINS = True
 
