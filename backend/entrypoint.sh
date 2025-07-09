@@ -1,6 +1,22 @@
 #!/bin/bash
 set -e
 
+# --- WAIT SCRIPT START ---
+# Wait for the database to be ready
+echo "Waiting for database..."
+while ! nc -z db 5432; do
+  sleep 1
+done
+echo "Database is up!"
+
+# Wait for the blockchain RPC to be ready
+echo "Waiting for blockchain RPC..."
+while ! nc -z blockchain 8545; do
+  sleep 1
+done
+echo "Blockchain RPC is up!"
+# --- WAIT SCRIPT END ---
+
 echo "Executando makemigrations (caso haja alterações nos modelos)..."
 python manage.py makemigrations
 
