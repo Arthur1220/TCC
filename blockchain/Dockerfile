@@ -24,4 +24,4 @@ EXPOSE 8545
 
 # ENTRYPOINT só inicia o nó persistente
 #ENTRYPOINT ["sh","-c","npx hardhat node --db $HARDHAT_DB_PATH"]
-ENTRYPOINT ["sh","-c","npx hardhat node"]
+ENTRYPOINT ["sh","-c","npx hardhat node --hostname 0.0.0.0"]
