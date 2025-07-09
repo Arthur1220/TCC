@@ -16,13 +16,6 @@ services:
       - blockchain
       - db
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.prod
-    ports:
-      - "80:80"
-
   blockchain:
     build:
       context: .
