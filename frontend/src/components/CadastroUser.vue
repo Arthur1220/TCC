@@ -1,54 +1,28 @@
 <template>
-  <div class="auth-form card"> <h2 class="auth-title">Crie sua Conta</h2>
-
+  <div class="auth-form-container">
+    <h2 class="auth-title">Crie a Sua Conta</h2>
+    <p class="auth-subtitle">Comece a rastrear o seu rebanho hoje mesmo.</p>
+    
     <form @submit.prevent="handleRegister" class="form">
-      <div class="form-grid"> <div class="form-group full-width"> <label for="username" class="form-label">Usuário*</label>
-          <input
-            type="text"
-            id="username"
-            v-model="form.username"
-            placeholder="Escolha um nome de usuário"
-            class="input"
-            required
-            aria-required="true"
-          />
-        </div>
+      <div class="form-group">
+        <label for="username" class="form-label">Usuário*</label>
+        <input type="text" id="username" v-model="form.username" placeholder="Escolha um nome de usuário" class="input" required />
+      </div>
 
-        <div class="form-group"> <label for="first_name" class="form-label">Nome*</label>
-          <input
-            type="text"
-            id="first_name"
-            v-model="form.first_name"
-            placeholder="Digite seu nome"
-            class="input"
-            required
-            aria-required="true"
-          />
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="first_name" class="form-label">Nome*</label>
+          <input type="text" id="first_name" v-model="form.first_name" placeholder="Digite seu nome" class="input" required />
         </div>
-
         <div class="form-group">
           <label for="last_name" class="form-label">Sobrenome*</label>
-          <input
-            type="text"
-            id="last_name"
-            v-model="form.last_name"
-            placeholder="Digite seu sobrenome"
-            class="input"
-            required
-            aria-required="true"
-          />
+          <input type="text" id="last_name" v-model="form.last_name" placeholder="Digite seu sobrenome" class="input" required />
         </div>
-      </div> <div class="form-group">
+      </div>
+      
+      <div class="form-group">
         <label for="email" class="form-label">E-mail*</label>
-        <input
-          type="email"
-          id="email"
-          v-model="form.email"
-          placeholder="Digite seu e-mail"
-          class="input"
-          required
-          aria-required="true"
-        />
+        <input type="email" id="email" v-model="form.email" placeholder="Digite seu e-mail" class="input" required />
       </div>
 
       <div class="form-group">
@@ -103,33 +77,29 @@
         </div>
       </div>
 
+
       <div class="form-group">
-        <label for="phone" class="form-label">Telefone*</label>
-        <input
-          type="tel" id="phone"
-          v-model="form.phone"
-          placeholder="(xx) xxxxx-xxxx"
-          class="input"
-          required
-          aria-required="true"
-        />
+        <label for="phone" class="form-label">Telefone</label>
+        <input type="tel" id="phone" v-model="form.phone" placeholder="(xx) xxxxx-xxxx" class="input" />
       </div>
 
       <button type="submit" class="button button-primary button-block">Criar Conta</button>
     </form>
 
     <p class="switch-text">
-      Já tem conta? <a @click.prevent="$emit('navigate','login')" href="#" class="link">Faça login</a>
+      Já tem uma conta? <a @click.prevent="$emit('navigate','login')" href="#" class="link">Faça login</a>
     </p>
 
-    <NotificationModal
-      :show="showNotification"
-      :title="notification.title"
-      :message="notification.message"
-      :type="notification.type"
-      :auto-close-delay="notification.autoCloseDelay"
-      @close="showNotification = false"
-    />
+    <Teleport to="body">
+      <NotificationModal
+        :show="showNotification"
+        :title="notification.title"
+        :message="notification.message"
+        :type="notification.type"
+        :auto-close-delay="notification.autoCloseDelay"
+        @close="showNotification = false"
+      />
+    </Teleport>
   </div>
 </template>
 
@@ -245,43 +215,60 @@ export default {
 </script>
 
 <style scoped>
-/* .auth-form já usa a classe .card global. */
-.auth-form {
+.auth-form-container {
   width: 100%;
-  max-width: 480px; /* Um pouco mais largo para acomodar mais campos */
-  margin: var(--sp-xl) auto;
+  max-width: 500px;
   padding: var(--sp-xl);
+  background: var(--color-bg-component);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow);
 }
 
-.auth-title { /* Reutilizando .auth-title do Login.vue */
+.auth-title {
   font-family: var(--font-heading);
   font-size: var(--fs-h2);
-  color: var(--color-text-primary);
   text-align: center;
+  margin-bottom: var(--sp-xs);
+}
+
+.auth-subtitle {
+  text-align: center;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--sp-xl);
+}
+
+.form-group {
   margin-bottom: var(--sp-lg);
 }
 
-/* .form-group, .form-label, .input usam classes globais. */
-.form-group {
-  margin-bottom: var(--sp-md); /* Espaçamento padrão entre grupos */
-}
-
-/* Layout em grid para Nome e Sobrenome (opcional, mas melhora o visual) */
 .form-grid {
-    display: grid;
-    grid-template-columns: 1fr; /* Padrão uma coluna */
-    gap: var(--sp-md);
+  display: grid;
+  gap: var(--sp-lg);
 }
 
-@media (min-width: 576px) { /* Em telas maiores, duas colunas para certos campos */
-    .form-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-    .form-group.full-width { /* Para campos como username ocuparem a largura toda */
-        grid-column: 1 / -1;
-    }
+@media (min-width: 576px) {
+  .form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
+.button-block {
+  display: block;
+  width: 100%;
+  padding: var(--sp-md);
+  font-size: var(--fs-large);
+  font-weight: var(--fw-semibold);
+  margin-top: var(--sp-lg);
+}
+
+.switch-text {
+  text-align: center;
+  margin-top: var(--sp-xl);
+}
+.switch-text .link {
+  font-weight: var(--fw-semibold);
+  color: var(--color-primary);
+}
 
 .password-input-wrapper {
   position: relative;
@@ -312,51 +299,5 @@ export default {
 .password-toggle-button svg {
     width: 20px;
     height: 20px;
-}
-
-.button-block { /* Classe utilitária */
-    display: block;
-    width: 100%;
-}
-.auth-form .button-primary {
-  margin-top: var(--sp-lg); /* Mais espaço antes do botão de cadastro */
-  padding-top: var(--sp-md);
-  padding-bottom: var(--sp-md);
-}
-
-.switch-text {
-  text-align: center;
-  margin-top: var(--sp-lg);
-  font-size: var(--fs-base);
-  color: var(--color-text-secondary);
-}
-.switch-text .link { /* Usa .link global */
-  font-weight: var(--fw-medium);
-}
-
-/* Mensagens de sucesso/erro serão tratadas pelo NotificationModal */
-/* Os estilos .success-message e .error-message podem ser removidos */
-/* ou mantidos como fallback se NotificationModal não for usado. */
-/* Se mantidos, devem usar classes de alerta globais: */
-.success-message {
-  /* Exemplo: use .alert .alert-success do global style.css */
-  margin-top: var(--sp-md);
-  padding: var(--sp-sm) var(--sp-md);
-  color: var(--color-success); /* Usar cor de sucesso para texto */
-  background-color: var(--color-primary-light); /* Fundo suave de sucesso */
-  border: 1px solid var(--color-success);
-  text-align: center;
-  border-radius: var(--border-radius);
-  font-weight: var(--fw-medium);
-}
-.error-message {
-  /* Exemplo: use .alert .alert-danger do global style.css */
-  margin-top: var(--sp-md);
-  padding: var(--sp-sm) var(--sp-md);
-  color: var(--color-danger); /* Usar cor de perigo para texto */
-  background-color: #f8d7da; /* Fundo suave de perigo (exemplo, defina no global) */
-  border: 1px solid var(--color-danger);
-  text-align: center;
-  border-radius: var(--border-radius);
 }
 </style>
