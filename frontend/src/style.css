@@ -136,6 +136,17 @@
 }
 
 /* 4. Estilos Base */
+html, body {
+  overflow-x: hidden; /* Impede a rolagem horizontal */
+  width: 100%;
+}
+
+#app { /* A div principal no seu App.vue */
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
 html {
   font-size: var(--fs-root);
   -webkit-font-smoothing: antialiased;

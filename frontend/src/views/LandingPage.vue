@@ -4,7 +4,6 @@
     <main role="main">
       <section class="hero section text-center">
         <div class="container">
-          <h1 class="title">AnimalTracking</h1>
           <h1 class="hero-title">Rastreabilidade Completa para Seu Rebanho</h1>
           <p class="hero-subtitle">Transparência, segurança e auditabilidade em blockchain de segunda camada.</p>
           <button class="button button-primary button-lg" @click="goToSignup">Experimente Grátis</button>
@@ -52,7 +51,6 @@
               :class="{ 'timeline-step-even': (index + 1) % 2 === 0 }"
             >
               <div class="timeline-marker-container">
-                <div class="timeline-line"></div>
                 <div class="timeline-marker">{{ index + 1 }}</div>
               </div>
               <div class="timeline-content card">
@@ -70,7 +68,8 @@
           <h2 class="section-title-global">Cobrança Simplificada e Transparente</h2>
           <div class="grid pricing-grid">
             <div class="card pricing-card" v-for="(plan, idx) in pricing" :key="idx">
-              <div class="pricing-icon" v-html="plan.icon"></div> <h3 class="pricing-card-title">{{ plan.title }}</h3>
+              <div class="pricing-icon" v-html="plan.icon"></div>
+              <h3 class="pricing-card-title">{{ plan.title }}</h3>
               <p>{{ plan.description }}</p>
             </div>
           </div>
@@ -116,7 +115,6 @@
 
 <script>
 // Seu script existente permanece o mesmo.
-// Apenas certifique-se de que os caminhos dos ícones em `data` estão corretos.
 import AppHeader from '../components/AppHeader.vue';
 import AppFooter from '../components/AppFooter.vue';
 
@@ -127,12 +125,12 @@ export default {
     return {
       benefits: [
         { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/lock.png', text: 'Imutabilidade de Registros' },
-        { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/refund-2.png', text: 'Redução de Custos Operacionais' },
-        { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/flow-chart.png', text: 'Integração Facilitada via API' },
-        { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/rocket.png', text: 'Performance Otimizada em L2' },
+        { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/refund-2.png', text: 'Redução de Custos' },
+        { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/flow-chart.png', text: 'Integração Facilitada' },
+        { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/rocket.png', text: 'Alta Performance' },
         { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/shield.png', text: 'Segurança e Conformidade' },
-        { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/visible.png', text: 'Transparência Total do Processo' },
-        { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/graph-report.png', text: 'Auditoria Simplificada e Confiável' }
+        { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/visible.png', text: 'Transparência Total' },
+        { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/graph-report.png', text: 'Auditoria Confiável' }
       ],
       steps: [
         { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/add-user-group-man-man.png', title: '1. Cadastro Rápido', description: 'Crie sua conta em minutos e conecte-se à nossa plataforma segura.' },
@@ -141,166 +139,145 @@ export default {
         { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/data-arrived.png', title: '4. Sincronização Segura', description: 'Seus dados off-chain são mantidos em sincronia com os hashes on-chain, garantindo segurança e acesso rápido.' },
         { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/combo-chart.png', title: '5. Consulta e Auditoria', description: 'Acesse seu dashboard para relatórios detalhados, insights e trilhas de auditoria completas.' }
       ],
-      pricing: [ // Ícones podem ser SVGs ou classes de ícones de uma biblioteca
-        { icon: '📄', title: 'Faturamento Único Consolidado', description: 'Receba uma única fatura mensal que consolida todas as operações realizadas, simplificando sua gestão financeira.' },
-        { icon: '📈', title: 'Relatórios Detalhados de Uso', description: 'Acesse relatórios transparentes com resumo de transações, taxas aplicadas e consumo total, permitindo controle e auditoria.' },
-        { icon: '🔗', title: 'Exportação e Integração Flexível', description: 'Exporte dados em CSV, PDF ou integre diretamente via API, facilitando a contabilidade e a análise de dados.' }
+      pricing: [
+        { icon: '📄', title: 'Faturamento Único', description: 'Receba uma única fatura mensal que consolida todas as operações, simplificando sua gestão financeira.' },
+        { icon: '📈', title: 'Relatórios de Uso', description: 'Acesse relatórios transparentes com resumo de transações, taxas aplicadas e consumo total para auditoria.' },
+        { icon: '🔗', title: 'Exportação Flexível', description: 'Exporte dados em CSV, PDF ou integre diretamente via API, facilitando a contabilidade e a análise.' }
       ],
       faqs: [
-        { question: 'Como a segurança dos meus dados é garantida?', answer: 'Utilizamos criptografia de ponta (AES-256) para dados em repouso e em trânsito. Os registros chave são ancorados em blockchain com hashes criptográficos, garantindo imutabilidade, rastreabilidade e resistência a fraudes.', open: false },
-        { question: 'Preciso ter conhecimento técnico sobre blockchain para usar a plataforma?', answer: 'Absolutamente não. Nossa plataforma foi desenhada para abstrair toda a complexidade técnica. Você interage com uma interface web amigável, e nós cuidamos de toda a interação com a blockchain em segundo plano.', open: false },
-        { question: 'Consigo exportar relatórios para minha contabilidade ou auditoria?', answer: 'Sim. Você pode gerar relatórios customizáveis com filtros avançados por data, tipo de evento, animal ou lote, e exportá-los facilmente nos formatos CSV ou PDF para integração com seus sistemas.', open: false },
-        { question: 'Como funciona o suporte técnico caso eu precise de ajuda?', answer: 'Oferecemos suporte técnico especializado através de múltiplos canais, incluindo chat ao vivo, e-mail e telefone. Nosso SLA de primeira resposta é de até 2 horas para incidentes críticos.', open: false },
-        { question: 'A plataforma é adequada para pequenos produtores?', answer: 'Sim! Nossa solução é escalável e pensada para atender desde pequenos produtores individuais até grandes cooperativas e empresas, com planos flexíveis que se adaptam à sua necessidade.', open: false }
+        { question: 'Como a segurança dos meus dados é garantida?', answer: 'Utilizamos criptografia de ponta e hashes em blockchain para garantir imutabilidade, rastreabilidade e resistência a fraudes.', open: false },
+        { question: 'Preciso entender de blockchain para usar?', answer: 'Não. Nossa plataforma foi desenhada para abstrair toda a complexidade. Você usa uma interface web amigável, e nós cuidamos da tecnologia.', open: false },
+        { question: 'Consigo exportar relatórios para auditoria?', answer: 'Sim. Gere relatórios customizáveis com filtros avançados e exporte facilmente nos formatos CSV ou PDF.', open: false },
+        { question: 'A plataforma é adequada para pequenos produtores?', answer: 'Sim! Nossa solução é escalável e pensada para atender desde pequenos produtores até grandes cooperativas, com planos flexíveis.', open: false }
       ],
-      showArrows: true // Inicialmente true, checkArrows pode ajustar depois
+      showArrows: true,
+      resizeTimeout: null
     };
   },
   mounted() {
-    this.$nextTick(() => { // Garante que o DOM está pronto para refs
-        this.checkArrows();
-    });
+    this.$nextTick(() => this.checkArrows());
     window.addEventListener('resize', this.checkArrowsDebounced);
   },
-  beforeUnmount() { // Corrigido de beforeDestroy para Vue 3
+  beforeUnmount() {
     window.removeEventListener('resize', this.checkArrowsDebounced);
+    if (this.resizeTimeout) clearTimeout(this.resizeTimeout);
   },
   methods: {
-    goToSignup() { this.$router.push('/login'); }, // Ou '/signup' se tiver uma rota específica
+    goToSignup() { this.$router.push('/login'); },
     scrollCarousel(direction) {
       const carousel = this.$refs.carousel;
       if (!carousel) return;
-      const scrollAmount = carousel.offsetWidth * 0.8; // Scroll 80% da largura visível
-      carousel.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth'
-      });
+      const scrollAmount = carousel.offsetWidth * 0.8;
+      carousel.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
     },
     scrollLeft() { this.scrollCarousel('left'); },
     scrollRight() { this.scrollCarousel('right'); },
     checkArrows() {
       const c = this.$refs.carousel;
-      if (c) {
-        // Mostrar setas se o conteúdo total for maior que a área visível
-        this.showArrows = c.scrollWidth > c.clientWidth + 1; // +1 para evitar problemas de arredondamento
-      } else {
-        this.showArrows = false;
-      }
+      this.showArrows = c ? c.scrollWidth > c.clientWidth + 1 : false;
     },
-    // Debounce para a função checkArrows para não disparar excessivamente no resize
     checkArrowsDebounced() {
         if (this.resizeTimeout) clearTimeout(this.resizeTimeout);
         this.resizeTimeout = setTimeout(this.checkArrows, 150);
     },
     toggleFaq(index) {
-      this.faqs = this.faqs.map((faq, i) => ({
-        ...faq,
-        open: i === index ? !faq.open : false // Fecha outros ao abrir um
-      }));
+      this.faqs[index].open = !this.faqs[index].open;
+      this.faqs.forEach((faq, i) => {
+        if (i !== index) faq.open = false;
+      });
     }
   }
 };
 </script>
 
 <style scoped>
-/* Estilos específicos da LandingPage, usando variáveis globais */
-
-/* Utilidade de Seção Padrão */
+/* Estilos Globais da Página */
 .section {
-  padding-top: var(--sp-xxl);
-  padding-bottom: var(--sp-xxl);
+  padding: 5rem 1.5rem;
 }
-.section:nth-child(even) { /* Alternar cor de fundo para algumas seções */
+.section:nth-child(even) {
   background-color: var(--color-bg-muted);
 }
 .text-center {
   text-align: center;
 }
-
-/* Título de Seção Global (se não tiver no style.css) */
 .section-title-global {
   font-family: var(--font-heading);
   font-size: var(--fs-h2);
   color: var(--color-text-primary);
   text-align: center;
-  margin-bottom: var(--sp-xl); /* Mais espaço após o título da seção */
+  margin-bottom: var(--sp-xl);
 }
-.section-title-global::after { /* Pequeno sublinhado decorativo */
-    content: '';
-    display: block;
-    width: 60px;
-    height: 3px;
-    background-color: var(--color-primary);
-    margin: var(--sp-sm) auto 0;
-}
-
-/* Titulo Principal */
-.title{
-  font-size: var(--fs-h1-2); /* Usa variável global */
-  font-weight: var(--fw-bold);
-  color: var(--color-primary);
-  text-align: center;
-  margin-bottom: var(--sp-lg);
+.section-title-global::after {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 3px;
+  background-color: var(--color-primary);
+  margin: var(--sp-sm) auto 0;
 }
 
 /* Hero Section */
 .hero {
-  background-color: var(--color-bg-body); /* Cor de fundo do corpo, ou um gradiente suave */
-  /* Exemplo de gradiente: background-image: linear-gradient(120deg, var(--color-primary-light) 0%, var(--color-bg-component) 100%); */
-  color: var(--color-text-primary); /* Ajuste se o fundo for escuro */
-  padding-top: calc(var(--sp-xxl) * 1.5); /* Mais padding no topo */
-  padding-bottom: calc(var(--sp-xxl) * 1.5);
+  padding: 5rem 1.5rem; /* Padding vertical reduzido */
+}
+/* CORREÇÃO APLICADA: Hierarquia e responsividade dos títulos */
+.title {
+  font-size: var(--fs-h5); /* Tamanho menor, como um subtítulo */
+  font-weight: var(--fw-semibold);
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: var(--sp-sm);
 }
 .hero-title {
-  font-size: var(--fs-h1); /* Usa variável global */
+  font-size: var(--fs-h1);
   font-weight: var(--fw-bold);
-  color: var(--color-text-primary); /* Cor mais escura para contraste */
+  color: var(--color-text-primary);
   margin-bottom: var(--sp-md);
   line-height: 1.2;
 }
 .hero-subtitle {
-  font-size: var(--fs-large); /* Usa variável global */
+  font-size: var(--fs-large);
   color: var(--color-text-secondary);
-  margin-bottom: var(--sp-lg);
-  max-width: 700px; /* Limita largura do subtítulo */
+  margin-bottom: var(--sp-xl);
+  max-width: 700px;
   margin-left: auto;
   margin-right: auto;
 }
-.hero .button { /* Botão de destaque */
-    font-size: var(--fs-large);
-    padding: var(--sp-md) var(--sp-xl);
+.hero .button {
+  font-size: var(--fs-large);
+  padding: var(--sp-md) var(--sp-xl);
 }
 
-/* Benefits Carousel Section */
+/* Benefits Section */
 .benefits-section {
-    background-color: var(--color-bg-component); /* Fundo branco para esta seção */
+    background-color: var(--color-bg-component);
 }
 .benefits-wrapper {
   position: relative;
   display: flex;
   align-items: center;
-  gap: var(--sp-sm); /* Espaço entre botões e carrossel */
 }
 .benefits-carousel {
   display: flex;
   overflow-x: auto;
-  scroll-behavior: smooth;
-  gap: var(--sp-lg); /* Espaço entre os cards de benefício */
-  padding: var(--sp-md) 0; /* Padding vertical para o carrossel */
+  gap: var(--sp-lg);
+  padding: var(--sp-md) var(--sp-sm);
   flex-grow: 1;
-  scrollbar-width: none; /* Firefox */
+  scrollbar-width: none;
 }
 .benefits-carousel::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+  display: none;
 }
 .carousel-control {
-  background-color: var(--color-bg-component);
+  background: var(--color-bg-component);
   border: var(--border-width) solid var(--color-border);
   color: var(--color-primary);
   border-radius: var(--border-radius-pill);
-  width: 40px;
-  height: 40px;
-  display: flex;
+  width: 44px;
+  height: 44px;
+  display: none;
   align-items: center;
   justify-content: center;
   cursor: pointer;
@@ -308,43 +285,31 @@ export default {
   box-shadow: var(--shadow-sm);
   flex-shrink: 0;
 }
-.carousel-control:hover, .carousel-control:focus {
+.carousel-control:hover {
   background-color: var(--color-primary);
   color: var(--color-text-inverted);
-  border-color: var(--color-primary);
-  box-shadow: var(--shadow);
-  transform: scale(1.05);
 }
 .benefit-card {
-  /* A classe .card global já aplica muitos estilos */
-  flex: 0 0 220px; /* Largura fixa para cada card de benefício */
+  flex: 0 0 220px;
   text-align: center;
-  padding: var(--sp-lg); /* Mais padding interno */
+  padding: var(--sp-lg);
 }
 .benefit-icon {
-  width: 56px; /* Tamanho do ícone aumentado */
+  width: 56px;
   height: 56px;
   margin-bottom: var(--sp-md);
-  /* object-fit: contain; */ /* Para garantir que o ícone não distorça */
 }
 .benefit-text {
-    font-size: var(--fs-base);
-    color: var(--color-text-secondary);
-    line-height: 1.5;
-    margin-bottom: 0;
+  font-size: var(--fs-base);
+  color: var(--color-text-secondary);
 }
 
-
-/* How It Works (Timeline) Section */
-/* .how-it-works-section { background-color: var(--color-bg-muted); } */
-
+/* Timeline Section */
 .timeline {
   position: relative;
-  max-width: 800px; /* Limita a largura da timeline */
-  margin: 0 auto; /* Centraliza */
-  padding-top: var(--sp-md);
+  max-width: 800px;
+  margin: 0 auto;
 }
-/* Linha vertical central (apenas para desktop, se desejar) */
 @media (min-width: 769px) {
   .timeline::before {
     content: '';
@@ -355,68 +320,22 @@ export default {
     bottom: 0;
     width: 3px;
     background-color: var(--color-primary-light);
-    border-radius: var(--border-radius-sm);
   }
 }
-
 .timeline-step {
   display: flex;
-  position: relative; /* Para posicionar o marcador e conteúdo em relação a ele */
-  margin-bottom: var(--sp-xl); /* Mais espaço entre os passos */
+  position: relative;
+  margin-bottom: var(--sp-xl);
   width: 100%;
+  align-items: flex-start;
 }
-
-/* Estilo para alternar lados na timeline em desktop */
-@media (min-width: 769px) {
-  .timeline-step {
-    width: 50%;
-    padding-right: var(--sp-lg); /* Espaço do conteúdo para a linha central */
-  }
-  .timeline-step-even { /* Para os itens da direita */
-    margin-left: 50%;
-    padding-left: var(--sp-lg);
-    padding-right: 0;
-    flex-direction: row-reverse; /* Inverte a ordem do marcador e conteúdo */
-  }
-  .timeline-step-even .timeline-marker-container {
-    flex-direction: row-reverse; /* Mantém o marcador à esquerda da linha no lado direito */
-  }
-  .timeline-step-even .timeline-content {
-    text-align: left; /* Alinha texto à esquerda para itens da direita */
-  }
-}
-
-
 .timeline-marker-container {
   display: flex;
+  z-index: 1;
   align-items: center;
-  flex-shrink: 0;
-  z-index: 1; /* Para ficar sobre a linha ::before da timeline */
 }
-
-@media (max-width: 768px) {
-  .timeline-marker-container {
-      margin-right: var(--sp-md); /* Espaço entre marcador e conteúdo no mobile */
-  }
-}
-@media (min-width: 769px) {
-  .timeline-marker-container {
-    position: absolute;
-    top: 0; /* Alinha o topo do marcador com o topo do card de conteúdo */
-    left: 50%;
-    transform: translateX(-50%); /* Centraliza o marcador na linha */
-  }
-  .timeline-step-even .timeline-marker-container {
-    /* Não precisa de left/transform pois o step já está posicionado */
-    /* Apenas precisa ser ajustado para o lado correto se o conteúdo for invertido */
-    left: auto;
-    right: 50%; /* Ou ajuste conforme necessário */
-    transform: translateX(50%);
-  }
-}
-
 .timeline-marker {
-  width: 40px; /* Marcador maior */
+  width: 40px;
   height: 40px;
   background-color: var(--color-primary);
   color: var(--color-text-inverted);
@@ -424,74 +343,45 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-heading);
   font-weight: var(--fw-bold);
-  font-size: var(--fs-base);
-  border: 3px solid var(--color-bg-component); /* Borda para destacar da linha de fundo */
-  box-shadow: var(--shadow-sm);
+  border: 3px solid var(--color-bg-body);
+  flex-shrink: 0;
 }
-
 .timeline-content {
-  /* .card global já aplica background, border, padding, etc. */
-  padding: var(--sp-lg); /* Padding interno do card */
   flex-grow: 1;
 }
-
-.timeline-icon {
-  width: 40px; /* Ícones um pouco maiores */
-  height: 40px;
-  margin-bottom: var(--sp-sm);
-  /* object-fit: contain; */
-}
-.timeline-step-title { /* Renomeado de h4 para classe */
-  font-size: var(--fs-h5); /* Usando variável de título */
-  color: var(--color-text-primary);
+.timeline-step-title {
+  font-size: var(--fs-h5);
   font-weight: var(--fw-semibold);
   margin-bottom: var(--sp-xs);
 }
-.timeline-content p {
-  margin-bottom: 0;
-  color: var(--color-text-secondary);
-  font-size: var(--fs-base);
-}
-
 
 /* Pricing Section */
 .pricing-section {
-    background-color: var(--color-bg-component);
+  background-color: var(--color-bg-component);
 }
 .pricing-grid {
-  /* .grid .grid-3 globais já devem funcionar. Ajuste gap se necessário. */
-  gap: var(--sp-lg); /* Mantido */
+  display: grid;
+  gap: var(--sp-lg);
 }
 .pricing-card {
-  /* .card global já aplica estilos base */
   display: flex;
   flex-direction: column;
-  align-items: center; /* Centraliza conteúdo do card */
+  align-items: center;
   text-align: center;
-  padding: var(--sp-xl); /* Padding maior para cards de preço */
-}
-.pricing-card:hover {
-    border-color: var(--color-primary); /* Borda de destaque no hover */
-    box-shadow: var(--shadow-lg); /* Sombra mais pronunciada */
+  padding: var(--sp-xl);
 }
 .pricing-icon {
-  font-size: 2.5rem; /* Ícone maior */
+  font-size: 2.5rem;
   margin-bottom: var(--sp-md);
-  color: var(--color-primary); /* Cor de destaque para o ícone */
+  color: var(--color-primary);
 }
-.pricing-card-title { /* Renomeado de h4 para classe */
+.pricing-card-title {
   font-size: var(--fs-h4);
-  color: var(--color-text-primary);
   margin-bottom: var(--sp-sm);
 }
-.pricing-card p {
-    color: var(--color-text-secondary);
-    margin-bottom: 0;
-}
 .pricing-note {
-  margin-top: var(--sp-xl); /* Mais espaço acima da nota */
+  margin-top: var(--sp-xl);
   font-style: italic;
   text-align: center;
   color: var(--color-text-muted);
@@ -501,163 +391,100 @@ export default {
 }
 
 /* FAQ Section */
-.faq-list { /* Renomeado de .faq-grid */
-  max-width: 800px; /* Limita largura da lista de FAQ */
-  margin: 0 auto; /* Centraliza */
+.faq-list {
+  max-width: 800px;
+  margin: 0 auto;
   display: grid;
-  gap: var(--sp-sm); /* Espaço menor entre itens do FAQ */
+  gap: var(--sp-sm);
 }
 .faq-item {
   border: var(--border-width) solid var(--color-border);
-  border-radius: var(--border-radius); /* Raio de borda maior */
-  overflow: hidden; /* Para o border-radius funcionar com o botão interno */
+  border-radius: var(--border-radius);
   background-color: var(--color-bg-component);
 }
 .faq-question {
   width: 100%;
-  background-color: transparent; /* Botão transparente, o fundo vem do .faq-item */
+  background: none;
   border: none;
-  border-bottom: var(--border-width) solid transparent; /* Borda inferior para quando aberto */
   padding: var(--sp-md) var(--sp-lg);
-  font-family: var(--font-body); /* Usar font-body para perguntas */
-  font-weight: var(--fw-medium); /* Um pouco mais de peso */
-  font-size: var(--fs-base); /* Ou --fs-large */
+  font-weight: var(--fw-medium);
+  font-size: var(--fs-base);
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
   text-align: left;
-  color: var(--color-text-primary);
-  transition: background-color var(--transition-fast);
-}
-.faq-question:hover, .faq-question:focus {
-  background-color: var(--color-bg-hover);
-}
-.faq-item[aria-expanded="true"] .faq-question { /* Estilo quando aberto */
-   border-bottom-color: var(--color-border-light);
-   color: var(--color-primary);
 }
 .faq-icon {
-  font-size: var(--fs-large); /* Usando variável */
-  font-weight: var(--fw-light); /* Ícone mais leve */
+  font-size: var(--fs-large);
   transition: transform var(--transition-fast);
 }
-.faq-item[aria-expanded="true"] .faq-icon {
-  transform: rotate(45deg); /* Para '−' se tornar 'x' ou ajustar o ícone */
+.faq-question[aria-expanded="true"] .faq-icon {
+  transform: rotate(45deg);
 }
 .faq-answer {
-  /* background: var(--color-bg); Removido, fundo do .faq-item */
-  padding: var(--sp-md) var(--sp-lg);
-  /* min-height: 100px; Removido, altura será dinâmica */
-  /* Animação de abertura/fechamento pode ser adicionada com Vue <transition> */
-}
-.faq-answer p {
-    color: var(--color-text-secondary);
-    margin-bottom: 0;
+  padding: 0 var(--sp-lg) var(--sp-md);
+  color: var(--color-text-secondary);
 }
 
-/* Footer CTA Section */
-.gradient-bg {
-  background: linear-gradient(to bottom, var(--color-bg-component) 0%, var(--color-primary-light) 100%); /* Gradiente começa com a cor da seção anterior */
-}
-.footer-cta-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--sp-md);
-  padding: var(--sp-xxl) var(--sp-md); /* Padding maior */
-  color: var(--color-text-primary); /* Ajustar se o fundo for escuro */
+/* Footer CTA */
+.footer-cta {
+  padding: var(--sp-xxl) 1.5rem;
 }
 .cta-title {
-  font-size: var(--fs-h2); /* Usando variável */
-  color: var(--color-text-primary); /* Ajustar se o fundo for escuro */
-  margin-bottom: var(--sp-sm);
+  font-size: var(--fs-h2);
 }
 .cta-subtitle {
   font-size: var(--fs-large);
-  color: var(--color-text-secondary); /* Ajustar se o fundo for escuro */
-  margin-bottom: var(--sp-lg);
+  color: var(--color-text-secondary);
   max-width: 600px;
-  text-align: center;
+  margin: var(--sp-md) auto var(--sp-lg);
 }
 
-/* Ajustes de Responsividade Específicos da LandingPage */
+/* =================================== */
+/* === AJUSTES DE RESPONSIVIDADE === */
+/* =================================== */
+@media (min-width: 769px) {
+  .carousel-control { display: flex; }
+  .timeline-step { width: 50%; }
+  .timeline-step:not(.timeline-step-even) { padding-right: var(--sp-xl); justify-content: flex-end; }
+  .timeline-step-even { align-self: flex-end; padding-left: var(--sp-xl); }
+  .timeline-marker-container { position: absolute; top: 0; left: 100%; transform: translateX(-50%); }
+  .timeline-step-even .timeline-marker-container { left: auto; right: 100%; transform: translateX(50%); }
+  .timeline-content { text-align: right; }
+  .timeline-step-even .timeline-content { text-align: left; }
+  .pricing-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
 @media (max-width: 768px) {
-  .section {
-    padding-top: var(--sp-xl);
-    padding-bottom: var(--sp-xl);
-  }
-  .hero {
-    padding-top: var(--sp-xl);
-    padding-bottom: var(--sp-xl);
-  }
-  .hero-title {
-    font-size: calc(var(--fs-h1) * 0.8);
-  }
-  .hero-subtitle {
-    font-size: calc(var(--fs-large) * 0.9);
-  }
-  .section-title-global {
-    font-size: calc(var(--fs-h2) * 0.9);
-    margin-bottom: var(--sp-lg);
-  }
+  .section { padding: 3rem 1rem; }
+  
+  /* CORREÇÃO APLICADA: Tipografia responsiva */
+  .title { font-size: calc(var(--fs-h5)); }
+  .hero-title { font-size: calc(var(--fs-h1) * 0.85); line-height: 1.3; }
+  .hero-subtitle { font-size: var(--fs-base); }
+  .section-title-global { font-size: calc(var(--fs-h2) * 0.9); }
 
-  .benefits-carousel {
-    gap: var(--sp-md);
-  }
-  .benefit-card {
-    flex-basis: 180px; /* Menor base para cards no mobile */
-    padding: var(--sp-md);
-  }
-  .carousel-control {
-    width: 36px;
-    height: 36px;
-  }
-  .carousel-control svg {
-      width: 20px;
-      height: 20px;
-  }
-
-
-  .timeline::before { /* Esconde a linha central vertical no mobile */
-    display: none;
-  }
-  .timeline-step,
-  .timeline-step-even {
-    width: 100%; /* Ocupa toda a largura */
-    margin-left: 0 !important; /* Remove o estilo inline do marginLeft */
-    padding-left: 0; /* Remove padding da "escada" */
-    padding-right: 0;
-    flex-direction: row; /* Garante marcador à esquerda, conteúdo à direita */
-    align-items: flex-start; /* Alinha itens no topo */
+  /* Timeline em coluna única */
+  .timeline::before { display: none; }
+  .timeline-step, .timeline-step-even {
+    width: 100%;
+    margin-left: 0; padding: 0;
+    flex-direction: row;
   }
   .timeline-marker-container {
-    position: static; /* Remove posicionamento absoluto */
-    transform: none;
-    margin-right: var(--sp-md); /* Espaço entre marcador e conteúdo */
+    position: static; transform: none;
+    margin-right: var(--sp-md);
+    padding-top: var(--sp-xs); /* Alinhamento vertical do marcador */
   }
-   .timeline-content {
-    text-align: left; /* Garante alinhamento à esquerda */
-  }
-
-
-  .pricing-grid {
-    /* .grid já fará o stack para 1 coluna se .grid-3 for removido/ignorado ou se não houver CSS Grid no global */
-    /* Se .grid-3 for mantido do global, precisamos sobrescrever: */
-    grid-template-columns: 1fr;
+  .timeline-content {
+    text-align: left;
+    padding: var(--sp-md);
   }
 
-  .cta-title {
-    font-size: calc(var(--fs-h2) * 0.9);
-  }
-  .cta-subtitle {
-    font-size: var(--fs-base);
-  }
-  .footer-cta-button {
-      width: 80%; /* Botão CTA maior no mobile */
-      max-width: 300px;
-      padding: var(--sp-md);
-  }
+  .pricing-grid { grid-template-columns: 1fr; }
+
+  .cta-title { font-size: calc(var(--fs-h2) * 0.9); }
+  .footer-cta-button { width: 90%; max-width: 320px; }
 }
 </style>
