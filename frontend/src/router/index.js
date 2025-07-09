@@ -1,6 +1,6 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router';
-import { authStore, initializeAuth } from '@/stores/authStore';
+import { auth, checkAuthentication } from '@/stores/authStore';
 import { ROLE_ID_MAP } from '@/utils/constants'; 
 
 const routes = [
@@ -45,48 +45,42 @@ const router = createRouter({
   routes,
 });
 
-// GUARDA DE NAVEGAÇÃO OTIMIZADA
+// GUARDA DE NAVEGAÇÃO OTIMIZADO
 router.beforeEach(async (to, from, next) => {
-  // 1. Garante que o estado de autenticação foi verificado pelo menos uma vez.
-  await initializeAuth();
-  
-  const { isAuthenticated, user } = authStore;
-
   const requiresAuth = to.matched.some(r => r.meta.requiresAuth);
   const guestOnly = to.matched.some(r => r.meta.guestOnly);
 
-  // CASO 1: Tentando aceder a uma página de "convidado" (login/registo)
-  if (guestOnly && isAuthenticated) {
-    // Se já está logado, vai para o dashboard
-    return next({ name: 'DashboardPage' });
+  // CASO 1: A rota é pública (não precisa de autenticação nem é só para convidados)
+  if (!requiresAuth && !guestOnly) {
+    return next(); // Permite acesso imediato. Rápido!
   }
 
-  // CASO 2: Tentando aceder a uma rota protegida
+  // CASO 2: A rota requer autenticação
   if (requiresAuth) {
-    if (!isAuthenticated) {
-      // Se não está logado, vai para o login
-      return next({ name: 'Login', query: { redirect: to.fullPath } });
-    }
-    
-    // Se está logado, verifica as permissões (roles)
-    const requiredRoles = to.meta.roles;
-    if (requiredRoles && requiredRoles.length > 0) {
-      const userRoles = user.roles.map(r => ROLE_ID_MAP[r.role]).filter(Boolean);
-      const hasRequiredRole = userRoles.some(userRole => requiredRoles.includes(userRole));
-      
-      if (hasRequiredRole) {
-        return next(); // Permissão OK
-      } else {
-        // Sem permissão, redireciona para um local seguro (página inicial ou dashboard)
-        return next({ name: 'DashboardPage' });
+    await checkAuthentication(); // Chama a API APENAS se necessário
+    if (auth.isAuthenticated) {
+      // Lógica de permissões (roles)
+      const requiredRoles = to.meta.roles;
+      if (requiredRoles && requiredRoles.length > 0) {
+        const userRoles = auth.user.roles.map(r => ROLE_ID_MAP[r.role]).filter(Boolean);
+        const hasRequiredRole = userRoles.some(userRole => requiredRoles.includes(userRole));
+        return hasRequiredRole ? next() : next({ name: 'LandingPage' }); // Redireciona se não tiver permissão
       }
+      return next(); // Permissão OK
+    } else {
+      return next({ name: 'Login', query: { redirect: to.fullPath } }); // Redireciona para o login
     }
-    
-    return next(); // Rota protegida sem roles específicos, permite acesso
   }
-
-  // CASO 3: Rota pública
-  return next();
+  
+  // CASO 3: A rota é apenas para convidados (login/registo)
+  if (guestOnly) {
+      await checkAuthentication();
+      if (auth.isAuthenticated) {
+          // Se já está logado, não pode ver a página de login
+          return next({ name: 'DashboardPage' }); 
+      }
+      return next();
+  }
 });
 
 export default router;

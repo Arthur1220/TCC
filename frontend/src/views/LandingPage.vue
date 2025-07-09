@@ -3,59 +3,47 @@
     <AppHeader />
     <main role="main">
       <section class="hero section text-center">
-        <div class="container">
-          <h1 class="hero-title">Rastreabilidade Completa para Seu Rebanho</h1>
+        <div class="hero-background"></div>
+        <div class="container hero-container">
+          <h1 class="hero-title">Rastreabilidade Completa para o Seu Rebanho</h1>
           <p class="hero-subtitle">Transparência, segurança e auditabilidade em blockchain de segunda camada.</p>
-          <button class="button button-primary button-lg" @click="goToSignup">Experimente Grátis</button>
+          <div class="hero-actions">
+            <button class="button button-primary button-lg" @click="goToSignup">Comece a Usar Gratuitamente</button>
+          </div>
         </div>
       </section>
 
       <section id="benefits" class="section benefits-section">
         <div class="container">
-          <h2 class="section-title-global">Benefícios da Rastreabilidade Inteligente</h2>
-          <div class="benefits-wrapper">
-            <button
-              v-if="showArrows"
-              class="carousel-control prev"
-              @click="scrollLeft"
-              aria-label="Benefício Anterior"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
-            </button>
-            <div class="benefits-carousel" ref="carousel">
-              <div class="benefit-card card" v-for="item in benefits" :key="item.text">
+          <div class="section-header">
+            <h2 class="section-title">Benefícios da Rastreabilidade Inteligente</h2>
+            <p class="section-subtitle">Descubra como a nossa plataforma pode agregar valor e segurança à sua produção.</p>
+          </div>
+          <div class="benefits-grid">
+            <div class="benefit-card card" v-for="item in benefits" :key="item.text">
+              <div class="benefit-icon-wrapper">
                 <img :src="item.icon" :alt="`Ícone ${item.text}`" class="benefit-icon" />
-                <p class="benefit-text">{{ item.text }}</p>
               </div>
+              <h3 class="benefit-title">{{ item.text }}</h3>
             </div>
-            <button
-              v-if="showArrows"
-              class="carousel-control next"
-              @click="scrollRight"
-              aria-label="Próximo Benefício"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
-            </button>
           </div>
         </div>
       </section>
 
       <section id="details" class="section how-it-works-section">
         <div class="container">
-          <h2 class="section-title-global">Como Nossa Plataforma Funciona</h2>
+          <div class="section-header">
+            <h2 class="section-title">Como a Nossa Plataforma Funciona</h2>
+            <p class="section-subtitle">Um processo simples e transparente, do campo à auditoria final.</p>
+          </div>
           <div class="timeline">
-            <div
-              class="timeline-step"
-              v-for="(step, index) in steps"
-              :key="step.title"
-              :class="{ 'timeline-step-even': (index + 1) % 2 === 0 }"
-            >
-              <div class="timeline-marker-container">
-                <div class="timeline-marker">{{ index + 1 }}</div>
-              </div>
+            <div class="timeline-step" v-for="(step, index) in steps" :key="step.title">
+              <div class="timeline-marker"></div>
               <div class="timeline-content card">
-                <img :src="step.icon" :alt="`Ícone ${step.title}`" class="timeline-icon" />
-                <h3 class="timeline-step-title">{{ step.title }}</h3>
+                <div class="timeline-header">
+                  <img :src="step.icon" :alt="`Ícone ${step.title}`" class="timeline-icon" />
+                  <h3 class="timeline-step-title">{{ step.title }}</h3>
+                </div>
                 <p>{{ step.description }}</p>
               </div>
             </div>
@@ -65,35 +53,33 @@
 
       <section id="plans" class="section pricing-section">
         <div class="container">
-          <h2 class="section-title-global">Cobrança Simplificada e Transparente</h2>
-          <div class="grid pricing-grid">
+           <div class="section-header">
+            <h2 class="section-title">Cobrança Simplificada e Transparente</h2>
+            <p class="section-subtitle">Sem custos ocultos. Pague apenas pelo que usa com total clareza.</p>
+          </div>
+          <div class="pricing-grid">
             <div class="card pricing-card" v-for="(plan, idx) in pricing" :key="idx">
               <div class="pricing-icon" v-html="plan.icon"></div>
               <h3 class="pricing-card-title">{{ plan.title }}</h3>
-              <p>{{ plan.description }}</p>
+              <p class="pricing-description">{{ plan.description }}</p>
             </div>
           </div>
-          <p class="pricing-note">
-            Tudo isso sem precisar gerenciar carteiras próprias ou lidar com custos ocultos. É só usar e pagar de forma clara e previsível.
-          </p>
         </div>
       </section>
 
       <section id="faq" class="section faq-section">
         <div class="container">
-          <h2 class="section-title-global">Perguntas Frequentes (FAQ)</h2>
+          <div class="section-header">
+            <h2 class="section-title">Perguntas Frequentes</h2>
+            <p class="section-subtitle">Tudo o que precisa de saber para começar com confiança.</p>
+          </div>
           <div class="faq-list">
             <div class="faq-item" v-for="(faq, idx) in faqs" :key="idx">
-              <button
-                class="faq-question"
-                @click="toggleFaq(idx)"
-                :aria-expanded="faq.open.toString()"
-                :aria-controls="`faq-answer-${idx}`"
-              >
+              <button class="faq-question" @click="toggleFaq(idx)" :aria-expanded="faq.open.toString()">
                 <span>{{ faq.question }}</span>
-                <span class="faq-icon" aria-hidden="true">{{ faq.open ? '−' : '+' }}</span>
+                <span class="faq-icon" :class="{ 'is-open': faq.open }"></span>
               </button>
-              <div v-show="faq.open" :id="`faq-answer-${idx}`" class="faq-answer">
+              <div v-show="faq.open" class="faq-answer">
                 <p>{{ faq.answer }}</p>
               </div>
             </div>
@@ -101,11 +87,11 @@
         </div>
       </section>
 
-      <section class="footer-cta section gradient-bg text-center">
-        <div class="container footer-cta-container">
-          <h2 class="cta-title">Pronto para transformar sua rastreabilidade?</h2>
-          <p class="cta-subtitle">Comece hoje e veja a diferença na segurança e eficiência da sua produção.</p>
-          <button class="button button-primary button-lg footer-cta-button" @click="goToSignup">Cadastre-se Gratuitamente</button>
+      <section class="footer-cta section text-center">
+        <div class="container">
+          <h2 class="cta-title">Pronto para transformar a sua rastreabilidade?</h2>
+          <p class="cta-subtitle">Junte-se à nova era do agronegócio digital. A sua produção merece esta segurança.</p>
+          <button class="button button-primary button-lg" @click="goToSignup">Cadastre-se Gratuitamente</button>
         </div>
       </section>
     </main>
@@ -114,7 +100,7 @@
 </template>
 
 <script>
-// Seu script existente permanece o mesmo.
+// O seu script permanece o mesmo
 import AppHeader from '../components/AppHeader.vue';
 import AppFooter from '../components/AppFooter.vue';
 
@@ -124,7 +110,7 @@ export default {
   data() {
     return {
       benefits: [
-        { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/lock.png', text: 'Imutabilidade de Registros' },
+        { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/lock.png', text: 'Imutabilidade de Registos' },
         { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/refund-2.png', text: 'Redução de Custos' },
         { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/flow-chart.png', text: 'Integração Facilitada' },
         { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/rocket.png', text: 'Alta Performance' },
@@ -133,53 +119,28 @@ export default {
         { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/graph-report.png', text: 'Auditoria Confiável' }
       ],
       steps: [
-        { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/add-user-group-man-man.png', title: '1. Cadastro Rápido', description: 'Crie sua conta em minutos e conecte-se à nossa plataforma segura.' },
-        { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/document.png', title: '2. Registro de Eventos', description: 'Insira eventos críticos como nascimento, vacinação, e movimentações de forma intuitiva.' },
-        { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/checked-checkbox.png', title: '3. Validação em Blockchain', description: 'Smart contracts verificam e registram a integridade dos seus dados em uma blockchain L2 eficiente.' },
-        { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/data-arrived.png', title: '4. Sincronização Segura', description: 'Seus dados off-chain são mantidos em sincronia com os hashes on-chain, garantindo segurança e acesso rápido.' },
-        { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/combo-chart.png', title: '5. Consulta e Auditoria', description: 'Acesse seu dashboard para relatórios detalhados, insights e trilhas de auditoria completas.' }
+        { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/add-user-group-man-man.png', title: '1. Cadastro Rápido', description: 'Crie a sua conta em minutos e conecte-se à nossa plataforma segura.' },
+        { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/document.png', title: '2. Registo de Eventos', description: 'Insira eventos críticos como nascimento, vacinação e movimentações de forma intuitiva.' },
+        { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/checked-checkbox.png', title: '3. Validação em Blockchain', description: 'Smart contracts verificam e registam a integridade dos seus dados numa blockchain L2 eficiente.' },
+        { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/data-arrived.png', title: '4. Sincronização Segura', description: 'Os seus dados off-chain são mantidos em sincronia com os hashes on-chain, garantindo segurança e acesso rápido.' },
+        { icon: 'https://img.icons8.com/ios-glyphs/48/1A73E8/combo-chart.png', title: '5. Consulta e Auditoria', description: 'Aceda ao seu dashboard para relatórios detalhados, insights e trilhas de auditoria completas.' }
       ],
       pricing: [
-        { icon: '📄', title: 'Faturamento Único', description: 'Receba uma única fatura mensal que consolida todas as operações, simplificando sua gestão financeira.' },
-        { icon: '📈', title: 'Relatórios de Uso', description: 'Acesse relatórios transparentes com resumo de transações, taxas aplicadas e consumo total para auditoria.' },
+        { icon: '📄', title: 'Faturação Única', description: 'Receba uma única fatura mensal que consolida todas as operações, simplificando a sua gestão financeira.' },
+        { icon: '📈', title: 'Relatórios de Uso', description: 'Aceda a relatórios transparentes com resumo de transações, taxas aplicadas e consumo total para auditoria.' },
         { icon: '🔗', title: 'Exportação Flexível', description: 'Exporte dados em CSV, PDF ou integre diretamente via API, facilitando a contabilidade e a análise.' }
       ],
       faqs: [
-        { question: 'Como a segurança dos meus dados é garantida?', answer: 'Utilizamos criptografia de ponta e hashes em blockchain para garantir imutabilidade, rastreabilidade e resistência a fraudes.', open: false },
-        { question: 'Preciso entender de blockchain para usar?', answer: 'Não. Nossa plataforma foi desenhada para abstrair toda a complexidade. Você usa uma interface web amigável, e nós cuidamos da tecnologia.', open: false },
-        { question: 'Consigo exportar relatórios para auditoria?', answer: 'Sim. Gere relatórios customizáveis com filtros avançados e exporte facilmente nos formatos CSV ou PDF.', open: false },
-        { question: 'A plataforma é adequada para pequenos produtores?', answer: 'Sim! Nossa solução é escalável e pensada para atender desde pequenos produtores até grandes cooperativas, com planos flexíveis.', open: false }
+        { question: 'Como é garantida a segurança dos meus dados?', answer: 'Utilizamos criptografia de ponta e hashes em blockchain para garantir imutabilidade, rastreabilidade e resistência a fraudes.', open: false },
+        { question: 'Preciso de entender de blockchain para usar?', answer: 'Não. A nossa plataforma foi desenhada para abstrair toda a complexidade. Você usa uma interface web amigável, e nós cuidamos da tecnologia.', open: false },
+        { question: 'Consigo exportar relatórios para auditoria?', answer: 'Sim. Gere relatórios personalizáveis com filtros avançados e exporte facilmente nos formatos CSV ou PDF.', open: false },
+        { question: 'A plataforma é adequada para pequenos produtores?', answer: 'Sim! A nossa solução é escalável e pensada para atender desde pequenos produtores até grandes cooperativas, com planos flexíveis.', open: false }
       ],
-      showArrows: true,
-      resizeTimeout: null
+      showArrows: false, // O carrossel foi removido, então não é mais necessário
     };
-  },
-  mounted() {
-    this.$nextTick(() => this.checkArrows());
-    window.addEventListener('resize', this.checkArrowsDebounced);
-  },
-  beforeUnmount() {
-    window.removeEventListener('resize', this.checkArrowsDebounced);
-    if (this.resizeTimeout) clearTimeout(this.resizeTimeout);
   },
   methods: {
     goToSignup() { this.$router.push('/login'); },
-    scrollCarousel(direction) {
-      const carousel = this.$refs.carousel;
-      if (!carousel) return;
-      const scrollAmount = carousel.offsetWidth * 0.8;
-      carousel.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
-    },
-    scrollLeft() { this.scrollCarousel('left'); },
-    scrollRight() { this.scrollCarousel('right'); },
-    checkArrows() {
-      const c = this.$refs.carousel;
-      this.showArrows = c ? c.scrollWidth > c.clientWidth + 1 : false;
-    },
-    checkArrowsDebounced() {
-        if (this.resizeTimeout) clearTimeout(this.resizeTimeout);
-        this.resizeTimeout = setTimeout(this.checkArrows, 150);
-    },
     toggleFaq(index) {
       this.faqs[index].open = !this.faqs[index].open;
       this.faqs.forEach((faq, i) => {
@@ -191,224 +152,190 @@ export default {
 </script>
 
 <style scoped>
-/* Estilos Globais da Página */
+/* ============================
+   DESIGN SYSTEM V2 - LANDING PAGE
+   ============================ */
+
+/* --- Utilidades e Padrões de Secção --- */
 .section {
-  padding: 5rem 1.5rem;
+  padding: 6rem 1.5rem;
+  position: relative;
+  overflow: hidden;
 }
-.section:nth-child(even) {
-  background-color: var(--color-bg-muted);
-}
-.text-center {
+.section-header {
   text-align: center;
+  margin-bottom: var(--sp-xxl);
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
 }
-.section-title-global {
+.section-title {
   font-family: var(--font-heading);
   font-size: var(--fs-h2);
-  color: var(--color-text-primary);
-  text-align: center;
-  margin-bottom: var(--sp-xl);
-}
-.section-title-global::after {
-  content: '';
-  display: block;
-  width: 60px;
-  height: 3px;
-  background-color: var(--color-primary);
-  margin: var(--sp-sm) auto 0;
-}
-
-/* Hero Section */
-.hero {
-  padding: 5rem 1.5rem; /* Padding vertical reduzido */
-}
-/* CORREÇÃO APLICADA: Hierarquia e responsividade dos títulos */
-.title {
-  font-size: var(--fs-h5); /* Tamanho menor, como um subtítulo */
-  font-weight: var(--fw-semibold);
-  color: var(--color-primary);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: var(--sp-sm);
-}
-.hero-title {
-  font-size: var(--fs-h1);
   font-weight: var(--fw-bold);
   color: var(--color-text-primary);
+  margin-bottom: var(--sp-sm);
+}
+.section-subtitle {
+  font-size: var(--fs-large);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+/* --- Hero Section --- */
+.hero {
+  padding: 8rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  position: relative;
+}
+.hero-background {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: -1;
+}
+.hero-container { z-index: 1; }
+.hero-title {
+  font-size: var(--fs-h1);
+  font-weight: var(--fw-black);
+  line-height: 1.1;
   margin-bottom: var(--sp-md);
-  line-height: 1.2;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.2);
 }
 .hero-subtitle {
   font-size: var(--fs-large);
-  color: var(--color-text-secondary);
   margin-bottom: var(--sp-xl);
-  max-width: 700px;
+  max-width: 600px;
   margin-left: auto;
   margin-right: auto;
 }
-.hero .button {
-  font-size: var(--fs-large);
-  padding: var(--sp-md) var(--sp-xl);
+.hero-actions .button {
+  transform: scale(1.1);
+  box-shadow: var(--shadow-lg);
 }
 
-/* Benefits Section */
-.benefits-section {
-    background-color: var(--color-bg-component);
-}
-.benefits-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-.benefits-carousel {
-  display: flex;
-  overflow-x: auto;
+/* --- Benefits Section --- */
+.benefits-section { background-color: var(--color-bg-body); }
+.benefits-grid {
+  display: grid;
   gap: var(--sp-lg);
-  padding: var(--sp-md) var(--sp-sm);
-  flex-grow: 1;
-  scrollbar-width: none;
-}
-.benefits-carousel::-webkit-scrollbar {
-  display: none;
-}
-.carousel-control {
-  background: var(--color-bg-component);
-  border: var(--border-width) solid var(--color-border);
-  color: var(--color-primary);
-  border-radius: var(--border-radius-pill);
-  width: 44px;
-  height: 44px;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: var(--transition-base);
-  box-shadow: var(--shadow-sm);
-  flex-shrink: 0;
-}
-.carousel-control:hover {
-  background-color: var(--color-primary);
-  color: var(--color-text-inverted);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 .benefit-card {
-  flex: 0 0 220px;
   text-align: center;
-  padding: var(--sp-lg);
+  padding: var(--sp-xl);
+  background: var(--color-bg-component);
+  border: none;
+  transition: var(--transition);
+}
+.benefit-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+}
+.benefit-icon-wrapper {
+  display: inline-flex;
+  padding: var(--sp-md);
+  background-color: var(--color-primary-light);
+  border-radius: 50%;
+  margin-bottom: var(--sp-lg);
 }
 .benefit-icon {
-  width: 56px;
-  height: 56px;
-  margin-bottom: var(--sp-md);
-}
-.benefit-text {
-  font-size: var(--fs-base);
-  color: var(--color-text-secondary);
-}
-
-/* Timeline Section */
-.timeline {
-  position: relative;
-  max-width: 800px;
-  margin: 0 auto;
-}
-@media (min-width: 769px) {
-  .timeline::before {
-    content: '';
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background-color: var(--color-primary-light);
-  }
-}
-.timeline-step {
-  display: flex;
-  position: relative;
-  margin-bottom: var(--sp-xl);
-  width: 100%;
-  align-items: flex-start;
-}
-.timeline-marker-container {
-  display: flex;
-  z-index: 1;
-  align-items: center;
-}
-.timeline-marker {
   width: 40px;
   height: 40px;
-  background-color: var(--color-primary);
-  color: var(--color-text-inverted);
-  border-radius: var(--border-radius-pill);
+}
+.benefit-title {
+  font-size: var(--fs-h4);
+  font-weight: var(--fw-bold);
+  color: var(--color-text-primary);
+}
+
+/* --- How It Works (Timeline) --- */
+.timeline {
+  position: relative;
+  max-width: 700px;
+  margin: 0 auto;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 24px; /* Alinhado com o centro do marcador */
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--color-border);
+}
+.timeline-step {
+  position: relative;
+  padding-left: 70px; /* Espaço para o marcador */
+  margin-bottom: var(--sp-xxl);
+}
+.timeline-marker {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 50px;
+  height: 50px;
+  background-color: var(--color-white);
+  border: 2px solid var(--color-primary);
+  color: var(--color-primary);
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: var(--fw-bold);
-  border: 3px solid var(--color-bg-body);
-  flex-shrink: 0;
+  font-size: 1.25rem;
 }
 .timeline-content {
-  flex-grow: 1;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
 }
-.timeline-step-title {
-  font-size: var(--fs-h5);
-  font-weight: var(--fw-semibold);
-  margin-bottom: var(--sp-xs);
+.timeline-header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  margin-bottom: var(--sp-sm);
 }
+.timeline-icon { width: 32px; height: 32px; }
+.timeline-step-title { font-size: var(--fs-h4); }
+.timeline-content p { color: var(--color-text-secondary); max-width: none; }
 
-/* Pricing Section */
-.pricing-section {
-  background-color: var(--color-bg-component);
-}
+
+/* --- Pricing Section --- */
 .pricing-grid {
   display: grid;
   gap: var(--sp-lg);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 .pricing-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   text-align: center;
   padding: var(--sp-xl);
+  border: 2px solid var(--color-border);
 }
-.pricing-icon {
-  font-size: 2.5rem;
-  margin-bottom: var(--sp-md);
-  color: var(--color-primary);
-}
-.pricing-card-title {
-  font-size: var(--fs-h4);
-  margin-bottom: var(--sp-sm);
-}
-.pricing-note {
-  margin-top: var(--sp-xl);
-  font-style: italic;
-  text-align: center;
-  color: var(--color-text-muted);
-  max-width: 700px;
-  margin-left: auto;
-  margin-right: auto;
-}
+.pricing-icon { font-size: 3rem; margin-bottom: var(--sp-md); }
+.pricing-card-title { font-size: var(--fs-h4); }
+.pricing-description { color: var(--color-text-secondary); }
 
-/* FAQ Section */
+/* --- FAQ Section --- */
 .faq-list {
-  max-width: 800px;
+  max-width: 750px;
   margin: 0 auto;
   display: grid;
   gap: var(--sp-sm);
 }
 .faq-item {
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--border-radius);
-  background-color: var(--color-bg-component);
+  border-bottom: var(--border-width) solid var(--color-border);
 }
 .faq-question {
   width: 100%;
   background: none;
   border: none;
-  padding: var(--sp-md) var(--sp-lg);
-  font-weight: var(--fw-medium);
-  font-size: var(--fs-base);
+  padding: var(--sp-md) 0;
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-large);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -416,75 +343,40 @@ export default {
   text-align: left;
 }
 .faq-icon {
-  font-size: var(--fs-large);
-  transition: transform var(--transition-fast);
+  width: 1.5em; height: 1.5em;
+  transition: transform var(--transition);
+  position: relative;
 }
-.faq-question[aria-expanded="true"] .faq-icon {
-  transform: rotate(45deg);
+.faq-icon::before, .faq-icon::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 14px; height: 2px;
+  background-color: currentColor;
+  transform: translate(-50%, -50%);
+  transition: transform 0.2s ease;
 }
+.faq-icon::after { transform: translate(-50%, -50%) rotate(90deg); }
+.faq-question[aria-expanded="true"] .faq-icon::after { transform: translate(-50%, -50%) rotate(0deg); }
 .faq-answer {
-  padding: 0 var(--sp-lg) var(--sp-md);
+  padding-bottom: var(--sp-lg);
   color: var(--color-text-secondary);
 }
 
-/* Footer CTA */
-.footer-cta {
-  padding: var(--sp-xxl) 1.5rem;
-}
-.cta-title {
-  font-size: var(--fs-h2);
-}
+/* --- Footer CTA --- */
+.cta-title { font-size: var(--fs-h2); }
 .cta-subtitle {
   font-size: var(--fs-large);
-  color: var(--color-text-secondary);
   max-width: 600px;
   margin: var(--sp-md) auto var(--sp-lg);
 }
 
-/* =================================== */
-/* === AJUSTES DE RESPONSIVIDADE === */
-/* =================================== */
-@media (min-width: 769px) {
-  .carousel-control { display: flex; }
-  .timeline-step { width: 50%; }
-  .timeline-step:not(.timeline-step-even) { padding-right: var(--sp-xl); justify-content: flex-end; }
-  .timeline-step-even { align-self: flex-end; padding-left: var(--sp-xl); }
-  .timeline-marker-container { position: absolute; top: 0; left: 100%; transform: translateX(-50%); }
-  .timeline-step-even .timeline-marker-container { left: auto; right: 100%; transform: translateX(50%); }
-  .timeline-content { text-align: right; }
-  .timeline-step-even .timeline-content { text-align: left; }
-  .pricing-grid { grid-template-columns: repeat(3, 1fr); }
-}
-
+/* --- Responsividade --- */
 @media (max-width: 768px) {
-  .section { padding: 3rem 1rem; }
-  
-  /* CORREÇÃO APLICADA: Tipografia responsiva */
-  .title { font-size: calc(var(--fs-h5)); }
-  .hero-title { font-size: calc(var(--fs-h1) * 0.85); line-height: 1.3; }
-  .hero-subtitle { font-size: var(--fs-base); }
-  .section-title-global { font-size: calc(var(--fs-h2) * 0.9); }
-
-  /* Timeline em coluna única */
-  .timeline::before { display: none; }
-  .timeline-step, .timeline-step-even {
-    width: 100%;
-    margin-left: 0; padding: 0;
-    flex-direction: row;
-  }
-  .timeline-marker-container {
-    position: static; transform: none;
-    margin-right: var(--sp-md);
-    padding-top: var(--sp-xs); /* Alinhamento vertical do marcador */
-  }
-  .timeline-content {
-    text-align: left;
-    padding: var(--sp-md);
-  }
-
-  .pricing-grid { grid-template-columns: 1fr; }
-
-  .cta-title { font-size: calc(var(--fs-h2) * 0.9); }
-  .footer-cta-button { width: 90%; max-width: 320px; }
+  .section { padding: 4rem 1rem; }
+  .section-header { margin-bottom: var(--sp-xl); }
+  .timeline::before { left: 24px; }
+  .timeline-step { padding-left: 60px; }
+  .timeline-marker { width: 48px; height: 48px; left: 0; }
 }
 </style>

@@ -2,198 +2,131 @@
   <div>
     <header class="header" role="banner">
       <div class="header-container container">
-        <h1 class="logo" tabindex="0" @click="goHome" @keydown.enter="goHome">AnimalTracking</h1>
+        <div class="header-left">
+          <h1 class="logo" @click="navigateTo('/')">AnimalTracking</h1>
+        </div>
 
-        <button 
-          class="hamburger-menu-button" 
-          @click="toggleMobileMenu" 
-          :aria-expanded="isMobileMenuOpen.toString()"
-          aria-label="Abrir menu de navegação"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="28" height="28">
-            <path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z"/>
-          </svg>
-        </button>
-
-        <nav class="nav nav-desktop" aria-label="Main navigation">
+        <nav class="nav-desktop" aria-label="Navegação Principal">
           <ul class="nav-list">
             <li v-for="link in navLinks" :key="link.id">
-              <a @click.prevent="handleLink(link)" :class="{ active: activeSection === link.id }" tabindex="0">
-                {{ link.label }}
-              </a>
+              <a @click.prevent="handleLink(link)">{{ link.label }}</a>
             </li>
           </ul>
         </nav>
 
-        <div class="user-icon-wrapper" ref="userMenuWrapper">
-          <img
-            src="https://img.icons8.com/ios-glyphs/30/000000/user--v1.png"
-            alt="Menu de usuário"
-            tabindex="0"
-            @click.stop="onUserIconClick" @keydown.enter.prevent="onUserIconClick"
-            class="user-avatar-icon"
-          />
-          <ul v-if="showMenu" class="user-menu card" @click.stop>
-            <li v-if="isAuthenticated && userProfile.username" class="user-menu-greeting">
-                Olá, {{ userProfile.username }}
-            </li>
-            
-            <li v-if="showUserDashboardLink" @click="navigateTo('/dashboard')">Dashboard</li>
-            <li v-if="showAdminPageLink" @click="navigateTo('/admin')">Admin Page</li>
+        <div class="header-right">
+          <div class="user-icon-wrapper" ref="userMenuWrapper">
+            <button @click.stop="onUserIconClick" class="user-avatar-button" aria-label="Menu de utilizador">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </button>
+            <transition name="fade">
+              <ul v-if="showMenu" class="user-menu card" @click.stop>
+                <template v-if="auth.isAuthenticated">
+                  <li class="user-menu-greeting">Olá, {{ auth.user.username }}</li>
+                  <li v-if="showUserDashboardLink" @click="navigateTo('/dashboard')">Meu Dashboard</li>
+                  <li v-if="showAdminPageLink" @click="navigateTo('/admin')">Painel Admin</li>
+                  <li class="user-menu-divider"></li>
+                  <li @click="triggerOpenUserModal('profile')">Gerir Perfil</li>
+                  <li @click="triggerLogout">Sair</li>
+                </template>
+                <template v-else>
+                    <li @click="navigateTo('/login')">Login</li>
+                    <li @click="navigateTo('/register')">Cadastre-se</li>
+                </template>
+              </ul>
+            </transition>
+          </div>
 
-            <li v-if="isAuthenticated" class="user-menu-divider"></li>
-
-            <li v-if="isAuthenticated" @click="triggerOpenUserModal('profile')">Perfil</li>
-            <li v-if="isAuthenticated" @click="triggerOpenUserModal('settings')">Configurações</li>
-            <li v-if="isAuthenticated" @click="triggerLogout">Sair</li>
-          </ul>
+          <button class="hamburger-button" @click="toggleMobileMenu" aria-label="Abrir menu">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+          </button>
         </div>
       </div>
     </header>
-
-    <nav class="nav nav-mobile" :class="{ 'is-open': isMobileMenuOpen }">
-      <button class="close-menu-button" @click="toggleMobileMenu" aria-label="Fechar menu de navegação">
-        &times;
-      </button>
-      <ul class="nav-list">
-        <li v-for="link in navLinks" :key="link.id">
-          <a @click.prevent="handleLink(link)">{{ link.label }}</a>
-        </li>
+    
+    <nav class="nav-mobile" :class="{ 'is-open': isMobileMenuOpen }">
+      <button class="close-button" @click="toggleMobileMenu" aria-label="Fechar menu">&times;</button>
+      <ul class="nav-mobile-list">
+        <li v-for="link in navLinks" :key="link.id"><a @click.prevent="handleLink(link)">{{ link.label }}</a></li>
       </ul>
     </nav>
-    <div v-if="isMobileMenuOpen" class="mobile-menu-overlay" @click="toggleMobileMenu"></div>
+    <div class="nav-mobile-overlay" v-if="isMobileMenuOpen" @click="toggleMobileMenu"></div>
 
-
-    <div v-if="showUserModal" class="modal-overlay" @click.self="closeUserModal">
-        </div>
-    <NotificationModal
-      :show="notification.show"
-      :message="notification.message"
-      :type="notification.type"
-      @close="closeNotification"
-    />
-  </div>
+    </div>
 </template>
 
 <script>
-// A lógica do componente permanece a mesma, pois os computed properties já faziam o trabalho necessário.
-import { getUserProfile, updateUserProfile } from '@/services/userService';
-import { logout as userLogout } from '@/services/authService';
-import NotificationModal from '@/components/NotificationModal.vue';
+// A lógica JS com a store continua a ser a mais eficiente
+import { auth, logout } from '@/stores/authStore';
 import { ROLE_ID_MAP } from '@/utils/constants';
+// Os outros imports (modal, etc.) devem ser adicionados se ainda os usar aqui
 
 export default {
   name: 'AppHeader',
-  components: {
-    NotificationModal
-  },
   data() {
     return {
+      auth,
       isMobileMenuOpen: false,
       navLinks: [
         { id: 'benefits', label: 'Benefícios', href: '#benefits' },
         { id: 'details', label: 'Como Funciona', href: '#details' },
         { id: 'plans', label: 'Cobrança', href: '#plans' },
         { id: 'faq', label: 'FAQ', href: '#faq' },
-        { id: 'auditoria', label: 'Auditoria', href: '/search-blockchain' }
+        { id: 'auditoria', label: 'Auditoria', href: '/search-blockchain' },
       ],
-      activeSection: '',
       showMenu: false,
-      isAuthenticated: false,
-      userProfile: {},
-      showUserModal: false,
-      activeModalTab: 'profile',
-      editMode: false,
-      profileForm: {},
-      observer: null,
-      notification: { show: false, message: '', type: 'success' }
+      // ... outros dados como showUserModal, etc.
     };
   },
   computed: {
     userRoles() {
-      if (!this.isAuthenticated || !this.userProfile.roles || !Array.isArray(this.userProfile.roles)) return [];
-      return this.userProfile.roles.map(userRoleObject => ROLE_ID_MAP[userRoleObject.role]).filter(Boolean);
+      if (!this.auth.isAuthenticated || !this.auth.user?.roles) return [];
+      return this.auth.user.roles.map(r => ROLE_ID_MAP[r.role]).filter(Boolean);
     },
-    currentUserRoleNames() {
-      if (!this.userRoles.length) return [];
-      return this.userRoles.map(name => name.charAt(0).toUpperCase() + name.slice(1));
-    },
-    showUserDashboardLink() {
-      return this.isAuthenticated && this.userRoles.includes('Usuário');
-    },
-    showAdminPageLink() {
-      return this.isAuthenticated && (this.userRoles.includes('Administrador') || this.userRoles.includes('Gerente'));
-    }
+    showUserDashboardLink() { return this.auth.isAuthenticated && this.userRoles.includes('Usuário'); },
+    showAdminPageLink() { return this.auth.isAuthenticated && this.userRoles.includes('Administrador'); }
   },
   methods: {
     toggleMobileMenu() { this.isMobileMenuOpen = !this.isMobileMenuOpen; },
-    goHome() { this.$router.push('/'); this.isMobileMenuOpen = false; },
     navigateTo(path) {
       this.showMenu = false;
       this.isMobileMenuOpen = false;
-      this.closeUserModal();
-      if (this.$route.path !== path) {
-        this.$router.push(path).catch(err => {
-            if (err.name !== 'NavigationDuplicated') console.error('Erro de navegação:', err);
-        });
-      }
+      if (this.$route.path !== path) this.$router.push(path);
     },
     handleLink(link) {
       this.isMobileMenuOpen = false;
       if (link.href.startsWith('#')) {
-        if (this.$route.path === '/') { this.scrollToSection(link.id); } else { this.$router.push({ path: '/', hash: link.href }); }
+        if (this.$route.path === '/') this.scrollToSection(link.id);
+        else this.$router.push({ path: '/', hash: link.href });
       } else {
         this.navigateTo(link.href);
       }
     },
     onUserIconClick() {
-      if (!this.isAuthenticated) {
-        this.navigateTo('/login');
-      } else {
-        this.showMenu = !this.showMenu;
-      }
+      this.showMenu = !this.showMenu;
     },
     handleDocumentClick(e) {
       if (this.showMenu && this.$refs.userMenuWrapper && !this.$refs.userMenuWrapper.contains(e.target)) {
         this.showMenu = false;
       }
     },
-    async fetchUserProfile() {
-      try {
-        const profile = await getUserProfile();
-        this.userProfile = profile;
-        this.isAuthenticated = true;
-      } catch (error) {
-        this.isAuthenticated = false;
-        this.userProfile = {};
-      }
-    },
-    triggerOpenUserModal(tab) {
+    async triggerLogout() {
       this.showMenu = false;
-      this.openUserModal(tab);
+      await logout();
+      if (this.$route.meta.requiresAuth) this.$router.push('/');
     },
-    triggerLogout() {
-      this.showMenu = false;
-      this.onLogout();
+    scrollToSection(id) {
+      this.$nextTick(() => {
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      });
     },
-    openUserModal(tab = 'profile') {
-      if (!this.isAuthenticated) return;
-      this.activeModalTab = tab;
-      this.editMode = false;
-      this.profileForm = { ...this.userProfile };
-      this.showUserModal = true;
-    },
-    closeUserModal() { this.showUserModal = false; },
-    // ... restante dos seus métodos
+    // ... seus outros métodos (triggerOpenUserModal, etc)
   },
   watch: {
-    '$route'() {
-      this.isMobileMenuOpen = false;
-      this.closeUserModal();
-    }
+    '$route'() { this.isMobileMenuOpen = false; }
   },
   mounted() {
-    this.fetchUserProfile();
     document.addEventListener('click', this.handleDocumentClick);
   },
   beforeUnmount() {
@@ -206,195 +139,156 @@ export default {
 .header {
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
-  border-bottom: var(--border-width) solid var(--color-border-light);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--gray-300);
   position: sticky;
   top: 0;
   z-index: var(--zindex-sticky);
 }
-
 .header-container {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: var(--sp-sm);
-  padding-bottom: var(--sp-sm);
+  padding-top: var(--sp-md);
+  padding-bottom: var(--sp-md);
+}
+.header-left, .header-right {
+  display: flex;
+  align-items: center;
   gap: var(--sp-md);
 }
-
 .logo {
   font-family: var(--font-heading);
   font-size: var(--fs-h4);
   color: var(--color-primary);
   font-weight: var(--fw-bold);
   cursor: pointer;
-  text-decoration: none;
-  flex-shrink: 0;
 }
-
+.nav-desktop {
+  margin: 0 auto;
+}
 .nav-list {
   display: flex;
   list-style: none;
-  gap: var(--sp-sm);
-  align-items: center;
+  gap: var(--sp-lg);
   margin: 0;
   padding: 0;
 }
 .nav-list a {
   color: var(--color-text-secondary);
-  text-decoration: none;
-  transition: var(--transition-fast);
-  padding: var(--sp-xs) var(--sp-sm);
-  border-radius: var(--border-radius-sm);
-  font-weight: var(--fw-medium);
-  cursor: pointer;
-  white-space: nowrap;
-}
-.nav-list a:hover,
-.nav-list a.active {
-  color: var(--color-primary);
-  background-color: var(--color-primary-light);
-}
-.nav-dashboard-link {
-  margin-left: var(--sp-sm);
-}
-
-.user-icon-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-.user-avatar-icon {
-  width: 36px;
-  height: 36px;
-  cursor: pointer;
-  border-radius: var(--border-radius-pill);
-  transition: var(--transition-fast);
-}
-.user-avatar-icon:hover, .user-avatar-icon:focus-visible {
-  box-shadow: 0 0 0 3px var(--color-primary-light);
-}
-.user-menu {
-  position: absolute;
-  top: calc(100% + var(--sp-sm));
-  right: 0;
-  list-style: none;
-  padding: var(--sp-xs) 0;
-  min-width: 220px;
-  z-index: var(--zindex-dropdown);
-}
-.user-menu-greeting {
-  padding: var(--sp-sm) var(--sp-md);
+  padding-bottom: 4px;
+  border-bottom: 2px solid transparent;
   font-weight: var(--fw-semibold);
-  color: var(--color-text-muted);
-  border-bottom: var(--border-width) solid var(--color-border-light);
-  margin-bottom: var(--sp-xs);
-}
-.user-menu li:not(.user-menu-greeting) {
-  padding: var(--sp-sm) var(--sp-md);
   cursor: pointer;
-  transition: var(--transition-fast);
+  transition: all var(--transition-fast);
+  text-decoration: none;
 }
-.user-menu li:not(.user-menu-greeting):hover {
-  background-color: var(--color-primary);
-  color: var(--color-text-inverted);
+.nav-list a:hover {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
 }
 
-/* Esconde o botão hambúrguer e o botão de fechar em telas grandes */
-.hamburger-menu-button, .close-menu-button {
-  display: none;
+.user-avatar-button {
   background: none;
   border: none;
+  padding: 0;
   cursor: pointer;
+  color: var(--gray-700);
+}
+.user-avatar-button:hover {
+  color: var(--color-primary);
 }
 
-/* Responsividade */
+.user-icon-wrapper { position: relative; }
+.user-menu {
+  position: absolute;
+  top: calc(100% + var(--sp-md));
+  right: 0;
+  width: 240px;
+  z-index: var(--zindex-dropdown);
+  padding: var(--sp-xs) 0;
+}
+.user-menu li {
+  padding: var(--sp-sm) var(--sp-md);
+  cursor: pointer;
+  font-weight: var(--fw-medium);
+  list-style: none;
+}
+.user-menu li:hover {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+}
+.user-menu-greeting {
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-muted);
+  cursor: default;
+}
+.user-menu-greeting:hover {
+    background: none !important;
+    color: var(--color-text-muted) !important;
+}
+.user-menu-divider {
+  height: 1px;
+  background-color: var(--color-border);
+  margin: var(--sp-xs) 0;
+  padding: 0 !important;
+}
+.user-menu-divider:hover {
+    background-color: var(--color-border) !important;
+}
+
+/* --- Mobile --- */
+.hamburger-button, .nav-mobile, .mobile-menu-overlay, .close-button {
+  display: none;
+}
+
 @media (max-width: 992px) {
-  .nav {
+  .nav-desktop, .user-actions-desktop { display: none; }
+  .hamburger-button {
     display: block;
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 300px;
-    height: 100vh;
-    background-color: var(--color-bg-component);
-    box-shadow: -4px 0px 15px rgba(0,0,0,0.1);
+    background: none; border: none; cursor: pointer;
+    color: var(--color-text-primary);
+  }
+  .nav-mobile {
+    display: flex; flex-direction: column;
+    position: fixed; top: 0; right: 0;
+    width: 300px; max-width: 80vw; height: 100%;
+    background: var(--color-white);
+    box-shadow: -4px 0 15px rgba(0,0,0,0.1);
     transform: translateX(100%);
     transition: transform 0.3s ease-in-out;
-    z-index: calc(var(--zindex-sticky) + 1);
-    padding-top: var(--sp-xxl);
+    z-index: calc(var(--zindex-sticky) + 10);
+    padding: var(--sp-xl);
   }
-
-  .nav.is-open {
-    transform: translateX(0);
+  .nav-mobile.is-open { transform: translateX(0); }
+  .mobile-menu-overlay {
+    display: block; position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: calc(var(--zindex-sticky) + 5);
   }
-  
-  .nav-list {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--sp-sm);
-    padding: var(--sp-lg);
+  .close-button {
+    display: block; position: absolute;
+    top: var(--sp-md); right: var(--sp-md);
+    font-size: 2.5rem; color: var(--color-text-secondary);
+    background: none; border: none; cursor: pointer;
   }
-  
-  .nav-list a {
-    font-size: var(--fs-large);
-    width: 100%;
-    display: block;
+  .nav-mobile-list {
+    list-style: none; padding: 0;
+    margin-top: var(--sp-xl);
   }
-  
-  .nav-dashboard-link {
-    margin-left: 0;
-    margin-top: var(--sp-md);
-    text-align: center;
-  }
-
-  .hamburger-menu-button {
-    display: block;
-    z-index: calc(var(--zindex-sticky) + 2);
-  }
-
-  .close-menu-button {
-    display: block;
-    position: absolute;
-    top: var(--sp-md);
-    right: var(--sp-md);
-    font-size: 2.5rem;
-    color: var(--color-text-secondary);
-  }
-  
-  /* Esconde a navegação desktop tradicional */
-  .header-container > .nav .nav-list {
-      display: none;
-  }
-
-  /* Mostra a lista dentro do painel mobile */
-  .nav.is-open .nav-list {
-      display: flex;
+  .nav-mobile-list li a {
+    display: block; padding: var(--sp-md) 0;
+    font-size: var(--fs-large); color: var(--color-text-primary);
+    text-decoration: none; font-weight: var(--fw-medium);
   }
 }
 
-/* Estilos de Modal e Notificação... */
-.modal-overlay {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(0, 0, 0, 0.65);
-  display: flex; align-items: center; justify-content: center;
-  z-index: var(--zindex-modal-backdrop);
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
-.modal-content {
-  background-color: var(--color-bg-component);
-  padding: var(--sp-lg);
-  border-radius: var(--border-radius-lg);
-  width: 90%;
-  max-width: 650px;
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
 }
-.modal-header {
-  display: flex; justify-content: space-between; align-items: center;
-  padding-bottom: var(--sp-md); margin-bottom: var(--sp-md);
-  border-bottom: var(--border-width) solid var(--color-border);
-}
-.modal-title-text { font-size: var(--fs-h4); margin: 0; }
-.button-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
-.modal-tabs { display: flex; border-bottom: 1px solid var(--color-border); margin-bottom: var(--sp-lg); }
-.modal-tab { flex: 1; padding: var(--sp-sm) 0; border: none; background: none; cursor: pointer; border-bottom: 3px solid transparent; color: var(--color-text-muted); }
-.modal-tab.active { border-bottom-color: var(--color-primary); color: var(--color-text-primary); font-weight: var(--fw-semibold); }
-.modal-actions { display: flex; justify-content: flex-end; gap: var(--sp-sm); margin-top: var(--sp-lg); }
 </style>

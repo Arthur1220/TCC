@@ -1,42 +1,54 @@
-// src/stores/authStore.js
 import { reactive } from 'vue';
 import { getUserProfile } from '@/services/userService';
+import { logout as apiLogout } from '@/services/authService';
 
-// O nosso repositório de estado reativo.
-// Começa como indefinido, para sabermos que ainda não verificámos.
-export const authStore = reactive({
+// CORREÇÃO: Renomeado para 'auth' e exportado diretamente para consistência
+export const auth = reactive({
   user: null,
   isAuthenticated: false,
-  isStateKnown: false, // <-- A nossa nova flag de controlo
+  // Flag para saber se a verificação inicial já foi feita
+  hasBeenChecked: false, 
 });
 
-// A nossa ação para inicializar o estado
-export async function initializeAuth() {
-  // Se já conhecemos o estado, não fazemos nada.
-  if (authStore.isStateKnown) {
-    return;
-  }
+let authCheckPromise = null;
 
-  try {
-    // Faz a chamada à API APENAS UMA VEZ.
-    const userProfile = await getUserProfile();
-    authStore.user = userProfile;
-    authStore.isAuthenticated = true;
-    console.log("%c[AuthStore] Estado inicializado: Utilizador AUTENTICADO", 'color: #28a745');
-  } catch (error) {
-    // Se falhar, sabemos que não está autenticado.
-    authStore.user = null;
-    authStore.isAuthenticated = false;
-    console.warn("[AuthStore] Estado inicializado: Utilizador NÃO AUTENTICADO");
-  } finally {
-    // Marcamos que o estado já é conhecido, para que esta função não volte a fazer a chamada à API.
-    authStore.isStateKnown = true;
+// Função para verificar a autenticação, mas só quando necessário
+export function checkAuthentication() {
+  // Se já sabemos que o utilizador está autenticado, não fazemos nada
+  if (auth.isAuthenticated) return Promise.resolve(true);
+  // Se já fizemos a verificação e falhou, não fazemos nada
+  if (auth.hasBeenChecked) return Promise.resolve(false);
+
+  // Evita múltiplas chamadas à API em simultâneo
+  if (!authCheckPromise) {
+    authCheckPromise = getUserProfile()
+      .then(userProfile => {
+        auth.user = userProfile;
+        auth.isAuthenticated = true;
+        return true;
+      })
+      .catch(() => {
+        auth.user = null;
+        auth.isAuthenticated = false;
+        return false;
+      })
+      .finally(() => {
+        auth.hasBeenChecked = true;
+        authCheckPromise = null;
+      });
   }
+  return authCheckPromise;
 }
 
-// Ação para limpar o estado no logout
-export function clearAuth() {
-    authStore.user = null;
-    authStore.isAuthenticated = false;
-    authStore.isStateKnown = true; // Já sabemos o estado (não logado)
+// Ação de logout que limpa o estado
+export async function logout() {
+  try {
+    await apiLogout();
+  } catch (error) {
+    console.error("Erro no logout do servidor, limpando localmente:", error);
+  } finally {
+    auth.user = null;
+    auth.isAuthenticated = false;
+    auth.hasBeenChecked = true; // Já sabemos o estado (não logado)
+  }
 }
