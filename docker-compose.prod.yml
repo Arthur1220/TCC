@@ -12,8 +12,11 @@ services:
       - DJANGO_SUPERUSER_EMAIL=admin@example.com
       - DJANGO_SUPERUSER_PASSWORD=admin # Troque por uma senha segura
     depends_on:
-      - blockchain
-      - db # Garante que o backend só inicie depois do banco
+      # MUDANÇA IMPORTANTE ABAIXO
+      blockchain:
+        condition: service_healthy # Agora espera o healthcheck passar
+      db:
+        condition: service_healthy # Adicionado para o banco de dados também
 
   frontend:
     build:
@@ -32,14 +35,25 @@ services:
       - hardhat_data:/data
     ports:
       - "8545:8545"
+    # SEÇÃO HEALTHCHECK ADICIONADA ABAIXO
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8545"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # Serviço do banco de dados que estava faltando
   db:
     image: postgres:15
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
       - ./.env
+    # SEÇÃO HEALTHCHECK ADICIONADA ABAIXO
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   hardhat_data: {}
