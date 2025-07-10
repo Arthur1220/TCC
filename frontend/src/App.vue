@@ -1,4 +1,14 @@
 <template>
+  <Teleport to="body">
+    <transition name="fade">
+      <LoadingSpinner 
+        v-if="uiState.isLoading" 
+        :message="uiState.message"
+        :is-error="uiState.isError"
+      />
+    </transition>
+  </Teleport>
+
   <router-view v-slot="{ Component }">
     <transition name="page" mode="out-in">
       <component :is="Component" />
@@ -7,19 +17,29 @@
 </template>
 
 <script>
+import LoadingSpinner from '@/components/LoadingSpinner.vue';
+import { uiState } from '@/stores/uiStore.js';
+
 export default {
-  name: 'App'
+  name: 'App',
+  components: {
+    LoadingSpinner
+  },
+  setup() {
+    // Expõe o estado da UI para o template
+    return { uiState };
+  }
 }
 </script>
 
 <style>
-/* duração de 300ms para casar com o delay do guard */
-.page-enter-active,
-.page-leave-active {
+/* ... (Seus estilos globais, incluindo as transições .page e .fade) ... */
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity 0.3s ease;
 }
-.page-enter-from,
-.page-leave-to {
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
 }
 </style>

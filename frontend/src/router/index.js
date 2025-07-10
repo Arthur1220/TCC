@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { auth, checkAuthentication } from '@/stores/authStore';
+import { showLoader, hideLoader, showError } from '@/stores/uiStore';
 import { ROLE_ID_MAP } from '@/utils/constants'; 
 
 const routes = [
@@ -46,6 +47,8 @@ const router = createRouter({
 
 // GUARDA DE NAVEGAÇÃO OTIMIZADO E CORRIGIDO
 router.beforeEach(async (to, from, next) => {
+  // Mostra o spinner antes de cada navegação
+  showLoader('A carregar página...');
   const requiresAuth = to.matched.some(r => r.meta.requiresAuth);
   const guestOnly = to.matched.some(r => r.meta.guestOnly);
 
@@ -80,6 +83,24 @@ router.beforeEach(async (to, from, next) => {
 
   // Para todas as outras rotas públicas, permite o acesso imediato.
   return next();
+});
+
+router.afterEach(() => {
+  // Esconde o spinner após a navegação ser concluída com sucesso
+  hideLoader();
+});
+
+// Manipulador de erros de navegação
+router.onError(error => {
+  console.error("Erro na navegação do Router:", error);
+  
+  // Mostra uma mensagem de erro no spinner
+  showError('Ocorreu um erro ao carregar a página. A redirecionar...');
+  
+  // Redireciona para a página inicial após mostrar o erro
+  setTimeout(() => {
+    router.push('/');
+  }, 4000); 
 });
 
 export default router;
