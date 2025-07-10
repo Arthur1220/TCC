@@ -45,62 +45,64 @@ const router = createRouter({
   routes,
 });
 
-// GUARDA DE NAVEGAÇÃO OTIMIZADO E CORRIGIDO
 router.beforeEach(async (to, from, next) => {
-  // Mostra o spinner antes de cada navegação
-  showLoader('A carregar página...');
   const requiresAuth = to.matched.some(r => r.meta.requiresAuth);
   const guestOnly = to.matched.some(r => r.meta.guestOnly);
 
-  // Se a rota requer autenticação, esta é a única vez que esperamos pela verificação.
-  if (requiresAuth) {
+  // Se a rota não precisa de verificação, continua imediatamente.
+  if (!requiresAuth && !guestOnly) {
+    return next();
+  }
+
+  // Mostra o spinner porque sabemos que uma verificação será necessária.
+  showLoader('A verificar credenciais...');
+  
+  try {
     await checkAuthentication();
-    
-    if (auth.isAuthenticated) {
-      // Lógica de permissões (roles)
-      const requiredRoles = to.meta.roles;
-      if (requiredRoles && requiredRoles.length > 0) {
-        const userRoles = auth.user.roles.map(r => ROLE_ID_MAP[r.role]).filter(Boolean);
-        const hasRequiredRole = userRoles.some(userRole => requiredRoles.includes(userRole));
-        
-        // Se o utilizador não tiver a permissão, redireciona para uma página segura (ex: landing page)
-        return hasRequiredRole ? next() : next({ name: 'LandingPage' });
+
+    if (requiresAuth) {
+      if (auth.isAuthenticated) {
+        // Lógica de permissões (roles)
+        const requiredRoles = to.meta.roles;
+        if (requiredRoles && requiredRoles.length > 0) {
+          const userRoles = auth.user.roles.map(r => ROLE_ID_MAP[r.role]).filter(Boolean);
+          const hasRequiredRole = userRoles.some(userRole => requiredRoles.includes(userRole));
+          return hasRequiredRole ? next() : next({ name: 'LandingPage' });
+        }
+        return next();
+      } else {
+        return next({ name: 'Login', query: { redirect: to.fullPath } });
       }
-      return next(); // Permissão OK
-    } else {
-      // Se não estiver autenticado, redireciona para o login
-      return next({ name: 'Login', query: { redirect: to.fullPath } });
     }
-  }
 
-  // Para rotas de convidado, verificamos a autenticação para redirecionar se já estiver logado.
-  if (guestOnly) {
-    await checkAuthentication();
-    if (auth.isAuthenticated) {
-      return next({ name: 'DashboardPage' }); // Redireciona para o painel principal
+    if (guestOnly) {
+      if (auth.isAuthenticated) {
+        return next({ name: 'DashboardPage' });
+      }
     }
-  }
 
-  // Para todas as outras rotas públicas, permite o acesso imediato.
-  return next();
+    return next();
+
+  } catch (error) {
+    console.error("Erro durante a verificação de autenticação no router:", error);
+    showError('Erro de conexão. A redirecionar...');
+    // Redireciona para a home em caso de erro na verificação
+    setTimeout(() => {
+        router.push('/');
+    }, 3000);
+  }
 });
 
+// O afterEach é crucial para esconder o spinner após a navegação bem-sucedida.
 router.afterEach(() => {
-  // Esconde o spinner após a navegação ser concluída com sucesso
   hideLoader();
 });
 
-// Manipulador de erros de navegação
+// O onError já está a ser tratado dentro do bloco try/catch do beforeEach,
+// mas pode ser mantido como uma segurança extra.
 router.onError(error => {
-  console.error("Erro na navegação do Router:", error);
-  
-  // Mostra uma mensagem de erro no spinner
-  showError('Ocorreu um erro ao carregar a página. A redirecionar...');
-  
-  // Redireciona para a página inicial após mostrar o erro
-  setTimeout(() => {
-    router.push('/');
-  }, 4000); 
+    console.error("Erro fatal na navegação:", error);
+    showError('Ocorreu um erro inesperado.', 5000);
 });
 
 export default router;
