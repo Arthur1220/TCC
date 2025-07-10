@@ -187,8 +187,9 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 80vh;
+  min-height: 90vh;
   position: relative;
+  background: linear-gradient(135deg, rgba(26, 115, 232, 0.9), rgba(29, 83, 162, 0.95)), url('@/assets/farm-background.jpg') no-repeat center center;
 }
 .hero-background {
   position: absolute;
@@ -199,6 +200,7 @@ export default {
 .hero-title {
   font-size: var(--fs-h1);
   font-weight: var(--fw-black);
+  color: var(--color-white);
   line-height: 1.1;
   margin-bottom: var(--sp-md);
   text-shadow: 0 2px 10px rgba(0,0,0,0.2);
@@ -206,6 +208,9 @@ export default {
 .hero-subtitle {
   font-size: var(--fs-large);
   margin-bottom: var(--sp-xl);
+  color: var(--color-white);
+  opacity: 0.9;
+  line-height: 1.6;
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
