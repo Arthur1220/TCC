@@ -45,10 +45,10 @@
     </header>
     
     <nav class="nav-mobile" :class="{ 'is-open': isMobileMenuOpen }">
-      <button class="close-button" @click="toggleMobileMenu" aria-label="Fechar menu">&times;</button>
-      <ul class="nav-mobile-list">
-        <li v-for="link in navLinks" :key="link.id"><a @click.prevent="handleLink(link)">{{ link.label }}</a></li>
-      </ul>
+        <button class="close-button" @click="toggleMobileMenu" aria-label="Fechar menu">&times;</button>
+        <ul class="nav-mobile-list">
+            <li v-for="link in navLinks" :key="link.id"><a @click.prevent="handleLink(link)">{{ link.label }}</a></li>
+        </ul>
     </nav>
     <div class="nav-mobile-overlay" v-if="isMobileMenuOpen" @click="toggleMobileMenu"></div>
 
@@ -56,10 +56,8 @@
 </template>
 
 <script>
-// A lógica JS com a store continua a ser a mais eficiente
 import { auth, logout } from '@/stores/authStore';
 import { ROLE_ID_MAP } from '@/utils/constants';
-// Os outros imports (modal, etc.) devem ser adicionados se ainda os usar aqui
 
 export default {
   name: 'AppHeader',
@@ -75,7 +73,6 @@ export default {
         { id: 'auditoria', label: 'Auditoria', href: '/search-blockchain' },
       ],
       showMenu: false,
-      // ... outros dados como showUserModal, etc.
     };
   },
   computed: {
@@ -102,9 +99,7 @@ export default {
         this.navigateTo(link.href);
       }
     },
-    onUserIconClick() {
-      this.showMenu = !this.showMenu;
-    },
+    onUserIconClick() { this.showMenu = !this.showMenu; },
     handleDocumentClick(e) {
       if (this.showMenu && this.$refs.userMenuWrapper && !this.$refs.userMenuWrapper.contains(e.target)) {
         this.showMenu = false;
@@ -121,7 +116,11 @@ export default {
         if (el) el.scrollIntoView({ behavior: 'smooth' });
       });
     },
-    // ... seus outros métodos (triggerOpenUserModal, etc)
+    triggerOpenUserModal(tab) {
+        this.showMenu = false;
+        // Aqui você pode emitir um evento para a App.vue ou usar uma store para abrir o modal de perfil
+        console.log(`Abrir modal de perfil na aba: ${tab}`);
+    },
   },
   watch: {
     '$route'() { this.isMobileMenuOpen = false; }
@@ -136,8 +135,9 @@ export default {
 </script>
 
 <style scoped>
+/* Estilos Base do Header */
 .header {
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--gray-300);
@@ -164,8 +164,11 @@ export default {
   font-weight: var(--fw-bold);
   cursor: pointer;
 }
+
+/* Navegação Desktop */
 .nav-desktop {
   margin: 0 auto;
+  padding: 0 var(--sp-lg);
 }
 .nav-list {
   display: flex;
@@ -194,9 +197,11 @@ export default {
   padding: 0;
   cursor: pointer;
   color: var(--gray-700);
+  border-radius: 50%;
 }
-.user-avatar-button:hover {
+.user-avatar-button:hover, .user-avatar-button:focus-visible {
   color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
 }
 
 .user-icon-wrapper { position: relative; }
@@ -214,7 +219,7 @@ export default {
   font-weight: var(--fw-medium);
   list-style: none;
 }
-.user-menu li:hover {
+.user-menu li:not(.user-menu-greeting):not(.user-menu-divider):hover {
   background-color: var(--color-primary);
   color: var(--color-white);
 }
@@ -223,15 +228,12 @@ export default {
   color: var(--color-text-muted);
   cursor: default;
 }
-.user-menu-greeting:hover {
-    background: none !important;
-    color: var(--color-text-muted) !important;
-}
 .user-menu-divider {
   height: 1px;
   background-color: var(--color-border);
   margin: var(--sp-xs) 0;
   padding: 0 !important;
+  cursor: default;
 }
 .user-menu-divider:hover {
     background-color: var(--color-border) !important;
@@ -243,11 +245,9 @@ export default {
 }
 
 @media (max-width: 992px) {
-  .nav-desktop, .user-actions-desktop { display: none; }
+  .nav-desktop { display: none; }
   .hamburger-button {
     display: block;
-    background: none; border: none; cursor: pointer;
-    color: var(--color-text-primary);
   }
   .nav-mobile {
     display: flex; flex-direction: column;
@@ -271,7 +271,6 @@ export default {
     display: block; position: absolute;
     top: var(--sp-md); right: var(--sp-md);
     font-size: 2.5rem; color: var(--color-text-secondary);
-    background: none; border: none; cursor: pointer;
   }
   .nav-mobile-list {
     list-style: none; padding: 0;
@@ -280,7 +279,6 @@ export default {
   .nav-mobile-list li a {
     display: block; padding: var(--sp-md) 0;
     font-size: var(--fs-large); color: var(--color-text-primary);
-    text-decoration: none; font-weight: var(--fw-medium);
   }
 }
 
