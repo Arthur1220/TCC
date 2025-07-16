@@ -2,7 +2,7 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile-dev
     env_file:
       - ./.env
     volumes:
@@ -33,7 +33,7 @@ services:
 
   blockchain:
     build:
-      context: .                    # antes era ./blockchain
+      context: .
       dockerfile: blockchain/Dockerfile    
     env_file:
       - ./.env
@@ -43,5 +43,4 @@ services:
       - "8545:8545"
 
 volumes:
-  postgres_data:
   hardhat_data: {}
